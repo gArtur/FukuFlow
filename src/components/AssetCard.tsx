@@ -15,12 +15,11 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
 interface AssetCardProps {
     asset: Asset;
     persons: Person[];
-    onUpdateValue: (id: string) => void;
-    onEdit: (asset: Asset) => void;
-    onDelete: (id: string) => void;
+    onCardClick: (asset: Asset) => void;
+    onAddSnapshot: (asset: Asset) => void;
 }
 
-export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDelete }: AssetCardProps) {
+export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }: AssetCardProps) {
     const { formatAmount } = usePrivacy();
 
     const gain = asset.currentValue - asset.purchaseAmount;
@@ -29,11 +28,9 @@ export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDel
         : '0';
     const isPositive = gain >= 0;
 
-    // Find person name
     const owner = persons.find(p => p.id === asset.ownerId);
     const ownerName = owner?.name || 'Unknown';
 
-    // Mini sparkline data from value history
     const sparklineData = {
         labels: asset.valueHistory.map((_, i) => i.toString()),
         datasets: [{
@@ -59,8 +56,13 @@ export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDel
         }
     };
 
+    const handleAddSnapshot = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        onAddSnapshot(asset);
+    };
+
     return (
-        <div className="mover-card">
+        <div className="mover-card clickable" onClick={() => onCardClick(asset)}>
             <div className="mover-header">
                 <div className="mover-icon" style={{ background: isPositive ? 'var(--accent-green-glow)' : 'var(--accent-red-glow)' }}>
                     {asset.name.charAt(0)}
@@ -72,6 +74,13 @@ export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDel
                         <span className="mover-owner">{ownerName}</span>
                     </div>
                 </div>
+                <button
+                    className="snapshot-btn"
+                    onClick={handleAddSnapshot}
+                    title="Add Snapshot"
+                >
+                    +
+                </button>
             </div>
 
             <div className="mover-body">
@@ -85,18 +94,6 @@ export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDel
                 <div className="mover-sparkline">
                     <Line data={sparklineData} options={sparklineOptions} />
                 </div>
-            </div>
-
-            <div className="mover-actions">
-                <button className="mover-btn primary" onClick={() => onUpdateValue(asset.id)}>
-                    Update
-                </button>
-                <button className="mover-btn" onClick={() => onEdit(asset)}>
-                    Edit
-                </button>
-                <button className="mover-btn danger" onClick={() => onDelete(asset.id)}>
-                    ×
-                </button>
             </div>
         </div>
     );

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
-import type { Asset, Person } from './types';
+import type { Asset, Person, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import Header from './components/Header';
 import FamilyFilter from './components/FamilyFilter';
@@ -9,10 +9,14 @@ import TotalWorthChart from './components/TotalWorthChart';
 import AllocationChart from './components/AllocationChart';
 import MyMovers from './components/MyMovers';
 import AddAssetModal from './components/AddAssetModal';
-import UpdateValueModal from './components/UpdateValueModal';
+import AddSnapshotModal from './components/AddSnapshotModal';
+import EditSnapshotModal from './components/EditSnapshotModal';
+import InvestmentDetail from './components/InvestmentDetail';
 import PersonManager from './components/PersonManager';
 import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
+
+type ViewState = 'dashboard' | 'detail';
 
 function AppContent() {
   const {
@@ -21,11 +25,11 @@ function AppContent() {
     setSelectedOwner,
     stats,
     addAsset,
-    updateAssetValue,
     deleteAsset,
     updateAsset,
     allAssets,
-    isLoading: assetsLoading
+    isLoading: assetsLoading,
+    refreshAssets
   } = usePortfolio();
 
   const [persons, setPersons] = useState<Person[]>([]);
@@ -47,28 +51,110 @@ function AppContent() {
     fetchPersons();
   }, [fetchPersons]);
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [showPersonManager, setShowPersonManager] = useState(false);
+  // View state management
+  const [currentView, setCurrentView] = useState<ViewState>('dashboard');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-  const [editAsset, setEditAsset] = useState<Asset | null>(null);
 
-  const handleUpdateValue = (id: string) => {
-    const asset = filteredAssets.find(a => a.id === id);
-    if (asset) {
-      setSelectedAsset(asset);
-      setShowUpdateModal(true);
+  // Modal states
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showSnapshotModal, setShowSnapshotModal] = useState(false);
+  const [showEditSnapshotModal, setShowEditSnapshotModal] = useState(false);
+  const [showPersonManager, setShowPersonManager] = useState(false);
+  const [editAsset, setEditAsset] = useState<Asset | null>(null);
+  const [snapshotAsset, setSnapshotAsset] = useState<Asset | null>(null);
+  const [editingSnapshot, setEditingSnapshot] = useState<(ValueEntry & { id: number }) | null>(null);
+
+  // Navigation handlers
+  const handleCardClick = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setCurrentView('detail');
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentView('dashboard');
+    setSelectedAsset(null);
+  };
+
+  // Snapshot handlers
+  const handleAddSnapshot = (asset: Asset) => {
+    setSnapshotAsset(asset);
+    setShowSnapshotModal(true);
+  };
+
+  const handleSubmitSnapshot = async (assetId: string, snapshot: { value: number; date: string; investmentChange: number; notes: string }) => {
+    try {
+      await ApiClient.addSnapshot(assetId, snapshot);
+      await refreshAssets();
+      if (selectedAsset && selectedAsset.id === assetId) {
+        const updatedAssets = await ApiClient.getAssets();
+        const updatedAsset = updatedAssets.find((a: Asset) => a.id === assetId);
+        if (updatedAsset) setSelectedAsset(updatedAsset);
+      }
+    } catch (error) {
+      console.error('Failed to add snapshot:', error);
     }
   };
 
-  const handleEdit = (asset: Asset) => {
-    setEditAsset(asset);
-    setShowAddModal(true);
+  const handleEditSnapshot = (snapshot: ValueEntry & { id: number }) => {
+    setEditingSnapshot(snapshot);
+    setShowEditSnapshotModal(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this investment?')) {
-      deleteAsset(id);
+  const handleUpdateSnapshot = async (id: number, data: { date: string; value: number; investmentChange: number; notes: string }) => {
+    try {
+      await ApiClient.updateSnapshot(id, data);
+      await refreshAssets();
+      if (selectedAsset) {
+        const updatedAssets = await ApiClient.getAssets();
+        const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
+        if (updatedAsset) setSelectedAsset(updatedAsset);
+      }
+    } catch (error) {
+      console.error('Failed to update snapshot:', error);
+    }
+  };
+
+  const handleDeleteSnapshot = async (id: number) => {
+    try {
+      await ApiClient.deleteSnapshot(id);
+      await refreshAssets();
+      if (selectedAsset) {
+        const updatedAssets = await ApiClient.getAssets();
+        const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
+        if (updatedAsset) setSelectedAsset(updatedAsset);
+      }
+    } catch (error) {
+      console.error('Failed to delete snapshot:', error);
+    }
+  };
+
+  const handleImportSnapshots = async (snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => {
+    if (!selectedAsset) return;
+    try {
+      for (const snapshot of snapshots) {
+        await ApiClient.addSnapshot(selectedAsset.id, snapshot);
+      }
+      await refreshAssets();
+      const updatedAssets = await ApiClient.getAssets();
+      const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
+      if (updatedAsset) setSelectedAsset(updatedAsset);
+    } catch (error) {
+      console.error('Failed to import snapshots:', error);
+    }
+  };
+
+  // Edit/Delete handlers
+  const handleEdit = () => {
+    if (selectedAsset) {
+      setEditAsset(selectedAsset);
+      setShowAddModal(true);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (selectedAsset) {
+      await deleteAsset(selectedAsset.id);
+      handleBackToDashboard();
     }
   };
 
@@ -77,6 +163,7 @@ function AppContent() {
     setEditAsset(null);
   };
 
+  // Person management handlers
   const handleAddPerson = async (name: string) => {
     try {
       const newPerson = await ApiClient.addPerson(name);
@@ -87,8 +174,6 @@ function AppContent() {
   };
 
   const handleUpdatePerson = async (id: string, name: string) => {
-    // Note: Backend implementation for updating person name might be needed
-    // or we can just update local state if the API doesn't support it yet
     setPersons(prev => prev.map(p =>
       p.id === id ? { ...p, name: name.trim() } : p
     ));
@@ -135,6 +220,49 @@ function AppContent() {
     );
   }
 
+  // Render Investment Detail View
+  if (currentView === 'detail' && selectedAsset) {
+    return (
+      <div className="app">
+        <InvestmentDetail
+          asset={selectedAsset}
+          persons={persons}
+          onBack={handleBackToDashboard}
+          onAddSnapshot={() => handleAddSnapshot(selectedAsset)}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onEditSnapshot={handleEditSnapshot}
+          onImportSnapshots={handleImportSnapshots}
+        />
+
+        <AddSnapshotModal
+          isOpen={showSnapshotModal}
+          onClose={() => setShowSnapshotModal(false)}
+          asset={snapshotAsset}
+          onSubmit={handleSubmitSnapshot}
+        />
+
+        <EditSnapshotModal
+          isOpen={showEditSnapshotModal}
+          onClose={() => setShowEditSnapshotModal(false)}
+          snapshot={editingSnapshot}
+          onSubmit={handleUpdateSnapshot}
+          onDelete={handleDeleteSnapshot}
+        />
+
+        <AddAssetModal
+          isOpen={showAddModal}
+          onClose={handleCloseAddModal}
+          onSubmit={addAsset}
+          editAsset={editAsset}
+          onUpdate={updateAsset}
+          persons={persons}
+        />
+      </div>
+    );
+  }
+
+  // Render Dashboard View
   return (
     <div className="app">
       <Header
@@ -155,16 +283,15 @@ function AppContent() {
         />
 
         <div className="charts-row">
-          <TotalWorthChart assets={filteredAssets} />
+          <TotalWorthChart assets={filteredAssets} stats={stats} />
           <AllocationChart stats={stats} />
         </div>
 
         <MyMovers
           assets={filteredAssets}
           persons={persons}
-          onUpdateValue={handleUpdateValue}
-          onDelete={handleDelete}
-          onEdit={handleEdit}
+          onCardClick={handleCardClick}
+          onAddSnapshot={handleAddSnapshot}
         />
       </main>
 
@@ -185,11 +312,11 @@ function AppContent() {
         persons={persons}
       />
 
-      <UpdateValueModal
-        isOpen={showUpdateModal}
-        onClose={() => setShowUpdateModal(false)}
-        asset={selectedAsset}
-        onSubmit={updateAssetValue}
+      <AddSnapshotModal
+        isOpen={showSnapshotModal}
+        onClose={() => setShowSnapshotModal(false)}
+        asset={snapshotAsset}
+        onSubmit={handleSubmitSnapshot}
       />
 
       <PersonManager

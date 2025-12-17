@@ -1,5 +1,12 @@
 const API_URL = 'http://localhost:3001/api';
 
+export interface SnapshotData {
+    value: number;
+    date?: string;
+    investmentChange?: number;
+    notes?: string;
+}
+
 export const ApiClient = {
     async getPersons() {
         const response = await fetch(`${API_URL}/persons`);
@@ -42,6 +49,15 @@ export const ApiClient = {
         return response.json();
     },
 
+    async addSnapshot(id: string, snapshot: SnapshotData) {
+        const response = await fetch(`${API_URL}/assets/${id}/snapshot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(snapshot)
+        });
+        return response.json();
+    },
+
     async updateAssetValue(id: string, value: number) {
         const response = await fetch(`${API_URL}/assets/${id}/value`, {
             method: 'POST',
@@ -53,5 +69,18 @@ export const ApiClient = {
 
     async deleteAsset(id: string) {
         await fetch(`${API_URL}/assets/${id}`, { method: 'DELETE' });
+    },
+
+    async deleteSnapshot(id: number) {
+        await fetch(`${API_URL}/snapshots/${id}`, { method: 'DELETE' });
+    },
+
+    async updateSnapshot(id: number, data: { date: string; value: number; investmentChange: number; notes: string }) {
+        const response = await fetch(`${API_URL}/snapshots/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return response.json();
     }
 };

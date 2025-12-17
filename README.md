@@ -1,2 +1,119 @@
-# Wealth-Management
+# WealthFlow - Personal Wealth Management
 
+A modern, elegant personal wealth management dashboard for tracking investments across multiple asset categories and family members.
+
+![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-7-purple) ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
+
+## Features
+
+- 📊 **Portfolio Dashboard** - Visualize total worth with interactive charts
+- 👨‍👩‍👧‍👦 **Multi-Person Support** - Track investments for multiple family members
+- 📈 **Snapshot System** - Record investment values with dates, changes, and notes
+- 📁 **CSV Import/Export** - Bulk import or export snapshot history
+- 🎨 **Dark Mode Design** - Premium, modern UI with glassmorphism effects
+- 🔒 **Privacy Mode** - Hide values while still showing percentage trends
+- 🏷️ **Asset Categories** - Stocks, ETFs, Crypto, Real Estate, Bonds, Cash, Other
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, TypeScript, Vite |
+| Charts | Chart.js, react-chartjs-2 |
+| Backend | Node.js, Express |
+| Database | SQLite3 |
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18 or higher
+- npm or yarn
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd Wealth-Management
+
+# Install frontend dependencies
+npm install
+
+# Install backend dependencies
+cd server
+npm install
+cd ..
+```
+
+### Running the Application
+
+**1. Start the Backend Server:**
+
+```bash
+node server/index.js
+```
+
+The server runs on `http://localhost:3001`
+
+**2. Start the Frontend (in a new terminal):**
+
+```bash
+npm run dev
+```
+
+The app opens at `http://localhost:5173`
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+The build output is in the `dist/` folder.
+
+## Project Structure
+
+```
+Wealth-Management/
+├── server/
+│   ├── index.js        # Express server with SQLite
+│   ├── seed.js         # Sample data seeder
+│   └── wealth.db       # SQLite database (auto-created)
+├── src/
+│   ├── components/     # React components
+│   ├── contexts/       # React contexts (Privacy)
+│   ├── hooks/          # Custom hooks (usePortfolio)
+│   ├── lib/            # API client
+│   ├── types/          # TypeScript definitions
+│   └── App.tsx         # Main application
+├── package.json
+└── README.md
+```
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/persons` | List all persons |
+| POST | `/api/persons` | Add a new person |
+| DELETE | `/api/persons/:id` | Delete a person |
+| GET | `/api/assets` | List all assets with history |
+| POST | `/api/assets` | Add a new asset |
+| PUT | `/api/assets/:id` | Update an asset |
+| DELETE | `/api/assets/:id` | Delete an asset |
+| POST | `/api/assets/:id/snapshot` | Add a value snapshot |
+| PUT | `/api/snapshots/:id` | Update a snapshot |
+| DELETE | `/api/snapshots/:id` | Delete a snapshot |
+
+## Screenshots
+
+The application features a dark, premium design with:
+- Total Worth chart with time range filters
+- Asset allocation doughnut chart
+- Investment cards with quick snapshot actions
+- Detailed investment history view
+
+## License
+
+MIT

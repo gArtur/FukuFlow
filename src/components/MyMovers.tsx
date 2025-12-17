@@ -4,12 +4,11 @@ import AssetCard from './AssetCard';
 interface MyMoversProps {
     assets: Asset[];
     persons: Person[];
-    onUpdateValue: (id: string) => void;
-    onEdit: (asset: Asset) => void;
-    onDelete: (id: string) => void;
+    onCardClick: (asset: Asset) => void;
+    onAddSnapshot: (asset: Asset) => void;
 }
 
-export default function MyMovers({ assets, persons, onUpdateValue, onEdit, onDelete }: MyMoversProps) {
+export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot }: MyMoversProps) {
     if (assets.length === 0) {
         return (
             <section className="movers-section">
@@ -26,7 +25,6 @@ export default function MyMovers({ assets, persons, onUpdateValue, onEdit, onDel
         );
     }
 
-    // Sort by absolute gain (biggest movers first)
     const sortedAssets = [...assets].sort((a, b) => {
         const gainA = Math.abs(a.currentValue - a.purchaseAmount);
         const gainB = Math.abs(b.currentValue - b.purchaseAmount);
@@ -45,9 +43,8 @@ export default function MyMovers({ assets, persons, onUpdateValue, onEdit, onDel
                         key={asset.id}
                         asset={asset}
                         persons={persons}
-                        onUpdateValue={onUpdateValue}
-                        onEdit={onEdit}
-                        onDelete={onDelete}
+                        onCardClick={onCardClick}
+                        onAddSnapshot={onAddSnapshot}
                     />
                 ))}
             </div>

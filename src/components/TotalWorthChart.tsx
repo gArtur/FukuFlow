@@ -1,9 +1,11 @@
 import { usePrivacy } from '../contexts/PrivacyContext';
+import type { PortfolioStats } from '../types';
 
 interface TotalWorthChartProps {
     assets: {
         valueHistory: { date: string; value: number }[];
     }[];
+    stats: PortfolioStats;
 }
 
 type TimeRange = '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
@@ -22,7 +24,7 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
+export default function TotalWorthChart({ assets, stats }: TotalWorthChartProps) {
     const [timeRange, setTimeRange] = useState<TimeRange>('ALL');
     const { isHidden, formatAmount } = usePrivacy();
 
@@ -81,8 +83,6 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
     const history = aggregateHistory();
     const currentValue = history.length > 0 ? history[history.length - 1].value : 0;
     const startValue = history.length > 0 ? history[0].value : 0;
-    const gain = currentValue - startValue;
-    const gainPercent = startValue > 0 ? ((gain / startValue) * 100) : 0;
 
     // For privacy mode, normalize data to percentage changes from start
     const normalizedData = history.map(h => {
@@ -208,9 +208,9 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
                 <div className="chart-header-left">
                     <h3 className="chart-title">Total Worth</h3>
                     <div className="chart-value">{formatAmount(currentValue)}</div>
-                    <div className={`chart-change ${gain >= 0 ? 'positive' : 'negative'}`}>
-                        <span>{isHidden ? '' : formatAmount(Math.abs(gain))}</span>
-                        <span className="chart-change-percent">{formatPercent(gainPercent)}</span>
+                    <div className={`chart-change ${stats.totalGain >= 0 ? 'positive' : 'negative'}`}>
+                        <span>{isHidden ? '' : formatAmount(Math.abs(stats.totalGain))}</span>
+                        <span className="chart-change-percent">{formatPercent(stats.gainPercentage)}</span>
                     </div>
                 </div>
                 <div className="time-range-tabs">

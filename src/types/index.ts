@@ -9,6 +9,8 @@ export interface Person {
 export interface ValueEntry {
     date: string;
     value: number;
+    investmentChange?: number;  // Can be positive (adding money) or negative (withdrawing)
+    notes?: string;
 }
 
 export interface Asset {
