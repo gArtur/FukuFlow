@@ -1,21 +1,31 @@
 import { useState } from 'react';
-import type { FamilyMember } from '../types';
-import { OWNER_LABELS } from '../types';
+import type { Person } from '../types';
 
 interface PersonManagerProps {
     isOpen: boolean;
     onClose: () => void;
-    persons: Record<Exclude<FamilyMember, 'all'>, string>;
-    onUpdatePerson: (key: Exclude<FamilyMember, 'all'>, name: string) => void;
+    persons: Person[];
+    onAddPerson: (name: string) => void;
+    onUpdatePerson: (id: string, name: string) => void;
+    onDeletePerson: (id: string) => void;
 }
 
-export default function PersonManager({ isOpen, onClose, persons, onUpdatePerson }: PersonManagerProps) {
-    const [editing, setEditing] = useState<Exclude<FamilyMember, 'all'> | null>(null);
+export default function PersonManager({
+    isOpen,
+    onClose,
+    persons,
+    onAddPerson,
+    onUpdatePerson,
+    onDeletePerson
+}: PersonManagerProps) {
+    const [editing, setEditing] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
+    const [adding, setAdding] = useState(false);
+    const [addValue, setAddValue] = useState('');
 
-    const handleEdit = (key: Exclude<FamilyMember, 'all'>) => {
-        setEditing(key);
-        setEditValue(persons[key]);
+    const handleEdit = (person: Person) => {
+        setEditing(person.id);
+        setEditValue(person.name);
     };
 
     const handleSave = () => {
@@ -31,9 +41,20 @@ export default function PersonManager({ isOpen, onClose, persons, onUpdatePerson
         setEditValue('');
     };
 
-    if (!isOpen) return null;
+    const handleAdd = () => {
+        if (addValue.trim()) {
+            onAddPerson(addValue.trim());
+            setAddValue('');
+            setAdding(false);
+        }
+    };
 
-    const personKeys: Exclude<FamilyMember, 'all'>[] = ['self', 'wife', 'daughter'];
+    const handleCancelAdd = () => {
+        setAddValue('');
+        setAdding(false);
+    };
+
+    if (!isOpen) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -44,16 +65,17 @@ export default function PersonManager({ isOpen, onClose, persons, onUpdatePerson
                 </div>
                 <div className="modal-body">
                     <p className="person-manager-desc">
-                        Customize the names displayed for each family member.
+                        Add, edit, or remove family members. Filter buttons will update automatically.
                     </p>
+
                     <div className="person-list">
-                        {personKeys.map(key => (
-                            <div key={key} className="person-item">
+                        {persons.map(person => (
+                            <div key={person.id} className="person-item">
                                 <div className="person-item-icon">
-                                    {persons[key].charAt(0).toUpperCase()}
+                                    {person.name.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="person-item-content">
-                                    {editing === key ? (
+                                    {editing === person.id ? (
                                         <div className="person-edit-row">
                                             <input
                                                 type="text"
@@ -70,19 +92,55 @@ export default function PersonManager({ isOpen, onClose, persons, onUpdatePerson
                                             <button className="person-cancel-btn" onClick={handleCancel}>×</button>
                                         </div>
                                     ) : (
-                                        <>
-                                            <div className="person-item-name">{persons[key]}</div>
-                                            <div className="person-item-key">{OWNER_LABELS[key]} (default)</div>
-                                        </>
+                                        <div className="person-item-name">{person.name}</div>
                                     )}
                                 </div>
-                                {editing !== key && (
-                                    <button className="person-edit-btn" onClick={() => handleEdit(key)}>
-                                        Edit
-                                    </button>
+                                {editing !== person.id && (
+                                    <div className="person-item-actions">
+                                        <button className="person-edit-btn" onClick={() => handleEdit(person)}>
+                                            Edit
+                                        </button>
+                                        <button
+                                            className="person-delete-btn"
+                                            onClick={() => onDeletePerson(person.id)}
+                                            disabled={persons.length === 1}
+                                            title={persons.length === 1 ? 'Cannot delete the last person' : 'Delete person'}
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         ))}
+
+                        {adding ? (
+                            <div className="person-item person-item-add">
+                                <div className="person-item-icon">+</div>
+                                <div className="person-item-content">
+                                    <div className="person-edit-row">
+                                        <input
+                                            type="text"
+                                            className="form-input person-edit-input"
+                                            value={addValue}
+                                            onChange={e => setAddValue(e.target.value)}
+                                            placeholder="Enter name..."
+                                            autoFocus
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handleAdd();
+                                                if (e.key === 'Escape') handleCancelAdd();
+                                            }}
+                                        />
+                                        <button className="person-save-btn" onClick={handleAdd}>Add</button>
+                                        <button className="person-cancel-btn" onClick={handleCancelAdd}>×</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <button className="person-add-btn" onClick={() => setAdding(true)}>
+                                <span className="person-add-icon">+</span>
+                                <span>Add Person</span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

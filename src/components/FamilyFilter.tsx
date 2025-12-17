@@ -1,28 +1,27 @@
-import type { FamilyMember } from '../types';
-import { OWNER_LABELS } from '../types';
+import type { Person } from '../types';
 
 interface FamilyFilterProps {
-    selected: FamilyMember;
-    onSelect: (member: FamilyMember) => void;
+    persons: Person[];
+    selected: string; // 'all' or person ID
+    onSelect: (id: string) => void;
 }
 
-const members: FamilyMember[] = ['all', 'self', 'wife', 'daughter'];
-
-const labels: Record<FamilyMember, string> = {
-    all: 'All',
-    ...OWNER_LABELS
-};
-
-export default function FamilyFilter({ selected, onSelect }: FamilyFilterProps) {
+export default function FamilyFilter({ persons, selected, onSelect }: FamilyFilterProps) {
     return (
         <div className="filter-tabs">
-            {members.map(member => (
+            <button
+                className={`filter-tab ${selected === 'all' ? 'active' : ''}`}
+                onClick={() => onSelect('all')}
+            >
+                All
+            </button>
+            {persons.map(person => (
                 <button
-                    key={member}
-                    className={`filter-tab ${selected === member ? 'active' : ''}`}
-                    onClick={() => onSelect(member)}
+                    key={person.id}
+                    className={`filter-tab ${selected === person.id ? 'active' : ''}`}
+                    onClick={() => onSelect(person.id)}
                 >
-                    {labels[member]}
+                    {person.name}
                 </button>
             ))}
         </div>

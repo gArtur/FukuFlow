@@ -1,5 +1,10 @@
 export type AssetCategory = 'stocks' | 'etf' | 'crypto' | 'real_estate' | 'bonds' | 'cash' | 'other';
-export type FamilyMember = 'self' | 'wife' | 'daughter' | 'all';
+
+// Person management
+export interface Person {
+    id: string;
+    name: string;
+}
 
 export interface ValueEntry {
     date: string;
@@ -10,7 +15,7 @@ export interface Asset {
     id: string;
     name: string;
     category: AssetCategory;
-    owner: Exclude<FamilyMember, 'all'>;
+    ownerId: string; // Changed from owner to ownerId
     purchaseDate: string;
     purchaseAmount: number;
     currentValue: number;
@@ -24,7 +29,7 @@ export interface PortfolioStats {
     totalGain: number;
     gainPercentage: number;
     byCategory: Record<AssetCategory, number>;
-    byOwner: Record<Exclude<FamilyMember, 'all'>, number>;
+    byOwner: Record<string, number>; // Changed to use person IDs
 }
 
 export const CATEGORY_LABELS: Record<AssetCategory, string> = {
@@ -47,8 +52,9 @@ export const CATEGORY_COLORS: Record<AssetCategory, string> = {
     other: '#A29BFE'
 };
 
-export const OWNER_LABELS: Record<Exclude<FamilyMember, 'all'>, string> = {
-    self: 'Me',
-    wife: 'Wife',
-    daughter: 'Daughter'
-};
+// Default person IDs for migration
+export const DEFAULT_PERSON_IDS = {
+    self: 'person-self',
+    wife: 'person-wife',
+    daughter: 'person-daughter'
+} as const;

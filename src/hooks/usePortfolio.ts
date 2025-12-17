@@ -1,36 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import type { Asset, FamilyMember, PortfolioStats, ValueEntry } from '../types';
-import { SAMPLE_ASSETS } from '../data/sampleData';
-
-const STORAGE_KEY = 'wealth-portfolio';
-
-const getInitialAssets = (): Asset[] => {
-    if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-        try {
-            const parsed = JSON.parse(stored);
-            if (parsed.length > 0) return parsed;
-        } catch {
-            // Fall through to sample data
-        }
-    }
-    // Load sample data if no existing data
-    return SAMPLE_ASSETS;
-};
+import type { Asset, PortfolioStats, ValueEntry } from '../types';
+import { ApiClient } from '../lib/apiClient';
 
 export function usePortfolio() {
-    const [assets, setAssets] = useState<Asset[]>(getInitialAssets);
-    const [selectedOwner, setSelectedOwner] = useState<FamilyMember>('all');
+    const [assets, setAssets] = useState<Asset[]>([]);
+    const [selectedOwner, setSelectedOwner] = useState<string>('all');
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchAssets = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const data = await ApiClient.getAssets();
+            setAssets(data);
+        } catch (error) {
+            console.error('Failed to fetch assets:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(assets));
-    }, [assets]);
+        fetchAssets();
+    }, [fetchAssets]);
 
     const filteredAssets = selectedOwner === 'all'
         ? assets
-        : assets.filter(a => a.owner === selectedOwner);
+        : assets.filter(a => a.ownerId === selectedOwner);
 
     const calculateStats = useCallback((assetList: Asset[]): PortfolioStats => {
         const stats: PortfolioStats = {
@@ -41,16 +36,18 @@ export function usePortfolio() {
             byCategory: {
                 stocks: 0, etf: 0, crypto: 0, real_estate: 0, bonds: 0, cash: 0, other: 0
             },
-            byOwner: {
-                self: 0, wife: 0, daughter: 0
-            }
+            byOwner: {}
         };
 
         assetList.forEach(asset => {
             stats.totalValue += asset.currentValue;
             stats.totalInvested += asset.purchaseAmount;
             stats.byCategory[asset.category] += asset.currentValue;
-            stats.byOwner[asset.owner] += asset.currentValue;
+
+            if (!stats.byOwner[asset.ownerId]) {
+                stats.byOwner[asset.ownerId] = 0;
+            }
+            stats.byOwner[asset.ownerId] += asset.currentValue;
         });
 
         stats.totalGain = stats.totalValue - stats.totalInvested;
@@ -61,40 +58,55 @@ export function usePortfolio() {
         return stats;
     }, []);
 
-    const addAsset = useCallback((asset: Omit<Asset, 'id' | 'valueHistory'>) => {
-        const newAsset: Asset = {
-            ...asset,
-            id: uuidv4(),
-            valueHistory: [{ date: new Date().toISOString(), value: asset.currentValue }]
-        };
-        setAssets(prev => [...prev, newAsset]);
+    const addAsset = useCallback(async (asset: Omit<Asset, 'id' | 'valueHistory'>) => {
+        try {
+            const newAsset = await ApiClient.addAsset(asset);
+            setAssets(prev => [...prev, newAsset]);
+        } catch (error) {
+            console.error('Failed to add asset:', error);
+        }
     }, []);
 
-    const updateAssetValue = useCallback((id: string, newValue: number) => {
-        setAssets(prev => prev.map(asset => {
-            if (asset.id !== id) return asset;
-            const newEntry: ValueEntry = { date: new Date().toISOString(), value: newValue };
-            return {
-                ...asset,
-                currentValue: newValue,
-                valueHistory: [...asset.valueHistory, newEntry]
-            };
-        }));
+    const updateAssetValue = useCallback(async (id: string, newValue: number) => {
+        try {
+            await ApiClient.updateAssetValue(id, newValue);
+            setAssets(prev => prev.map(asset => {
+                if (asset.id !== id) return asset;
+                const newEntry: ValueEntry = { date: new Date().toISOString(), value: newValue };
+                return {
+                    ...asset,
+                    currentValue: newValue,
+                    valueHistory: [...asset.valueHistory, newEntry]
+                };
+            }));
+        } catch (error) {
+            console.error('Failed to update asset value:', error);
+        }
     }, []);
 
-    const deleteAsset = useCallback((id: string) => {
-        setAssets(prev => prev.filter(asset => asset.id !== id));
+    const deleteAsset = useCallback(async (id: string) => {
+        try {
+            await ApiClient.deleteAsset(id);
+            setAssets(prev => prev.filter(asset => asset.id !== id));
+        } catch (error) {
+            console.error('Failed to delete asset:', error);
+        }
     }, []);
 
-    const updateAsset = useCallback((id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => {
-        setAssets(prev => prev.map(asset => {
-            if (asset.id !== id) return asset;
-            return { ...asset, ...updates };
-        }));
+    const updateAsset = useCallback(async (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => {
+        try {
+            await ApiClient.updateAsset(id, updates);
+            setAssets(prev => prev.map(asset => {
+                if (asset.id !== id) return asset;
+                return { ...asset, ...updates };
+            }));
+        } catch (error) {
+            console.error('Failed to update asset:', error);
+        }
     }, []);
 
     return {
-        assets,
+        allAssets: assets,
         filteredAssets,
         selectedOwner,
         setSelectedOwner,
@@ -103,6 +115,8 @@ export function usePortfolio() {
         addAsset,
         updateAssetValue,
         deleteAsset,
-        updateAsset
+        updateAsset,
+        isLoading,
+        refreshAssets: fetchAssets
     };
 }

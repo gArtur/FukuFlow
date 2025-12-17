@@ -1,15 +1,15 @@
-import type { Asset } from '../types';
+import type { Asset, Person } from '../types';
 import AssetCard from './AssetCard';
 
 interface MyMoversProps {
     assets: Asset[];
-    personLabels: Record<string, string>;
+    persons: Person[];
     onUpdateValue: (id: string) => void;
     onEdit: (asset: Asset) => void;
     onDelete: (id: string) => void;
 }
 
-export default function MyMovers({ assets, personLabels, onUpdateValue, onEdit, onDelete }: MyMoversProps) {
+export default function MyMovers({ assets, persons, onUpdateValue, onEdit, onDelete }: MyMoversProps) {
     if (assets.length === 0) {
         return (
             <section className="movers-section">
@@ -44,7 +44,7 @@ export default function MyMovers({ assets, personLabels, onUpdateValue, onEdit, 
                     <AssetCard
                         key={asset.id}
                         asset={asset}
-                        personLabels={personLabels}
+                        persons={persons}
                         onUpdateValue={onUpdateValue}
                         onEdit={onEdit}
                         onDelete={onDelete}

@@ -992,3 +992,60 @@ body {
   background: var(--accent-red-glow);
   color: var(--accent-red);
 }
+
+.person-item-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.person-delete-btn {
+  padding: 6px 10px;
+  font-size: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--accent-red);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.person-delete-btn:hover:not(:disabled) {
+  background: var(--accent-red-glow);
+}
+
+.person-delete-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.person-add-btn {
+  width: 100%;
+  padding: var(--space-md);
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color-light);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.person-add-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+.person-add-icon {
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.person-item-add {
+  border-style: dashed;
+}

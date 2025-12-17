@@ -6,7 +6,7 @@ interface TotalWorthChartProps {
     }[];
 }
 
-type TimeRange = '1M' | '3M' | '1Y' | 'ALL';
+type TimeRange = '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
 
 import { useState } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -30,16 +30,19 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
     const aggregateHistory = () => {
         if (assets.length === 0) return [];
 
+        const now = new Date();
+        const nowStr = now.toISOString().split('T')[0];
+
+        // Ensure we always have today in the set of dates
         const allDates = new Set<string>();
+        allDates.add(nowStr);
+
         assets.forEach(asset => {
             asset.valueHistory.forEach(entry => {
                 allDates.add(entry.date.split('T')[0]);
             });
         });
 
-        const sortedDates = Array.from(allDates).sort();
-
-        const now = new Date();
         let startDate = new Date('2000-01-01');
 
         if (timeRange === '1M') {
@@ -48,8 +51,16 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
             startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
         } else if (timeRange === '1Y') {
             startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        } else if (timeRange === 'YTD') {
+            startDate = new Date(now.getFullYear(), 0, 1); // January 1st of current year
         }
 
+        const startDateStr = startDate.toISOString().split('T')[0];
+        if (timeRange !== 'ALL') {
+            allDates.add(startDateStr);
+        }
+
+        const sortedDates = Array.from(allDates).sort();
         const filteredDates = sortedDates.filter(d => new Date(d) >= startDate);
 
         return filteredDates.map(date => {
@@ -68,22 +79,8 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
     };
 
     const history = aggregateHistory();
-
-    if (history.length === 0) {
-        return (
-            <div className="chart-card total-worth-card">
-                <div className="chart-header">
-                    <h3 className="chart-title">Total Worth</h3>
-                </div>
-                <div className="empty-state">
-                    <p className="empty-text">Add investments to see performance</p>
-                </div>
-            </div>
-        );
-    }
-
-    const currentValue = history[history.length - 1]?.value || 0;
-    const startValue = history[0]?.value || 0;
+    const currentValue = history.length > 0 ? history[history.length - 1].value : 0;
+    const startValue = history.length > 0 ? history[0].value : 0;
     const gain = currentValue - startValue;
     const gainPercent = startValue > 0 ? ((gain / startValue) * 100) : 0;
 
@@ -146,11 +143,9 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
                         const index = context.dataIndex;
 
                         if (isHidden) {
-                            // In privacy mode, show percentage change
                             const sign = value >= 0 ? '+' : '';
                             return `${sign}${value.toFixed(2)}%`;
                         } else {
-                            // In normal mode, show value and percentage change from start
                             const actualValue = history[index]?.value || 0;
                             const percentChange = startValue > 0
                                 ? ((actualValue - startValue) / startValue) * 100
@@ -188,11 +183,9 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
                     callback: (value: number | string) => {
                         const num = typeof value === 'string' ? parseFloat(value) : value;
                         if (isHidden) {
-                            // In privacy mode, show percentage
                             const sign = num >= 0 ? '+' : '';
                             return `${sign}${num.toFixed(0)}%`;
                         } else {
-                            // In normal mode, show currency
                             if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
                             if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
                             return num;
@@ -221,7 +214,7 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
                     </div>
                 </div>
                 <div className="time-range-tabs">
-                    {(['1M', '3M', '1Y', 'ALL'] as TimeRange[]).map(range => (
+                    {(['1M', '3M', 'YTD', '1Y', 'ALL'] as TimeRange[]).map(range => (
                         <button
                             key={range}
                             className={`time-tab ${timeRange === range ? 'active' : ''}`}
@@ -233,7 +226,13 @@ export default function TotalWorthChart({ assets }: TotalWorthChartProps) {
                 </div>
             </div>
             <div className="line-chart-container">
-                <Line data={data} options={options} />
+                {history.length > 1 ? (
+                    <Line data={data} options={options} />
+                ) : (
+                    <div className="empty-state">
+                        <p className="empty-text">Add more investments or updates to see performance over time</p>
+                    </div>
+                )}
             </div>
         </div>
     );

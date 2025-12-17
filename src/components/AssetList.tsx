@@ -1,8 +1,9 @@
-import type { Asset } from '../types';
-import { CATEGORY_LABELS, OWNER_LABELS } from '../types';
+import type { Asset, Person } from '../types';
+import { CATEGORY_LABELS } from '../types';
 
 interface AssetListProps {
     assets: Asset[];
+    persons: Person[];
     onUpdateValue: (id: string) => void;
     onDelete: (id: string) => void;
     onEdit: (asset: Asset) => void;
@@ -17,7 +18,7 @@ const formatCurrency = (value: number): string => {
     }).format(value);
 };
 
-export default function AssetList({ assets, onUpdateValue, onDelete, onEdit }: AssetListProps) {
+export default function AssetList({ assets, persons, onUpdateValue, onDelete, onEdit }: AssetListProps) {
     if (assets.length === 0) {
         return (
             <section className="assets-section">
@@ -47,6 +48,8 @@ export default function AssetList({ assets, onUpdateValue, onDelete, onEdit }: A
                         ? ((gain / asset.purchaseAmount) * 100).toFixed(1)
                         : '0';
                     const isPositive = gain >= 0;
+                    const owner = persons.find(p => p.id === asset.ownerId);
+                    const ownerName = owner?.name || 'Unknown';
 
                     return (
                         <div key={asset.id} className="asset-card">
@@ -55,7 +58,7 @@ export default function AssetList({ assets, onUpdateValue, onDelete, onEdit }: A
                                     <div className="asset-name">{asset.name}</div>
                                     <div className="asset-meta">
                                         <span className="asset-category">{CATEGORY_LABELS[asset.category]}</span>
-                                        <span className="asset-owner-badge">{OWNER_LABELS[asset.owner]}</span>
+                                        <span className="asset-owner-badge">{ownerName}</span>
                                     </div>
                                 </div>
                                 <div className="asset-value">

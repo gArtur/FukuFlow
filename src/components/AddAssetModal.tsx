@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { Asset, AssetCategory, FamilyMember } from '../types';
-import { CATEGORY_LABELS, OWNER_LABELS } from '../types';
+import type { Asset, AssetCategory, Person } from '../types';
+import { CATEGORY_LABELS } from '../types';
 
 interface AddAssetModalProps {
     isOpen: boolean;
@@ -8,15 +8,15 @@ interface AddAssetModalProps {
     onSubmit: (asset: Omit<Asset, 'id' | 'valueHistory'>) => void;
     editAsset?: Asset | null;
     onUpdate?: (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => void;
+    persons: Person[];
 }
 
 const categories: AssetCategory[] = ['stocks', 'etf', 'crypto', 'real_estate', 'bonds', 'cash', 'other'];
-const owners: Exclude<FamilyMember, 'all'>[] = ['self', 'wife', 'daughter'];
 
-export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate }: AddAssetModalProps) {
+export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
     const [name, setName] = useState('');
     const [category, setCategory] = useState<AssetCategory>('stocks');
-    const [owner, setOwner] = useState<Exclude<FamilyMember, 'all'>>('self');
+    const [ownerId, setOwnerId] = useState('');
     const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [purchaseAmount, setPurchaseAmount] = useState('');
     const [currentValue, setCurrentValue] = useState('');
@@ -25,19 +25,19 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
         if (editAsset) {
             setName(editAsset.name);
             setCategory(editAsset.category);
-            setOwner(editAsset.owner);
+            setOwnerId(editAsset.ownerId);
             setPurchaseDate(editAsset.purchaseDate);
             setPurchaseAmount(editAsset.purchaseAmount.toString());
             setCurrentValue(editAsset.currentValue.toString());
         } else {
             resetForm();
         }
-    }, [editAsset, isOpen]);
+    }, [editAsset, isOpen, persons]);
 
     const resetForm = () => {
         setName('');
         setCategory('stocks');
-        setOwner('self');
+        setOwnerId(persons.length > 0 ? persons[0].id : '');
         setPurchaseDate(new Date().toISOString().split('T')[0]);
         setPurchaseAmount('');
         setCurrentValue('');
@@ -49,7 +49,7 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
         const assetData = {
             name,
             category,
-            owner,
+            ownerId,
             purchaseDate,
             purchaseAmount: parseFloat(purchaseAmount) || 0,
             currentValue: parseFloat(currentValue) || parseFloat(purchaseAmount) || 0,
@@ -105,11 +105,11 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                             <label className="form-label">Owner</label>
                             <select
                                 className="form-select"
-                                value={owner}
-                                onChange={e => setOwner(e.target.value as Exclude<FamilyMember, 'all'>)}
+                                value={ownerId}
+                                onChange={e => setOwnerId(e.target.value)}
                             >
-                                {owners.map(own => (
-                                    <option key={own} value={own}>{OWNER_LABELS[own]}</option>
+                                {persons.map(person => (
+                                    <option key={person.id} value={person.id}>{person.name}</option>
                                 ))}
                             </select>
                         </div>

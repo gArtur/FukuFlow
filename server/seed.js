@@ -1,18 +1,33 @@
-import type { Asset } from '../types';
-import { DEFAULT_PERSON_IDS } from '../types';
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
-// Sample data for demo purposes
-export const SAMPLE_ASSETS: Asset[] = [
+const dbPath = path.resolve(__dirname, 'db', 'wealth.db');
+const db = new sqlite3.Database(dbPath);
+
+const persons = [
+    { name: 'Artur', id: '2ddf08f9-f0c7-47e6-a456-292ff498700b' },
+    { name: 'Kinga', id: '6fa72698-2b5e-4fda-a78c-54f31fa7b30c' },
+    { name: 'Zosia', id: '55fde2e9-332e-49c3-bd16-02967ba82977' }
+];
+
+const getOwnerId = (role) => {
+    if (role === 'self') return persons[0].id;
+    if (role === 'wife') return persons[1].id;
+    if (role === 'daughter') return persons[2].id;
+    return persons[0].id;
+};
+
+const SAMPLE_ASSETS = [
     {
-        id: 'sample-1',
         name: 'Amundi MSCI World ETF',
         category: 'etf',
-        ownerId: DEFAULT_PERSON_IDS.self,
+        role: 'self',
         purchaseDate: '2023-01-15',
         purchaseAmount: 50000,
         currentValue: 62230,
-        currency: 'PLN',
-        valueHistory: [
+        symbol: 'IWDA.AS',
+        history: [
             { date: '2023-01-15', value: 50000 },
             { date: '2023-03-01', value: 51200 },
             { date: '2023-06-01', value: 54500 },
@@ -25,15 +40,14 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-2',
         name: 'Bitcoin',
         category: 'crypto',
-        ownerId: DEFAULT_PERSON_IDS.self,
+        role: 'self',
         purchaseDate: '2022-06-20',
         purchaseAmount: 15000,
         currentValue: 18230,
-        currency: 'PLN',
-        valueHistory: [
+        symbol: 'BTC',
+        history: [
             { date: '2022-06-20', value: 15000 },
             { date: '2022-09-01', value: 12500 },
             { date: '2022-12-01', value: 10800 },
@@ -46,15 +60,13 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-3',
         name: 'Apartment Krakow',
         category: 'real_estate',
-        ownerId: DEFAULT_PERSON_IDS.self,
+        role: 'self',
         purchaseDate: '2020-03-10',
         purchaseAmount: 450000,
         currentValue: 535800,
-        currency: 'PLN',
-        valueHistory: [
+        history: [
             { date: '2020-03-10', value: 450000 },
             { date: '2021-01-01', value: 465000 },
             { date: '2022-01-01', value: 495000 },
@@ -64,15 +76,14 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-4',
         name: 'Apple Inc.',
         category: 'stocks',
-        ownerId: DEFAULT_PERSON_IDS.wife,
+        role: 'wife',
         purchaseDate: '2023-05-12',
         purchaseAmount: 8000,
         currentValue: 10530,
-        currency: 'PLN',
-        valueHistory: [
+        symbol: 'AAPL',
+        history: [
             { date: '2023-05-12', value: 8000 },
             { date: '2023-08-01', value: 8800 },
             { date: '2023-11-01', value: 9200 },
@@ -83,15 +94,13 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-5',
         name: 'Emergency Fund',
         category: 'cash',
-        ownerId: DEFAULT_PERSON_IDS.self,
+        role: 'self',
         purchaseDate: '2021-01-01',
         purchaseAmount: 25000,
         currentValue: 25000,
-        currency: 'PLN',
-        valueHistory: [
+        history: [
             { date: '2021-01-01', value: 20000 },
             { date: '2022-01-01', value: 22000 },
             { date: '2023-01-01', value: 24000 },
@@ -100,15 +109,13 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-6',
         name: 'Treasury Bonds',
         category: 'bonds',
-        ownerId: DEFAULT_PERSON_IDS.wife,
+        role: 'wife',
         purchaseDate: '2022-09-01',
         purchaseAmount: 30000,
         currentValue: 33450,
-        currency: 'PLN',
-        valueHistory: [
+        history: [
             { date: '2022-09-01', value: 30000 },
             { date: '2023-03-01', value: 30900 },
             { date: '2023-09-01', value: 31800 },
@@ -118,15 +125,13 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-7',
         name: 'Education Savings',
         category: 'cash',
-        ownerId: DEFAULT_PERSON_IDS.daughter,
+        role: 'daughter',
         purchaseDate: '2019-06-15',
         purchaseAmount: 5000,
         currentValue: 12500,
-        currency: 'PLN',
-        valueHistory: [
+        history: [
             { date: '2019-06-15', value: 5000 },
             { date: '2020-06-01', value: 6500 },
             { date: '2021-06-01', value: 8000 },
@@ -137,15 +142,14 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     },
     {
-        id: 'sample-8',
         name: 'Ethereum',
         category: 'crypto',
-        ownerId: DEFAULT_PERSON_IDS.daughter,
+        role: 'daughter',
         purchaseDate: '2023-12-01',
         purchaseAmount: 2000,
         currentValue: 2580,
-        currency: 'PLN',
-        valueHistory: [
+        symbol: 'ETH',
+        history: [
             { date: '2023-12-01', value: 2000 },
             { date: '2024-03-01', value: 2800 },
             { date: '2024-06-01', value: 2400 },
@@ -154,3 +158,32 @@ export const SAMPLE_ASSETS: Asset[] = [
         ]
     }
 ];
+
+db.serialize(() => {
+    SAMPLE_ASSETS.forEach(asset => {
+        const id = uuidv4();
+        const ownerId = getOwnerId(asset.role);
+
+        db.run(`INSERT INTO assets (id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [id, asset.name, asset.category, ownerId, asset.purchaseAmount, asset.purchaseDate, asset.currentValue, asset.symbol || null],
+            (err) => {
+                if (err) console.error('Error inserting asset:', err.message);
+            }
+        );
+
+        asset.history.forEach(entry => {
+            db.run('INSERT INTO asset_history (assetId, date, value) VALUES (?, ?, ?)',
+                [id, new Date(entry.date).toISOString(), entry.value],
+                (err) => {
+                    if (err) console.error('Error inserting history:', err.message);
+                }
+            );
+        });
+    });
+});
+
+db.close((err) => {
+    if (err) console.error(err.message);
+    console.log('Seeding completed.');
+});

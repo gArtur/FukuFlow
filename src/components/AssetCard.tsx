@@ -6,7 +6,7 @@ import {
     PointElement,
     LineElement
 } from 'chart.js';
-import type { Asset } from '../types';
+import type { Asset, Person } from '../types';
 import { CATEGORY_LABELS } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 
@@ -14,13 +14,13 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement);
 
 interface AssetCardProps {
     asset: Asset;
-    personLabels: Record<string, string>;
+    persons: Person[];
     onUpdateValue: (id: string) => void;
     onEdit: (asset: Asset) => void;
     onDelete: (id: string) => void;
 }
 
-export default function AssetCard({ asset, personLabels, onUpdateValue, onEdit, onDelete }: AssetCardProps) {
+export default function AssetCard({ asset, persons, onUpdateValue, onEdit, onDelete }: AssetCardProps) {
     const { formatAmount } = usePrivacy();
 
     const gain = asset.currentValue - asset.purchaseAmount;
@@ -28,6 +28,10 @@ export default function AssetCard({ asset, personLabels, onUpdateValue, onEdit, 
         ? ((gain / asset.purchaseAmount) * 100).toFixed(1)
         : '0';
     const isPositive = gain >= 0;
+
+    // Find person name
+    const owner = persons.find(p => p.id === asset.ownerId);
+    const ownerName = owner?.name || 'Unknown';
 
     // Mini sparkline data from value history
     const sparklineData = {
@@ -65,7 +69,7 @@ export default function AssetCard({ asset, personLabels, onUpdateValue, onEdit, 
                     <div className="mover-name">{asset.name}</div>
                     <div className="mover-meta">
                         <span>{CATEGORY_LABELS[asset.category]}</span>
-                        <span className="mover-owner">{personLabels[asset.owner]}</span>
+                        <span className="mover-owner">{ownerName}</span>
                     </div>
                 </div>
             </div>
