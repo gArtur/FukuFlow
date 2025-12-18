@@ -1,8 +1,11 @@
+
 import { useState, useEffect, useCallback } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
 import type { Asset, Person, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import Header from './components/Header';
 import FamilyFilter from './components/FamilyFilter';
 import TotalWorthChart from './components/TotalWorthChart';
@@ -11,13 +14,15 @@ import MyMovers from './components/MyMovers';
 import AddAssetModal from './components/AddAssetModal';
 import AddSnapshotModal from './components/AddSnapshotModal';
 import EditSnapshotModal from './components/EditSnapshotModal';
+import ImportCSVModal from './components/ImportCSVModal';
 import InvestmentDetail from './components/InvestmentDetail';
-import PersonManager from './components/PersonManager';
+import Settings from './components/Settings';
 import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
 
-type ViewState = 'dashboard' | 'detail';
-
+/**
+ * Shared logic and state for the application
+ */
 function AppContent() {
   const {
     filteredAssets,
@@ -51,28 +56,24 @@ function AppContent() {
     fetchPersons();
   }, [fetchPersons]);
 
-  // View state management
-  const [currentView, setCurrentView] = useState<ViewState>('dashboard');
-  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const navigate = useNavigate();
 
   // Modal states
   const [showAddModal, setShowAddModal] = useState(false);
   const [showSnapshotModal, setShowSnapshotModal] = useState(false);
   const [showEditSnapshotModal, setShowEditSnapshotModal] = useState(false);
-  const [showPersonManager, setShowPersonManager] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editAsset, setEditAsset] = useState<Asset | null>(null);
   const [snapshotAsset, setSnapshotAsset] = useState<Asset | null>(null);
   const [editingSnapshot, setEditingSnapshot] = useState<(ValueEntry & { id: number }) | null>(null);
 
   // Navigation handlers
   const handleCardClick = (asset: Asset) => {
-    setSelectedAsset(asset);
-    setCurrentView('detail');
+    navigate(`/asset/${asset.id}`);
   };
 
   const handleBackToDashboard = () => {
-    setCurrentView('dashboard');
-    setSelectedAsset(null);
+    navigate('/');
   };
 
   // Snapshot handlers
@@ -81,15 +82,17 @@ function AppContent() {
     setShowSnapshotModal(true);
   };
 
+  // Global snapshot handler (from header) - opens modal with asset selection
+  const handleGlobalAddSnapshot = () => {
+    setSnapshotAsset(null);
+    setShowSnapshotModal(true);
+  };
+
   const handleSubmitSnapshot = async (assetId: string, snapshot: { value: number; date: string; investmentChange: number; notes: string }) => {
     try {
       await ApiClient.addSnapshot(assetId, snapshot);
       await refreshAssets();
-      if (selectedAsset && selectedAsset.id === assetId) {
-        const updatedAssets = await ApiClient.getAssets();
-        const updatedAsset = updatedAssets.find((a: Asset) => a.id === assetId);
-        if (updatedAsset) setSelectedAsset(updatedAsset);
-      }
+      setShowSnapshotModal(false);
     } catch (error) {
       console.error('Failed to add snapshot:', error);
     }
@@ -104,11 +107,7 @@ function AppContent() {
     try {
       await ApiClient.updateSnapshot(id, data);
       await refreshAssets();
-      if (selectedAsset) {
-        const updatedAssets = await ApiClient.getAssets();
-        const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
-        if (updatedAsset) setSelectedAsset(updatedAsset);
-      }
+      setShowEditSnapshotModal(false);
     } catch (error) {
       console.error('Failed to update snapshot:', error);
     }
@@ -118,44 +117,29 @@ function AppContent() {
     try {
       await ApiClient.deleteSnapshot(id);
       await refreshAssets();
-      if (selectedAsset) {
-        const updatedAssets = await ApiClient.getAssets();
-        const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
-        if (updatedAsset) setSelectedAsset(updatedAsset);
-      }
+      setShowEditSnapshotModal(false);
     } catch (error) {
       console.error('Failed to delete snapshot:', error);
     }
   };
 
-  const handleImportSnapshots = async (snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => {
-    if (!selectedAsset) return;
-    try {
-      for (const snapshot of snapshots) {
-        await ApiClient.addSnapshot(selectedAsset.id, snapshot);
+  const handleImportSnapshots = async (assetId: string, snapshots: { date: string; value: number; investmentChange: number; notes: string }[]): Promise<{ success: number; failed: number; errors: string[] }> => {
+    let success = 0;
+    let failed = 0;
+    const errors: string[] = [];
+
+    for (const snapshot of snapshots) {
+      try {
+        await ApiClient.addSnapshot(assetId, snapshot);
+        success++;
+      } catch (error) {
+        failed++;
+        errors.push(`Failed to import entry for ${snapshot.date}`);
       }
-      await refreshAssets();
-      const updatedAssets = await ApiClient.getAssets();
-      const updatedAsset = updatedAssets.find((a: Asset) => a.id === selectedAsset.id);
-      if (updatedAsset) setSelectedAsset(updatedAsset);
-    } catch (error) {
-      console.error('Failed to import snapshots:', error);
     }
-  };
 
-  // Edit/Delete handlers
-  const handleEdit = () => {
-    if (selectedAsset) {
-      setEditAsset(selectedAsset);
-      setShowAddModal(true);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (selectedAsset) {
-      await deleteAsset(selectedAsset.id);
-      handleBackToDashboard();
-    }
+    await refreshAssets();
+    return { success, failed, errors };
   };
 
   const handleCloseAddModal = () => {
@@ -174,9 +158,14 @@ function AppContent() {
   };
 
   const handleUpdatePerson = async (id: string, name: string) => {
-    setPersons(prev => prev.map(p =>
-      p.id === id ? { ...p, name: name.trim() } : p
-    ));
+    try {
+      // Logic for updating person name could be added here if needed in backend
+      setPersons(prev => prev.map(p =>
+        p.id === id ? { ...p, name: name.trim() } : p
+      ));
+    } catch (error) {
+      console.error('Failed to update person:', error);
+    }
   };
 
   const handleDeletePerson = async (id: string) => {
@@ -210,8 +199,14 @@ function AppContent() {
   });
 
   const hasLocalData = localStorage.getItem('wealth-persons') || localStorage.getItem('wealth-portfolio');
+  const isInitialLoad = (assetsLoading && allAssets.length === 0) || personsLoading;
 
-  if (assetsLoading || personsLoading) {
+  const headerProps = {
+    date: today,
+    onAddSnapshot: handleGlobalAddSnapshot
+  };
+
+  if (isInitialLoad) {
     return (
       <div className="loading-screen">
         <div className="spinner"></div>
@@ -220,97 +215,180 @@ function AppContent() {
     );
   }
 
-  // Render Investment Detail View
-  if (currentView === 'detail' && selectedAsset) {
-    return (
-      <div className="app">
-        <InvestmentDetail
-          asset={selectedAsset}
+  return (
+    <Routes>
+      <Route path="/" element={
+        <div className="app">
+          <Header
+            date={today}
+            onAddSnapshot={handleGlobalAddSnapshot}
+          />
+
+          <main className="main-content">
+            {hasLocalData && (
+              <MigrationTool onComplete={() => window.location.reload()} />
+            )}
+
+            <FamilyFilter
+              persons={persons}
+              selected={selectedOwner}
+              onSelect={setSelectedOwner}
+            />
+
+            <div className="charts-row">
+              <TotalWorthChart assets={filteredAssets} stats={stats} />
+              <AllocationChart stats={stats} assets={filteredAssets} persons={persons} />
+            </div>
+
+            <MyMovers
+              assets={filteredAssets}
+              persons={persons}
+              onCardClick={handleCardClick}
+              onAddSnapshot={handleAddSnapshot}
+              onAddAsset={() => setShowAddModal(true)}
+            />
+          </main>
+
+          <button
+            className="fab"
+            onClick={handleGlobalAddSnapshot}
+            aria-label="Add snapshot"
+          >
+            +
+          </button>
+
+          <AddAssetModal
+            isOpen={showAddModal}
+            onClose={handleCloseAddModal}
+            onSubmit={addAsset}
+            editAsset={editAsset}
+            onUpdate={updateAsset}
+            persons={persons}
+          />
+
+          <AddSnapshotModal
+            isOpen={showSnapshotModal}
+            onClose={() => setShowSnapshotModal(false)}
+            asset={snapshotAsset}
+            assets={allAssets}
+            persons={persons}
+            onSubmit={handleSubmitSnapshot}
+          />
+        </div>
+      } />
+
+      <Route path="/asset/:id" element={
+        <AssetDetailView
+          headerProps={headerProps}
+          allAssets={allAssets}
           persons={persons}
-          onBack={handleBackToDashboard}
-          onAddSnapshot={() => handleAddSnapshot(selectedAsset)}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+          onAddSnapshot={handleAddSnapshot}
+          onEdit={(asset: Asset) => { setEditAsset(asset); setShowAddModal(true); }}
+          onDelete={async (id: string) => {
+            if (confirm('Are you sure you want to delete this investment?')) {
+              await deleteAsset(id);
+              handleBackToDashboard();
+            }
+          }}
           onEditSnapshot={handleEditSnapshot}
-          onImportSnapshots={handleImportSnapshots}
-        />
-
-        <AddSnapshotModal
-          isOpen={showSnapshotModal}
-          onClose={() => setShowSnapshotModal(false)}
-          asset={snapshotAsset}
-          onSubmit={handleSubmitSnapshot}
-        />
-
-        <EditSnapshotModal
-          isOpen={showEditSnapshotModal}
-          onClose={() => setShowEditSnapshotModal(false)}
-          snapshot={editingSnapshot}
-          onSubmit={handleUpdateSnapshot}
-          onDelete={handleDeleteSnapshot}
-        />
-
-        <AddAssetModal
-          isOpen={showAddModal}
-          onClose={handleCloseAddModal}
-          onSubmit={addAsset}
+          setShowImportModal={setShowImportModal}
+          // Modals state passed down
+          showSnapshotModal={showSnapshotModal}
+          setShowSnapshotModal={setShowSnapshotModal}
+          snapshotAsset={snapshotAsset}
+          handleSubmitSnapshot={handleSubmitSnapshot}
+          showEditSnapshotModal={showEditSnapshotModal}
+          setShowEditSnapshotModal={setShowEditSnapshotModal}
+          editingSnapshot={editingSnapshot}
+          handleUpdateSnapshot={handleUpdateSnapshot}
+          handleDeleteSnapshot={handleDeleteSnapshot}
+          showImportModal={showImportModal}
+          onImport={(snapshots: any, id: string) => handleImportSnapshots(id, snapshots)}
+          showAddModal={showAddModal}
+          onCloseAddModal={handleCloseAddModal}
+          onAddAsset={addAsset}
+          onUpdateAsset={updateAsset}
           editAsset={editAsset}
-          onUpdate={updateAsset}
-          persons={persons}
         />
-      </div>
-    );
+      } />
+
+      <Route path="/settings" element={
+        <div className="app">
+          <Header {...headerProps} />
+          <main className="main-content">
+            <Settings
+              persons={persons}
+              onAddPerson={handleAddPerson}
+              onUpdatePerson={handleUpdatePerson}
+              onDeletePerson={handleDeletePerson}
+            />
+          </main>
+        </div>
+      } />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
+/**
+ * Component for the Investment Detail page
+ */
+function AssetDetailView({
+  allAssets,
+  persons,
+  onAddSnapshot,
+  onEdit,
+  onDelete,
+  onEditSnapshot,
+  setShowImportModal,
+  showSnapshotModal,
+  setShowSnapshotModal,
+  snapshotAsset,
+  handleSubmitSnapshot,
+  showEditSnapshotModal,
+  setShowEditSnapshotModal,
+  editingSnapshot,
+  handleUpdateSnapshot,
+  handleDeleteSnapshot,
+  showImportModal,
+  onImport,
+  showAddModal,
+  onCloseAddModal,
+  onAddAsset,
+  onUpdateAsset,
+  editAsset,
+  headerProps
+}: any) {
+  const { id } = useParams<{ id: string }>();
+  const asset = allAssets.find((a: Asset) => a.id === id);
+
+  if (!asset) {
+    return <Navigate to="/" replace />;
   }
 
-  // Render Dashboard View
   return (
     <div className="app">
-      <Header
-        date={today}
-        onAddAsset={() => setShowAddModal(true)}
-        onManagePersons={() => setShowPersonManager(true)}
-      />
-
+      <Header {...headerProps} onAddSnapshot={() => onAddSnapshot(asset)} />
       <main className="main-content">
-        {hasLocalData && (
-          <MigrationTool onComplete={() => window.location.reload()} />
-        )}
-
-        <FamilyFilter
+        <InvestmentDetail
+          asset={asset}
           persons={persons}
-          selected={selectedOwner}
-          onSelect={setSelectedOwner}
-        />
-
-        <div className="charts-row">
-          <TotalWorthChart assets={filteredAssets} stats={stats} />
-          <AllocationChart stats={stats} />
-        </div>
-
-        <MyMovers
-          assets={filteredAssets}
-          persons={persons}
-          onCardClick={handleCardClick}
-          onAddSnapshot={handleAddSnapshot}
+          onAddSnapshot={() => onAddSnapshot(asset)}
+          onEdit={() => onEdit(asset)}
+          onDelete={() => onDelete(asset.id)}
+          onEditSnapshot={onEditSnapshot}
+          onOpenImportModal={() => setShowImportModal(true)}
         />
       </main>
 
       <button
         className="fab"
-        onClick={() => setShowAddModal(true)}
-        aria-label="Add investment"
+        onClick={() => onAddSnapshot(asset)}
+        aria-label="Add snapshot"
       >
         +
       </button>
-
-      <AddAssetModal
-        isOpen={showAddModal}
-        onClose={handleCloseAddModal}
-        onSubmit={addAsset}
-        editAsset={editAsset}
-        onUpdate={updateAsset}
-        persons={persons}
-      />
 
       <AddSnapshotModal
         isOpen={showSnapshotModal}
@@ -319,24 +397,41 @@ function AppContent() {
         onSubmit={handleSubmitSnapshot}
       />
 
-      <PersonManager
-        isOpen={showPersonManager}
-        onClose={() => setShowPersonManager(false)}
+      <EditSnapshotModal
+        isOpen={showEditSnapshotModal}
+        onClose={() => setShowEditSnapshotModal(false)}
+        snapshot={editingSnapshot}
+        onSubmit={handleUpdateSnapshot}
+        onDelete={handleDeleteSnapshot}
+      />
+
+      <ImportCSVModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        assetName={asset.name}
+        onImport={(snapshots) => onImport(snapshots, asset.id)}
+      />
+
+      <AddAssetModal
+        isOpen={showAddModal}
+        onClose={onCloseAddModal}
+        onSubmit={onAddAsset}
+        editAsset={editAsset}
+        onUpdate={onUpdateAsset}
         persons={persons}
-        onAddPerson={handleAddPerson}
-        onUpdatePerson={handleUpdatePerson}
-        onDeletePerson={handleDeletePerson}
       />
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
-    <PrivacyProvider>
-      <AppContent />
-    </PrivacyProvider>
+    <BrowserRouter>
+      <SettingsProvider>
+        <PrivacyProvider>
+          <AppContent />
+        </PrivacyProvider>
+      </SettingsProvider>
+    </BrowserRouter>
   );
 }
-
-export default App;

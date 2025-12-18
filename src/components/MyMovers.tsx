@@ -6,15 +6,21 @@ interface MyMoversProps {
     persons: Person[];
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
+    onAddAsset: () => void;
 }
 
-export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot }: MyMoversProps) {
+export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, onAddAsset }: MyMoversProps) {
     if (assets.length === 0) {
         return (
             <section className="movers-section">
                 <div className="movers-header">
-                    <h2 className="movers-title">My Investments</h2>
-                    <span className="movers-count">0 assets</span>
+                    <div className="movers-header-left">
+                        <h2 className="movers-title">My Investments</h2>
+                        <span className="movers-count">0 assets</span>
+                    </div>
+                    <button className="add-asset-btn-inline" onClick={onAddAsset}>
+                        <span>+</span> Add Asset
+                    </button>
                 </div>
                 <div className="empty-state">
                     <div className="empty-icon">💰</div>
@@ -34,8 +40,13 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot }
     return (
         <section className="movers-section">
             <div className="movers-header">
-                <h2 className="movers-title">My Investments</h2>
-                <span className="movers-count">{assets.length} assets</span>
+                <div className="movers-header-left">
+                    <h2 className="movers-title">My Investments</h2>
+                    <span className="movers-count">{assets.length} assets</span>
+                </div>
+                <button className="add-asset-btn-inline" onClick={onAddAsset}>
+                    <span>+</span> Add Asset
+                </button>
             </div>
             <div className="movers-grid">
                 {sortedAssets.map(asset => (

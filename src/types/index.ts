@@ -1,4 +1,4 @@
-export type AssetCategory = 'stocks' | 'etf' | 'crypto' | 'real_estate' | 'bonds' | 'cash' | 'other';
+export type AssetCategory = string;
 
 // Person management
 export interface Person {
@@ -7,6 +7,7 @@ export interface Person {
 }
 
 export interface ValueEntry {
+    id?: number;
     date: string;
     value: number;
     investmentChange?: number;  // Can be positive (adding money) or negative (withdrawing)
@@ -21,7 +22,6 @@ export interface Asset {
     purchaseDate: string;
     purchaseAmount: number;
     currentValue: number;
-    currency: string;
     valueHistory: ValueEntry[];
 }
 
@@ -30,29 +30,9 @@ export interface PortfolioStats {
     totalInvested: number;
     totalGain: number;
     gainPercentage: number;
-    byCategory: Record<AssetCategory, number>;
+    byCategory: Record<string, number>;
     byOwner: Record<string, number>; // Changed to use person IDs
 }
-
-export const CATEGORY_LABELS: Record<AssetCategory, string> = {
-    stocks: 'Stocks',
-    etf: 'ETFs',
-    crypto: 'Crypto',
-    real_estate: 'Real Estate',
-    bonds: 'Bonds',
-    cash: 'Cash',
-    other: 'Other'
-};
-
-export const CATEGORY_COLORS: Record<AssetCategory, string> = {
-    stocks: '#6C5CE7',
-    etf: '#00D9A5',
-    crypto: '#FDCB6E',
-    real_estate: '#E17055',
-    bonds: '#74B9FF',
-    cash: '#55EFC4',
-    other: '#A29BFE'
-};
 
 // Default person IDs for migration
 export const DEFAULT_PERSON_IDS = {

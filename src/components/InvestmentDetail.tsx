@@ -1,116 +1,100 @@
-import { useState, useRef } from 'react';
-import { Line } from 'react-chartjs-2';
+import { useState, useMemo } from 'react';
 import type { Asset, Person, ValueEntry } from '../types';
-import { CATEGORY_LABELS } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
-
-type TimeRange = '1M' | '3M' | 'YTD' | '1Y' | 'ALL';
+import { useSettings } from '../contexts/SettingsContext';
+import TotalWorthChart from './TotalWorthChart';
 
 interface InvestmentDetailProps {
     asset: Asset;
     persons: Person[];
-    onBack: () => void;
     onAddSnapshot: () => void;
     onEdit: () => void;
     onDelete: () => void;
     onEditSnapshot: (snapshot: ValueEntry & { id: number }) => void;
-    onImportSnapshots: (snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => void;
+    onOpenImportModal: () => void;
 }
 
 export default function InvestmentDetail({
     asset,
     persons,
-    onBack,
     onAddSnapshot,
     onEdit,
     onDelete,
     onEditSnapshot,
-    onImportSnapshots
+    onOpenImportModal
 }: InvestmentDetailProps) {
-    const { formatAmount } = usePrivacy();
+    const { formatAmount, isHidden } = usePrivacy();
+    const { categories } = useSettings();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [timeRange, setTimeRange] = useState<TimeRange>('ALL');
-    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const ITEMS_PER_PAGE = 10;
 
     const owner = persons.find(p => p.id === asset.ownerId);
+    const categoryLabel = categories.find(c => c.key === asset.category)?.label || asset.category;
     const gain = asset.currentValue - asset.purchaseAmount;
     const gainPercent = asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100) : 0;
 
-    const history = asset.valueHistory || [];
+    // Process history to add derived fields
+    const enhancedHistory = useMemo(() => {
+        const sortedHistory = [...(asset.valueHistory || [])].sort((a, b) =>
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
 
-    // Filter history based on time range
-    const getFilteredHistory = () => {
-        if (timeRange === 'ALL') return history;
+        let runningInvested = 0;
 
-        const now = new Date();
-        let startDate = new Date('2000-01-01');
+        return sortedHistory.map((entry, index) => {
+            const prevEntry = index > 0 ? sortedHistory[index - 1] : null;
+            const investChange = entry.investmentChange || 0;
 
-        if (timeRange === '1M') {
-            startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        } else if (timeRange === '3M') {
-            startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-        } else if (timeRange === '1Y') {
-            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        } else if (timeRange === 'YTD') {
-            startDate = new Date(now.getFullYear(), 0, 1);
-        }
+            // Update running invested amount
+            runningInvested += investChange;
 
-        return history.filter(h => new Date(h.date) >= startDate);
-    };
+            // Period Gain/Loss: (Current Value - Previous Value) - Net Investment Change
+            const prevValue = prevEntry ? prevEntry.value : 0;
+            const periodGL = (entry.value - prevValue) - investChange;
 
-    const filteredHistory = getFilteredHistory();
-
-    const chartData = {
-        labels: filteredHistory.map(h => {
-            const d = new Date(h.date);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
-        }),
-        datasets: [{
-            data: filteredHistory.map(h => h.value),
-            borderColor: '#00D9A5',
-            backgroundColor: 'rgba(0, 217, 165, 0.1)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 4,
-            pointBackgroundColor: '#00D9A5',
-            borderWidth: 2
-        }]
-    };
-
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(26, 26, 34, 0.95)',
-                titleColor: '#fff',
-                bodyColor: '#00D9A5',
-                padding: 12,
-                cornerRadius: 8,
+            // Calculate Period G/L Percent
+            // What is the denominator? Often it's the previous value (adjusted for flows?) or just previous value.
+            // Requirement:"That will show information how much more the asset is valuable compared to latests snapshot minus investmen change"
+            // Typically Period Return % = (EndValue - (StartValue + Flows)) / (StartValue + Flows)
+            // Or simpler: PeriodGL / (StartValue + Flows)
+            // Let's use (StartValue + Flows) as the basis.
+            const basis = prevValue + investChange;
+            let periodGLPercent = 0;
+            if (basis !== 0) {
+                periodGLPercent = (periodGL / basis) * 100;
             }
-        },
-        scales: {
-            x: {
-                display: true,
-                grid: { display: false },
-                ticks: { color: '#6B7280', font: { size: 10 } }
-            },
-            y: {
-                display: true,
-                grid: { color: 'rgba(255,255,255,0.05)' },
-                ticks: {
-                    color: '#6B7280',
-                    font: { size: 10 },
-                    callback: (value: number | string) => {
-                        const num = typeof value === 'string' ? parseFloat(value) : value;
-                        if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-                        return num;
-                    }
-                }
+
+            // ROI: (Current Value - Cumulative Invested) / Cumulative Invested
+            let roi = 0;
+            if (runningInvested > 0) {
+                roi = ((entry.value - runningInvested) / runningInvested) * 100;
             }
-        }
-    };
+
+            return {
+                ...entry,
+                cumInvested: runningInvested,
+                periodGL,
+                periodGLPercent,
+                roi,
+                actualIndex: index
+            };
+        }).reverse(); // Most recent first
+    }, [asset.valueHistory]);
+
+    // Pagination logic
+    const totalPages = Math.ceil(enhancedHistory.length / ITEMS_PER_PAGE);
+    const paginatedHistory = enhancedHistory.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+    );
+
+    // Reset page when asset changes
+    useMemo(() => {
+        setCurrentPage(1);
+    }, [asset.id]);
 
     const handleDelete = () => {
         onDelete();
@@ -119,11 +103,14 @@ export default function InvestmentDetail({
 
     // CSV Export
     const handleExportCSV = () => {
-        const headers = ['Date', 'Value', 'Investment Change', 'Notes'];
-        const rows = history.map(h => [
+        const headers = ['Date', 'Value', 'Invested', 'Period G/L', 'Period G/L %', 'ROI', 'Notes'];
+        const rows = enhancedHistory.map(h => [
             new Date(h.date).toISOString().split('T')[0],
             h.value.toString(),
-            (h.investmentChange || 0).toString(),
+            h.cumInvested.toString(),
+            h.periodGL.toFixed(2),
+            h.periodGLPercent.toFixed(2) + '%',
+            h.roi.toFixed(2) + '%',
             `"${(h.notes || '').replace(/"/g, '""')}"`
         ]);
 
@@ -131,183 +118,269 @@ export default function InvestmentDetail({
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `${asset.name.replace(/[^a-z0-9]/gi, '_')}_snapshots.csv`;
+
+        const dateStr = new Date().toISOString().split('T')[0];
+        const sanitize = (str: string) => str.replace(/[\\/:*?"<>|]/g, '_');
+        const personName = sanitize(owner?.name || 'Unknown');
+        const investmentName = sanitize(asset.name);
+        link.download = `${dateStr} ${personName} - ${investmentName}.csv`;
         link.click();
-    };
-
-    // CSV Import
-    const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            const text = event.target?.result as string;
-            const lines = text.split('\n').slice(1); // Skip header
-            const snapshots = lines
-                .filter(line => line.trim())
-                .map(line => {
-                    const [date, value, investmentChange, ...notesParts] = line.split(',');
-                    const notes = notesParts.join(',').replace(/^"|"$/g, '').replace(/""/g, '"');
-                    return {
-                        date: new Date(date).toISOString(),
-                        value: parseFloat(value) || 0,
-                        investmentChange: parseFloat(investmentChange) || 0,
-                        notes: notes || ''
-                    };
-                });
-            onImportSnapshots(snapshots);
-        };
-        reader.readAsText(file);
-        e.target.value = '';
     };
 
     return (
         <div className="investment-detail">
-            <div className="detail-header">
-                <button className="back-button" onClick={onBack}>
-                    ← Back
-                </button>
-                <div className="detail-actions">
-                    <button className="btn-icon" onClick={onAddSnapshot} title="Add Snapshot">
-                        +
-                    </button>
-                    <button className="btn-icon" onClick={onEdit} title="Edit Investment">
-                        ✎
-                    </button>
-                    <button className="btn-icon btn-danger" onClick={() => setShowDeleteConfirm(true)} title="Delete Investment">
-                        ×
-                    </button>
-                </div>
-            </div>
 
-            <div className="detail-info">
-                <h1 className="detail-name">{asset.name}</h1>
-                <div className="detail-meta">
-                    <span className="detail-category">{CATEGORY_LABELS[asset.category]}</span>
-                    <span className="detail-owner">{owner?.name || 'Unknown'}</span>
-                </div>
-
-                <div className="detail-stats">
-                    <div className="stat-item">
-                        <span className="stat-label">Current Value</span>
-                        <span className="stat-value">{formatAmount(asset.currentValue)}</span>
-                    </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Total Invested</span>
-                        <span className="stat-value">{formatAmount(asset.purchaseAmount)}</span>
-                    </div>
-                    <div className="stat-item">
-                        <span className="stat-label">Gain/Loss</span>
-                        <span className={`stat-value ${gain >= 0 ? 'positive' : 'negative'}`}>
-                            {gain >= 0 ? '+' : ''}{formatAmount(gain)} ({gainPercent >= 0 ? '+' : ''}{gainPercent.toFixed(2)}%)
+            {/* Header / Hero Section */}
+            <div className="detail-hero" style={{ marginBottom: '24px' }}>
+                <div className="detail-title-row" style={{ alignItems: 'center', marginBottom: 0, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <h1 className="detail-title">{asset.name}</h1>
+                        <span className="detail-pill">
+                            {categoryLabel}
                         </span>
-                    </div>
-                </div>
-            </div>
 
-            <div className="detail-chart">
-                <div className="chart-header-row">
-                    <h3>Performance History</h3>
-                    <div className="time-range-tabs">
-                        {(['1M', '3M', 'YTD', '1Y', 'ALL'] as TimeRange[]).map(range => (
+                        <span className="detail-owner-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.7 }}>
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            <span style={{ color: 'var(--text-primary)' }}>{owner?.name || 'Unknown'}</span>
+                        </span>
+
+                        <div className="detail-actions" style={{ marginLeft: '16px' }}>
                             <button
-                                key={range}
-                                className={`time-tab ${timeRange === range ? 'active' : ''}`}
-                                onClick={() => setTimeRange(range)}
+                                className="detail-action-btn"
+                                onClick={onEdit}
+                                title="Edit Investment"
                             >
-                                {range}
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
                             </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="chart-container" style={{ height: '250px' }}>
-                    {filteredHistory.length > 1 ? (
-                        <Line data={chartData} options={chartOptions} />
-                    ) : (
-                        <div className="empty-state">
-                            <p>Add more snapshots to see performance chart</p>
+                            <button
+                                className="detail-action-btn danger"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                title="Delete Investment"
+                            >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
 
-            <div className="detail-history">
-                <div className="history-header">
-                    <h3>Snapshot History</h3>
-                    <div className="history-actions">
-                        <button className="btn-small" onClick={handleExportCSV}>Export CSV</button>
-                        <button className="btn-small" onClick={() => fileInputRef.current?.click()}>Import CSV</button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".csv"
-                            onChange={handleImportCSV}
-                            style={{ display: 'none' }}
-                        />
+            {/* Main Chart */}
+            <div className="mb-8">
+                <TotalWorthChart
+                    assets={[asset]}
+                    stats={{ totalGain: gain, gainPercentage: gainPercent }}
+                    title="Performance History"
+                />
+            </div>
+
+            {/* History List (Compact) */}
+            <div className="history-card">
+                <div className="history-header-row">
+                    <h3 className="history-title">Snapshot History</h3>
+                    <div className="history-actions-group">
+                        <button onClick={handleExportCSV} className="btn-small-outline">
+                            Export CSV
+                        </button>
+                        <button onClick={onOpenImportModal} className="btn-small-outline">
+                            Import CSV
+                        </button>
                     </div>
                 </div>
-                <div className="history-list">
-                    {history.slice().reverse().map((entry, index) => {
-                        const actualIndex = history.length - 1 - index;
-                        const prevEntry = history[actualIndex - 1];
-                        const valueChange = prevEntry ? entry.value - prevEntry.value : 0;
-                        const changePercent = prevEntry && prevEntry.value > 0
-                            ? ((valueChange / prevEntry.value) * 100)
-                            : 0;
 
-                        return (
-                            <div key={index} className="history-item">
-                                <div className="history-date">
+                {/* Desktop/Tablet Table View */}
+                <div className="compact-table-container desktop-only">
+                    <table className="compact-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Value</th>
+                                <th>Invested</th>
+                                <th>Period G/L</th>
+                                <th>Cum. ROI</th>
+                                <th className="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedHistory.map((entry, index) => (
+                                <tr key={index}>
+                                    <td>
+                                        <div style={{ fontWeight: 500 }}>
+                                            {new Date(entry.date).toLocaleDateString('en-US', {
+                                                month: 'short', day: 'numeric', year: 'numeric'
+                                            })}
+                                        </div>
+                                        {entry.notes && (
+                                            <div style={{ fontSize: '12px', color: 'var(--text-muted)', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {entry.notes}
+                                            </div>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {formatAmount(entry.value)}
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span>{formatAmount(entry.cumInvested)}</span>
+                                            {entry.investmentChange !== undefined && entry.investmentChange !== 0 && (
+                                                <span style={{ fontSize: '11px', color: entry.investmentChange > 0 ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
+                                                    {entry.investmentChange > 0 ? '+' : '-'}{formatAmount(Math.abs(entry.investmentChange))}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span className={entry.periodGL >= 0 ? 'text-green' : 'text-red'}>
+                                                {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
+                                            </span>
+                                            <span style={{ fontSize: '11px', opacity: 0.8 }} className={entry.periodGL >= 0 ? 'text-green' : 'text-red'}>
+                                                {entry.periodGL >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span className={entry.roi >= 0 ? 'text-green' : 'text-red'}>
+                                            {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
+                                        </span>
+                                    </td>
+                                    <td className="text-right">
+                                        <button
+                                            className="table-action-btn"
+                                            onClick={() => onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })}
+                                        >
+                                            Edit
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="mobile-history-list mobile-only">
+                    {paginatedHistory.map((entry, index) => (
+                        <div className="mobile-history-card" key={index}>
+                            <div className="mobile-history-header">
+                                <span className="mobile-history-date">
                                     {new Date(entry.date).toLocaleDateString('en-US', {
                                         month: 'short', day: 'numeric', year: 'numeric'
                                     })}
-                                </div>
-                                <div className="history-details">
-                                    <div className="history-value">{formatAmount(entry.value)}</div>
-                                    {prevEntry && (
-                                        <div className={`history-change ${valueChange >= 0 ? 'positive' : 'negative'}`}>
-                                            {valueChange >= 0 ? '+' : ''}{formatAmount(valueChange)} ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
-                                        </div>
-                                    )}
-                                    {entry.investmentChange !== undefined && entry.investmentChange !== 0 && (
-                                        <div className="history-investment">
-                                            {entry.investmentChange > 0 ? 'Added' : 'Withdrew'}: {formatAmount(Math.abs(entry.investmentChange))}
-                                        </div>
-                                    )}
-                                    {entry.notes && (
-                                        <div className="history-notes">{entry.notes}</div>
-                                    )}
-                                </div>
+                                </span>
                                 <button
-                                    className="history-edit-btn"
-                                    onClick={() => onEditSnapshot({ ...entry, id: (entry as any).id || actualIndex })}
-                                    title="Edit Snapshot"
+                                    className="mobile-action-btn"
+                                    onClick={() => onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })}
                                 >
-                                    ✎
+                                    Edit
                                 </button>
                             </div>
-                        );
-                    })}
+
+                            <div className="mobile-history-row">
+                                <span className="mobile-label">Value</span>
+                                <span className="mobile-value">{formatAmount(entry.value)}</span>
+                            </div>
+
+                            <div className="mobile-history-row">
+                                <span className="mobile-label">Invested</span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div className="mobile-value">{formatAmount(entry.cumInvested)}</div>
+                                    {entry.investmentChange !== undefined && entry.investmentChange !== 0 && (
+                                        <div className="mobile-sub-value" style={{ color: entry.investmentChange > 0 ? 'var(--accent-primary)' : 'var(--text-muted)' }}>
+                                            {entry.investmentChange > 0 ? 'Inv +' : 'Inv '}{formatAmount(entry.investmentChange)}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mobile-history-row">
+                                <span className="mobile-label">Period G/L</span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div className={`mobile-value ${entry.periodGL >= 0 ? 'text-green' : 'text-red'}`}>
+                                        {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
+                                    </div>
+                                    <div className={`mobile-sub-value ${entry.periodGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
+                                        {entry.periodGL >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mobile-history-row">
+                                <span className="mobile-label">Cum. ROI</span>
+                                <span className={`mobile-value ${entry.roi >= 0 ? 'text-green' : 'text-red'}`}>
+                                    {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
+                                </span>
+                            </div>
+
+                            {entry.notes && (
+                                <div className="mobile-notes">
+                                    {entry.notes}
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px', padding: '24px 0', borderTop: '1px solid var(--border-color)' }}>
+                        <button
+                            className="btn-small-outline"
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'default' : 'pointer' }}
+                        >
+                            Previous
+                        </button>
+                        <span style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
+                            Page {currentPage} of {totalPages}
+                        </span>
+                        <button
+                            className="btn-small-outline"
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'default' : 'pointer' }}
+                        >
+                            Next
+                        </button>
+                    </div>
+                )}
             </div>
 
-            {showDeleteConfirm && (
-                <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-                    <div className="modal modal-small" onClick={e => e.stopPropagation()}>
-                        <h3>Delete Investment?</h3>
-                        <p>Are you sure you want to delete "{asset.name}"? This action cannot be undone.</p>
-                        <div className="modal-actions">
-                            <button className="btn-secondary" onClick={() => setShowDeleteConfirm(false)}>
-                                Cancel
-                            </button>
-                            <button className="btn-danger" onClick={handleDelete}>
-                                Delete
-                            </button>
+            {
+                showDeleteConfirm && (
+                    <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+                        <div className="modal" style={{ maxWidth: '400px', padding: '24px' }} onClick={e => e.stopPropagation()}>
+                            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Delete Investment?</h3>
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Are you sure you want to delete "{asset.name}"? This action cannot be undone.</p>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                <button
+                                    className="btn-small-outline"
+                                    style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border-color)' }}
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="add-asset-btn"
+                                    style={{ background: 'var(--accent-red)', color: 'white', border: 'none' }}
+                                    onClick={handleDelete}
+                                >
+                                    Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

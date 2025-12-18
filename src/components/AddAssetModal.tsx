@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Asset, AssetCategory, Person } from '../types';
-import { CATEGORY_LABELS } from '../types';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface AddAssetModalProps {
     isOpen: boolean;
@@ -11,11 +11,10 @@ interface AddAssetModalProps {
     persons: Person[];
 }
 
-const categories: AssetCategory[] = ['stocks', 'etf', 'crypto', 'real_estate', 'bonds', 'cash', 'other'];
-
 export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
+    const { categories } = useSettings();
     const [name, setName] = useState('');
-    const [category, setCategory] = useState<AssetCategory>('stocks');
+    const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
     const [ownerId, setOwnerId] = useState('');
     const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
     const [purchaseAmount, setPurchaseAmount] = useState('');
@@ -36,7 +35,7 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
 
     const resetForm = () => {
         setName('');
-        setCategory('stocks');
+        setCategory(categories[0]?.key || 'stocks');
         setOwnerId(persons.length > 0 ? persons[0].id : '');
         setPurchaseDate(new Date().toISOString().split('T')[0]);
         setPurchaseAmount('');
@@ -46,19 +45,23 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        const assetData = {
-            name,
-            category,
-            ownerId,
-            purchaseDate,
-            purchaseAmount: parseFloat(purchaseAmount) || 0,
-            currentValue: parseFloat(currentValue) || parseFloat(purchaseAmount) || 0,
-            currency: 'PLN'
-        };
-
         if (editAsset && onUpdate) {
-            onUpdate(editAsset.id, assetData);
+            // When editing, only send fields that are actually editable in this view
+            const updates = {
+                name,
+                category,
+                ownerId,
+            };
+            onUpdate(editAsset.id, updates);
         } else {
+            const assetData = {
+                name,
+                category,
+                ownerId,
+                purchaseDate,
+                purchaseAmount: parseFloat(purchaseAmount) || 0,
+                currentValue: parseFloat(currentValue) || parseFloat(purchaseAmount) || 0,
+            };
             onSubmit(assetData);
         }
 
@@ -97,7 +100,7 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                                 onChange={e => setCategory(e.target.value as AssetCategory)}
                             >
                                 {categories.map(cat => (
-                                    <option key={cat} value={cat}>{CATEGORY_LABELS[cat]}</option>
+                                    <option key={cat.key} value={cat.key}>{cat.label}</option>
                                 ))}
                             </select>
                         </div>
@@ -115,44 +118,48 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Purchase Date</label>
-                        <input
-                            type="date"
-                            className="form-input"
-                            value={purchaseDate}
-                            onChange={e => setPurchaseDate(e.target.value)}
-                            required
-                        />
-                    </div>
+                    {!editAsset && (
+                        <>
+                            <div className="form-group">
+                                <label className="form-label">Purchase Date</label>
+                                <input
+                                    type="date"
+                                    className="form-input"
+                                    value={purchaseDate}
+                                    onChange={e => setPurchaseDate(e.target.value)}
+                                    required
+                                />
+                            </div>
 
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Purchase Amount (PLN)</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                placeholder="0"
-                                value={purchaseAmount}
-                                onChange={e => setPurchaseAmount(e.target.value)}
-                                required
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label className="form-label">Current Value (PLN)</label>
-                            <input
-                                type="number"
-                                className="form-input"
-                                placeholder="0"
-                                value={currentValue}
-                                onChange={e => setCurrentValue(e.target.value)}
-                                min="0"
-                                step="0.01"
-                            />
-                        </div>
-                    </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="form-label">Purchase Amount (PLN)</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        placeholder="0"
+                                        value={purchaseAmount}
+                                        onChange={e => setPurchaseAmount(e.target.value)}
+                                        required
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">Current Value (PLN)</label>
+                                    <input
+                                        type="number"
+                                        className="form-input"
+                                        placeholder="0"
+                                        value={currentValue}
+                                        onChange={e => setCurrentValue(e.target.value)}
+                                        min="0"
+                                        step="0.01"
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     <button type="submit" className="form-submit">
                         {editAsset ? 'Save Changes' : 'Add Investment'}

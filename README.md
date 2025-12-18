@@ -6,13 +6,14 @@ A modern, elegant personal wealth management dashboard for tracking investments 
 
 ## Features
 
-- 📊 **Portfolio Dashboard** - Visualize total worth with interactive charts
-- 👨‍👩‍👧‍👦 **Multi-Person Support** - Track investments for multiple family members
-- 📈 **Snapshot System** - Record investment values with dates, changes, and notes
-- 📁 **CSV Import/Export** - Bulk import or export snapshot history
-- 🎨 **Dark Mode Design** - Premium, modern UI with glassmorphism effects
-- 🔒 **Privacy Mode** - Hide values while still showing percentage trends
-- 🏷️ **Asset Categories** - Stocks, ETFs, Crypto, Real Estate, Bonds, Cash, Other
+- 📊 **Premium Dashboard** - Visualize total worth and performance with high-performance interactive charts.
+- 📈 **Interactive Sparklines** - Real-time gradient-filled performance graphs on every investment card for instant trend analysis.
+- 👨‍👩‍👧‍👦 **Multi-Person Management** - Dynamic person management with automatic filtering and per-owner tracking.
+- 🍰 **Dual-Mode Allocation** - Flip between Category grouping and Individual Investment views in a stunning doughnut visualization.
+- 🕒 **Advanced Snapshot System** - Detailed history for every asset with date-specific values, investment tracking, and performance notes.
+- 📁 **Smart CSV Import** - Bulk import snapshot history with support for multiple date formats and drag-and-drop interface.
+- 🔒 **Privacy Mode** - Securely hide sensitive financial data while preserving trend visibility via percentage-based visualization.
+- 🎨 **Modern Dark UI** - State-of-the-art glassmorphism design with a curated color palette and micro-animations.
 
 ## Tech Stack
 

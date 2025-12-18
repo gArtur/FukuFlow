@@ -33,15 +33,18 @@ export function usePortfolio() {
             totalInvested: 0,
             totalGain: 0,
             gainPercentage: 0,
-            byCategory: {
-                stocks: 0, etf: 0, crypto: 0, real_estate: 0, bonds: 0, cash: 0, other: 0
-            },
+            byCategory: {},
             byOwner: {}
         };
 
         assetList.forEach(asset => {
             stats.totalValue += asset.currentValue;
             stats.totalInvested += asset.purchaseAmount;
+
+            // Handle dynamic categories
+            if (typeof stats.byCategory[asset.category] !== 'number') {
+                stats.byCategory[asset.category] = 0;
+            }
             stats.byCategory[asset.category] += asset.currentValue;
 
             if (!stats.byOwner[asset.ownerId]) {
