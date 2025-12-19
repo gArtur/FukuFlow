@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { ApiClient } from '../lib/apiClient';
-import type { Person } from '../types';
+import type { Person, Asset } from '../types';
 import '../settings_styles.css';
+import ConfirmationModal from './ConfirmationModal';
+import RestoreDataModal from './RestoreDataModal';
 
 interface SettingsProps {
     persons: Person[];
     onAddPerson: (name: string) => Promise<void>;
-    onUpdatePerson: (id: string, name: string) => Promise<void>;
+    onUpdatePerson: (id: string, data: { name?: string, displayOrder?: number }) => Promise<void>;
+    onReorderPersons: (ids: string[]) => Promise<void>;
     onDeletePerson: (id: string) => Promise<void>;
+    assets: Asset[];
+    onRefreshAssets: () => void;
 }
 
 // Custom Select Component for matching the design
@@ -58,10 +63,8 @@ const CustomSelect = ({ label, value, options, onChange }: { label: string, valu
     );
 };
 
-export default function Settings({ persons, onAddPerson, onUpdatePerson, onDeletePerson }: SettingsProps) {
+export default function Settings({ persons, onAddPerson, onUpdatePerson, onReorderPersons, onDeletePerson, assets, onRefreshAssets }: SettingsProps) {
     const { currency, setCurrency, defaultFilter, setDefaultFilter, defaultDateRange, setDefaultDateRange, categories, addCategory, updateCategory, deleteCategory } = useSettings();
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
     // Person Management State
     const [editingPerson, setEditingPerson] = useState<string | null>(null);
     const [editPersonValue, setEditPersonValue] = useState('');
@@ -77,7 +80,7 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
     const [addCategoryColor, setAddCategoryColor] = useState('#000000');
 
     // Backup/Restore State
-    const [restoring, setRestoring] = useState(false);
+    const [showRestoreModal, setShowRestoreModal] = useState(false);
 
     // Options
     const currencyOptions = [
@@ -107,7 +110,7 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
 
     const handleUpdatePerson = async () => {
         if (editingPerson && editPersonValue.trim()) {
-            await onUpdatePerson(editingPerson, editPersonValue.trim());
+            await onUpdatePerson(editingPerson, { name: editPersonValue.trim() });
             setEditingPerson(null);
             setEditPersonValue('');
         }
@@ -131,14 +134,108 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
         }
     };
 
-    const handleDeleteCategory = async (id: string) => {
-        if (confirm('Are you sure you want to delete this category? This will fail if any assets are using it.')) {
-            try {
-                await deleteCategory(id);
-            } catch (error: any) {
-                alert(error.message);
-            }
+    // Confirmation Modal State
+    const [confirmConfig, setConfirmConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: React.ReactNode;
+        onConfirm: () => void;
+        isDangerous: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: null,
+        onConfirm: () => { },
+        isDangerous: false
+    });
+
+    const handleDeleteCategory = (id: string) => {
+        const category = categories.find(c => c.id === id);
+        if (!category) return;
+
+        const affectedAssets = assets.filter(a => a.category === category.key);
+        const usage = affectedAssets.length;
+        const name = category.label;
+
+        let message: React.ReactNode = <p>Are you sure you want to delete the category "<strong>{name}</strong>"? This action cannot be undone.</p>;
+
+        if (usage > 0) {
+            message = (
+                <div>
+                    <p>Are you sure you want to delete the category "<strong>{name}</strong>"?</p>
+                    <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                        <p style={{ color: 'var(--accent-red)', fontWeight: 500, marginBottom: '8px' }}>
+                            Warning: This category is currently used by {usage} investment(s).
+                        </p>
+                        <p style={{ fontSize: '0.9em', marginBottom: '8px' }}>
+                            Deleting this category will <strong>PERMANENTLY DELETE</strong> the following investments and their history:
+                        </p>
+                        <ul style={{ listStyle: 'disc', paddingLeft: '20px', fontSize: '0.9em', maxHeight: '150px', overflowY: 'auto' }}>
+                            {affectedAssets.map(a => (
+                                <li key={a.id}>{a.name}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            );
         }
+
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Delete Category?',
+            message,
+            isDangerous: true,
+            onConfirm: async () => {
+                try {
+                    await deleteCategory(id);
+                    onRefreshAssets();
+                } catch (error: any) {
+                    alert(error.message);
+                }
+            }
+        });
+    };
+
+    const handleDeletePersonClick = (id: string) => {
+        const person = persons.find(p => p.id === id);
+        if (!person) return;
+
+        const personAssets = assets.filter(a => a.ownerId === id);
+        const personAssetsCount = personAssets.length;
+
+        let message: React.ReactNode = <p>Are you sure you want to delete "<strong>{person.name}</strong>"?</p>;
+
+        if (personAssetsCount > 0) {
+            message = (
+                <div>
+                    <p>Are you sure you want to delete "<strong>{person.name}</strong>"?</p>
+                    <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                        <p style={{ color: 'var(--accent-red)', fontWeight: 500, marginBottom: '8px' }}>
+                            Warning: "{person.name}" has {personAssetsCount} investment(s).
+                        </p>
+                        <p style={{ fontSize: '0.9em', marginBottom: '8px' }}>
+                            Deleting this person will <strong>PERMANENTLY DELETE</strong> the following investments and their history:
+                        </p>
+                        <ul style={{ listStyle: 'disc', paddingLeft: '20px', fontSize: '0.9em', maxHeight: '150px', overflowY: 'auto' }}>
+                            {personAssets.map(a => (
+                                <li key={a.id}>{a.name}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+
+        setConfirmConfig({
+            isOpen: true,
+            title: 'Delete Person?',
+            message,
+            isDangerous: true,
+            onConfirm: async () => {
+                await onDeletePerson(id);
+                onRefreshAssets();
+            }
+        });
     };
 
     const handleBackup = async () => {
@@ -159,38 +256,57 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
     };
 
     const handleRestoreClick = () => {
-        if (confirm('WARNING: Restoring a backup will REPLACE ALL CURRENT DATA. This action cannot be undone. Are you sure?')) {
-            fileInputRef.current?.click();
-        }
-    };
-
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const json = JSON.parse(event.target?.result as string);
-                setRestoring(true);
-                await ApiClient.restoreBackup(json);
-                alert('Restore successful! The page will now reload.');
-                window.location.reload();
-            } catch (error) {
-                console.error('Restore failed:', error);
-                alert('Restore failed. Please check the console for details.');
-            } finally {
-                setRestoring(false);
-                if (fileInputRef.current) fileInputRef.current.value = '';
-            }
-        };
-        reader.readAsText(file);
+        setShowRestoreModal(true);
     };
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
         }
+    };
+
+    // Drag and Drop state
+    const [draggedId, setDraggedId] = useState<string | null>(null);
+    const [dragOverId, setDragOverId] = useState<string | null>(null);
+
+    const handleDragStart = (e: React.DragEvent, id: string) => {
+        setDraggedId(id);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, id: string) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragOverId !== id) {
+            setDragOverId(id);
+        }
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetId: string) => {
+        e.preventDefault();
+        setDragOverId(null);
+        if (!draggedId || draggedId === targetId) return;
+
+        const draggedIndex = persons.findIndex(p => p.id === draggedId);
+        const targetIndex = persons.findIndex(p => p.id === targetId);
+
+        if (draggedIndex === -1 || targetIndex === -1) return;
+
+        const newPersons = [...persons];
+        const [movedPerson] = newPersons.splice(draggedIndex, 1);
+        newPersons.splice(targetIndex, 0, movedPerson);
+
+        const newOrderIds = newPersons.map(p => p.id);
+
+        if (onReorderPersons) {
+            await onReorderPersons(newOrderIds);
+        }
+        setDraggedId(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedId(null);
+        setDragOverId(null);
     };
 
     return (
@@ -314,7 +430,15 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
 
                             <div className="settings-items-grid">
                                 {persons.map(person => (
-                                    <div key={person.id} className="item-card">
+                                    <div
+                                        key={person.id}
+                                        className={`item-card ${draggedId === person.id ? 'dragging' : ''} ${dragOverId === person.id ? 'drag-over' : ''}`}
+                                        draggable={editingPerson === null}
+                                        onDragStart={(e) => handleDragStart(e, person.id)}
+                                        onDragOver={(e) => handleDragOver(e, person.id)}
+                                        onDrop={(e) => handleDrop(e, person.id)}
+                                        onDragEnd={handleDragEnd}
+                                    >
                                         {editingPerson === person.id ? (
                                             <div className="edit-person-inline">
                                                 <input
@@ -335,6 +459,16 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                                             </div>
                                         ) : (
                                             <>
+                                                <div className="drag-handle" title="Drag to reorder">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                        <circle cx="9" cy="5" r="1"></circle>
+                                                        <circle cx="9" cy="12" r="1"></circle>
+                                                        <circle cx="9" cy="19" r="1"></circle>
+                                                        <circle cx="15" cy="5" r="1"></circle>
+                                                        <circle cx="15" cy="12" r="1"></circle>
+                                                        <circle cx="15" cy="19" r="1"></circle>
+                                                    </svg>
+                                                </div>
                                                 <div className="item-card-left">
                                                     <div className="person-avatar">
                                                         {person.name.charAt(0).toUpperCase()}
@@ -345,26 +479,28 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                                                 </div>
 
                                                 <div className="item-card-actions">
-                                                    <button
-                                                        onClick={() => { setEditingPerson(person.id); setEditPersonValue(person.name); }}
-                                                        className="action-icon-btn"
-                                                        title="Edit"
-                                                    >
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                                        </svg>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => onDeletePerson(person.id)}
-                                                        className="action-icon-btn delete"
-                                                        title="Delete"
-                                                    >
-                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                            <polyline points="3 6 5 6 21 6"></polyline>
-                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                        </svg>
-                                                    </button>
+                                                    <div className="action-buttons-row">
+                                                        <button
+                                                            onClick={() => { setEditingPerson(person.id); setEditPersonValue(person.name); }}
+                                                            className="action-icon-btn"
+                                                            title="Edit"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                            </svg>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeletePersonClick(person.id)}
+                                                            className="action-icon-btn delete"
+                                                            title="Delete"
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                                <polyline points="3 6 5 6 21 6"></polyline>
+                                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </>
                                         )}
@@ -539,7 +675,7 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                                             <h3>Backup Data</h3>
                                             <p>Download a JSON file of your portfolio.</p>
                                         </div>
-                                        <button onClick={handleBackup} className="btn-primary-gold-block">
+                                        <button onClick={handleBackup} className="btn-data-action">
                                             Backup Data
                                             <span className="icon-right">↓</span>
                                         </button>
@@ -550,23 +686,32 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                                             <h3>Restore Data</h3>
                                             <p>Overwrite current data with a backup file.</p>
                                         </div>
-                                        <button onClick={handleRestoreClick} className="btn-primary-gold-block">
-                                            {restoring ? 'Restoring...' : 'Restore Data'}
+                                        <button onClick={handleRestoreClick} className="btn-data-action">
+                                            Restore Data
                                             <span className="icon-right">↑</span>
                                         </button>
                                     </div>
                                 </div>
                             </div>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                accept=".json"
-                                style={{ display: 'none' }}
-                            />
                         </div>
                     </div>
                 </div>
+
+                {/* Modals */}
+                <ConfirmationModal
+                    isOpen={confirmConfig.isOpen}
+                    onClose={() => setConfirmConfig({ ...confirmConfig, isOpen: false })}
+                    title={confirmConfig.title}
+                    message={confirmConfig.message}
+                    confirmLabel="Delete"
+                    isDangerous={confirmConfig.isDangerous}
+                    onConfirm={confirmConfig.onConfirm}
+                />
+
+                <RestoreDataModal
+                    isOpen={showRestoreModal}
+                    onClose={() => setShowRestoreModal(false)}
+                />
             </div>
         </div>
     );

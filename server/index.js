@@ -77,6 +77,7 @@ function initializeDb() {
         // using try-catch blocks effectively by ignoring errors if columns exist
         db.run(`ALTER TABLE asset_history ADD COLUMN investmentChange REAL DEFAULT 0`, () => { });
         db.run(`ALTER TABLE asset_history ADD COLUMN notes TEXT`, () => { });
+        db.run(`ALTER TABLE persons ADD COLUMN displayOrder INTEGER DEFAULT 0`, () => { });
 
         // Seed data
         seedCategories();
@@ -203,19 +204,51 @@ app.put('/api/categories/:id', (req, res) => {
 app.delete('/api/categories/:id', (req, res) => {
     const { id } = req.params;
 
-    // Check if category is in use or is default
-    db.get('SELECT isDefault, key FROM categories WHERE id = ?', [id], (err, category) => {
+    // Cascading delete
+    db.get('SELECT key FROM categories WHERE id = ?', [id], (err, category) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!category) return res.status(404).json({ error: 'Category not found' });
-        // if (category.isDefault) return res.status(400).json({ error: 'Cannot delete default category' });
 
-        db.get('SELECT count(*) as count FROM assets WHERE category = ?', [category.key], (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
-            if (row.count > 0) return res.status(400).json({ error: 'Category is in use' });
+        db.serialize(() => {
+            db.run('BEGIN TRANSACTION');
 
-            db.run('DELETE FROM categories WHERE id = ?', [id], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
-                res.status(204).send();
+            // Find all assets in this category
+            db.all('SELECT id FROM assets WHERE category = ?', [category.key], (err, assets) => {
+                if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                }
+
+                const assetIds = assets.map(a => a.id);
+
+                if (assetIds.length > 0) {
+                    // Delete history for these assets
+                    const placeholders = assetIds.map(() => '?').join(',');
+                    db.run(`DELETE FROM asset_history WHERE assetId IN (${placeholders})`, assetIds, (err) => {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return console.error('Error deleting history:', err);
+                        }
+                    });
+
+                    // Delete the assets
+                    db.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds, (err) => {
+                        if (err) {
+                            db.run('ROLLBACK');
+                            return console.error('Error deleting assets:', err);
+                        }
+                    });
+                }
+
+                // Delete the category
+                db.run('DELETE FROM categories WHERE id = ?', [id], (err) => {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                    }
+                    db.run('COMMIT');
+                    res.status(204).send();
+                });
             });
         });
     });
@@ -224,7 +257,7 @@ app.delete('/api/categories/:id', (req, res) => {
 
 // Persons
 app.get('/api/persons', (req, res) => {
-    db.all('SELECT * FROM persons', [], (err, rows) => {
+    db.all('SELECT * FROM persons ORDER BY displayOrder ASC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(rows);
     });
@@ -233,16 +266,114 @@ app.get('/api/persons', (req, res) => {
 app.post('/api/persons', (req, res) => {
     const { id, name } = req.body;
     const personId = id || uuidv4();
-    db.run('INSERT INTO persons (id, name) VALUES (?, ?)', [personId, name], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: personId, name });
+
+    // Get max displayOrder
+    db.get('SELECT MAX(displayOrder) as maxOrder FROM persons', [], (err, row) => {
+        const nextOrder = (row && row.maxOrder !== null) ? row.maxOrder + 1 : 0;
+
+        db.run('INSERT INTO persons (id, name, displayOrder) VALUES (?, ?, ?)', [personId, name, nextOrder], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.status(201).json({ id: personId, name, displayOrder: nextOrder });
+        });
     });
 });
 
+// Reorder persons
+app.put('/api/persons/reorder', (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids)) {
+        return res.status(400).json({ error: 'ids must be an array' });
+    }
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+        const stmt = db.prepare('UPDATE persons SET displayOrder = ? WHERE id = ?');
+
+        ids.forEach((id, index) => {
+            stmt.run(index, id);
+        });
+
+        stmt.finalize((err) => {
+            if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+            }
+            db.run('COMMIT', () => {
+                res.json({ message: 'Reorder successful', ids });
+            });
+        });
+    });
+});
+
+app.put('/api/persons/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, displayOrder } = req.body;
+
+    if (name !== undefined && displayOrder !== undefined) {
+        db.run('UPDATE persons SET name = ?, displayOrder = ? WHERE id = ?', [name, displayOrder, id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ id, name, displayOrder });
+        });
+    } else if (name !== undefined) {
+        db.run('UPDATE persons SET name = ? WHERE id = ?', [name, id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ id, name });
+        });
+    } else if (displayOrder !== undefined) {
+        db.run('UPDATE persons SET displayOrder = ? WHERE id = ?', [displayOrder, id], (err) => {
+            if (err) return res.status(500).json({ error: err.message });
+            res.json({ id, displayOrder });
+        });
+    } else {
+        res.status(400).json({ error: 'No valid fields to update' });
+    }
+});
+
 app.delete('/api/persons/:id', (req, res) => {
-    db.run('DELETE FROM persons WHERE id = ?', [req.params.id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.status(204).send();
+    const { id } = req.params;
+
+    db.serialize(() => {
+        db.run('BEGIN TRANSACTION');
+
+        // Find assets owned by person
+        db.all('SELECT id FROM assets WHERE ownerId = ?', [id], (err, assets) => {
+            if (err) {
+                db.run('ROLLBACK');
+                return res.status(500).json({ error: err.message });
+            }
+
+            const assetIds = assets.map(a => a.id);
+
+            if (assetIds.length > 0) {
+                const placeholders = assetIds.map(() => '?').join(',');
+
+                // Delete history
+                db.run(`DELETE FROM asset_history WHERE assetId IN (${placeholders})`, assetIds, (err) => {
+                    if (err) {
+                        console.error('Error deleting history:', err);
+                        // Don't rollback immediately, let logic flow or handle better
+                    }
+                });
+
+                // Delete assets
+                db.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds, (err) => {
+                    if (err) {
+                        db.run('ROLLBACK');
+                        return res.status(500).json({ error: err.message });
+                    }
+                });
+            }
+
+            // Delete person
+            db.run('DELETE FROM persons WHERE id = ?', [id], (err) => {
+                if (err) {
+                    db.run('ROLLBACK');
+                    return res.status(500).json({ error: err.message });
+                }
+                db.run('COMMIT');
+                res.status(204).send();
+            });
+        });
     });
 });
 

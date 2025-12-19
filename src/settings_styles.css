@@ -2,13 +2,14 @@
 .settings-card-override {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 100px);
-    overflow: hidden;
+    /* height: calc(100vh - 100px); */
+    /* overflow: hidden; */
+    min-height: calc(100vh - 100px);
 }
 
 .settings-layout-wrapper {
     flex: 1;
-    overflow: hidden;
+    /* overflow: hidden; */
     padding: 0 !important;
     display: flex;
     flex-direction: column;
@@ -18,8 +19,8 @@
     display: flex;
     gap: var(--space-xl);
     padding: var(--space-lg);
-    height: 100%;
-    overflow-y: auto;
+    /* height: 100%; */
+    /* overflow-y: auto; */
     align-items: flex-start;
 }
 
@@ -31,7 +32,7 @@
     gap: 4px;
     flex-shrink: 0;
     position: sticky;
-    top: 0px;
+    top: 80px;
     padding-top: var(--space-xs);
 }
 
@@ -355,11 +356,11 @@
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color);
     gap: 4px;
-    width: fit-content;
+    width: 100%;
 }
 
 .date-pill {
-    padding: 8px 16px;
+    padding: 8px;
     border-radius: var(--radius-md);
     border: none;
     background: transparent;
@@ -368,6 +369,10 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .date-pill:hover {
@@ -579,4 +584,100 @@
     width: 1px;
     height: 1px;
     pointer-events: none;
+}
+
+/* Unified Data Action Button */
+.btn-data-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #000;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-data-action:hover {
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(201, 162, 39, 0.3);
+    transform: translateY(-1px);
+}
+
+.icon-right {
+    font-size: 1.2em;
+    line-height: 1;
+}
+
+/* Reordering Buttons */
+.action-buttons-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.move-buttons {
+    display: flex;
+    gap: 2px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 2px;
+    border: 1px solid var(--border-color);
+}
+
+.move-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.move-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+/* Drag and Drop */
+.drag-handle {
+    cursor: grab;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, background 0.2s;
+}
+
+.drag-handle:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.item-card.dragging {
+    opacity: 0.5;
+    background: var(--bg-card-hover);
+    border-color: var(--accent-primary);
+}
+
+.item-card.drag-over {
+    border-top: 2px solid var(--accent-primary);
 }

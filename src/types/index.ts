@@ -4,6 +4,7 @@ export type AssetCategory = string;
 export interface Person {
     id: string;
     name: string;
+    displayOrder?: number;
 }
 
 export interface ValueEntry {

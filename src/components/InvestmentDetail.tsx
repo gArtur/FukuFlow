@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import ConfirmationModal from './ConfirmationModal';
 import type { Asset, Person, ValueEntry } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -105,15 +106,11 @@ export default function InvestmentDetail({
 
     // CSV Export
     const handleExportCSV = () => {
-        const headers = ['Date', 'Value', 'Invested', 'Period G/L', 'Period G/L %', 'Cum. G/L', 'ROI', 'Notes'];
+        const headers = ['Date', 'Value', 'Investment Change', 'Notes'];
         const rows = enhancedHistory.map(h => [
             new Date(h.date).toISOString().split('T')[0],
             h.value.toString(),
-            h.cumInvested.toString(),
-            h.periodGL.toFixed(2),
-            h.periodGLPercent.toFixed(2) + '%',
-            h.cumGL.toFixed(2),
-            h.roi.toFixed(2) + '%',
+            (h.investmentChange || 0).toString(),
             `"${(h.notes || '').replace(/"/g, '""')}"`
         ]);
 
@@ -389,32 +386,15 @@ export default function InvestmentDetail({
                 )}
             </div>
 
-            {
-                showDeleteConfirm && (
-                    <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
-                        <div className="modal" style={{ maxWidth: '400px', padding: '24px' }} onClick={e => e.stopPropagation()}>
-                            <h3 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Delete Investment?</h3>
-                            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>Are you sure you want to delete "{asset.name}"? This action cannot be undone.</p>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                <button
-                                    className="btn-small-outline"
-                                    style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--border-color)' }}
-                                    onClick={() => setShowDeleteConfirm(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="add-asset-btn"
-                                    style={{ background: 'var(--accent-red)', color: 'white', border: 'none' }}
-                                    onClick={handleDelete}
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Delete Investment?"
+                message={`Are you sure you want to delete "${asset.name}"? This action cannot be undone.`}
+                confirmLabel="Delete"
+                isDangerous={true}
+            />
         </div >
     );
 }

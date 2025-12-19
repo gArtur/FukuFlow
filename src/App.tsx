@@ -167,42 +167,54 @@ function AppContent() {
     }
   };
 
-  const handleUpdatePerson = async (id: string, name: string) => {
+  const handleUpdatePerson = async (id: string, updates: { name?: string, displayOrder?: number }) => {
     try {
-      // Logic for updating person name could be added here if needed in backend
-      setPersons(prev => prev.map(p =>
-        p.id === id ? { ...p, name: name.trim() } : p
-      ));
+      await ApiClient.updatePerson(id, updates);
+      setPersons(prev => {
+        const updatedList = prev.map(p =>
+          p.id === id ? { ...p, ...updates } : p
+        );
+
+        // Sort by displayOrder
+        return updatedList.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+      });
     } catch (error) {
       console.error('Failed to update person:', error);
     }
   };
 
   const handleDeletePerson = async (id: string) => {
-    const person = persons.find(p => p.id === id);
-    if (!person) return;
-
-    const assetsCount = allAssets.filter(a => a.ownerId === id).length;
-
-    let confirmMessage = `Are you sure you want to delete "${person.name}"?`;
-    if (assetsCount > 0) {
-      confirmMessage = `"${person.name}" has ${assetsCount} investment(s). Deleting this person will also delete all their investments. This action cannot be undone.\n\nAre you sure?`;
-    }
-
-    if (confirm(confirmMessage)) {
-      try {
-        await ApiClient.deletePerson(id);
-        setPersons(prev => prev.filter(p => p.id !== id));
-        if (selectedOwner === id) {
-          setSelectedOwner('all');
-        }
-      } catch (error) {
-        console.error('Failed to delete person:', error);
+    try {
+      await ApiClient.deletePerson(id);
+      setPersons(prev => prev.filter(p => p.id !== id));
+      if (selectedOwner === id) {
+        setSelectedOwner('all');
       }
+    } catch (error) {
+      console.error('Failed to delete person:', error);
     }
   };
 
 
+
+  const handleReorderPersons = async (ids: string[]) => {
+    try {
+      // Optimistic update
+      setPersons(prev => {
+        const personMap = new Map(prev.map(p => [p.id, p]));
+        const newPersons = ids.map((id, index) => {
+          const p = personMap.get(id);
+          return p ? { ...p, displayOrder: index } : null;
+        }).filter(Boolean) as Person[];
+        return newPersons;
+      });
+
+      await ApiClient.reorderPersons(ids);
+    } catch (error) {
+      console.error('Failed to reorder persons:', error);
+      fetchPersons(); // Revert on error
+    }
+  };
 
   const hasLocalData = localStorage.getItem('wealth-persons') || localStorage.getItem('wealth-portfolio');
   const isInitialLoad = (assetsLoading && allAssets.length === 0) || personsLoading || settingsLoading;
@@ -282,10 +294,8 @@ function AppContent() {
             onAddSnapshot={handleAddSnapshot}
             onEdit={(asset: Asset) => { setEditAsset(asset); setShowAddModal(true); }}
             onDelete={async (id: string) => {
-              if (confirm('Are you sure you want to delete this investment?')) {
-                await deleteAsset(id);
-                handleBackToDashboard();
-              }
+              await deleteAsset(id);
+              handleBackToDashboard();
             }}
             onEditSnapshot={handleEditSnapshot}
             setShowImportModal={setShowImportModal}
@@ -327,7 +337,10 @@ function AppContent() {
                 persons={persons}
                 onAddPerson={handleAddPerson}
                 onUpdatePerson={handleUpdatePerson}
+                onReorderPersons={handleReorderPersons}
                 onDeletePerson={handleDeletePerson}
+                assets={allAssets}
+                onRefreshAssets={refreshAssets}
               />
             </main>
           </div>
@@ -416,7 +429,7 @@ function AssetDetailView({
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         assetName={asset.name}
-        onImport={(snapshots) => onImport(snapshots, asset.id)}
+        onImport={(snapshots) => onImport(asset.id, snapshots)}
       />
 
       <AddAssetModal

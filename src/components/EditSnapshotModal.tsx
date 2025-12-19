@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import ConfirmationModal from './ConfirmationModal';
 
 interface EditSnapshotModalProps {
     isOpen: boolean;
@@ -61,28 +62,14 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={e => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>Edit Snapshot</h2>
-                    <button className="modal-close" onClick={onClose}>×</button>
-                </div>
-
-                {showDeleteConfirm ? (
-                    <div className="modal-form">
-                        <p style={{ marginBottom: '16px', color: 'var(--text-secondary)' }}>
-                            Are you sure you want to delete this snapshot? This action cannot be undone.
-                        </p>
-                        <div className="modal-actions">
-                            <button type="button" className="btn-secondary" onClick={() => setShowDeleteConfirm(false)}>
-                                Cancel
-                            </button>
-                            <button type="button" className="btn-danger" onClick={handleDelete}>
-                                Delete
-                            </button>
-                        </div>
+        <>
+            <div className="modal-overlay" onClick={onClose}>
+                <div className="modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal-header">
+                        <h2>Edit Snapshot</h2>
+                        <button className="modal-close" onClick={onClose}>×</button>
                     </div>
-                ) : (
+
                     <form onSubmit={handleSubmit} className="modal-form">
                         <div className="form-group">
                             <label>Date</label>
@@ -150,8 +137,18 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                             </button>
                         </div>
                     </form>
-                )}
+                </div>
             </div>
-        </div>
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onClose={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Delete Snapshot"
+                message="Are you sure you want to delete this snapshot? This action cannot be undone."
+                confirmLabel="Delete"
+                isDangerous={true}
+            />
+        </>
     );
 }

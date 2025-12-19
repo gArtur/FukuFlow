@@ -96,6 +96,24 @@ export const ApiClient = {
         return response.json();
     },
 
+    async updatePerson(id: string, data: { name?: string, displayOrder?: number }) {
+        const response = await fetch(`${API_URL}/persons/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        return response.json();
+    },
+
+    async reorderPersons(ids: string[]) {
+        const response = await fetch(`${API_URL}/persons/reorder`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids })
+        });
+        return response.json();
+    },
+
     async deletePerson(id: string) {
         await fetch(`${API_URL}/persons/${id}`, { method: 'DELETE' });
     },
