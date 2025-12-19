@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Asset, Person } from '../types';
+import { parseValue, handleNumberInput, formatCurrency as formatCurrencyUtil } from '../utils';
+import { useSettings } from '../contexts/SettingsContext';
 
 interface AddSnapshotModalProps {
     isOpen: boolean;
@@ -10,22 +12,14 @@ interface AddSnapshotModalProps {
     onSubmit: (assetId: string, snapshot: { value: number; date: string; investmentChange: number; notes: string }) => void;
 }
 
-// Helper functions (outside component or defined before usage)
-const parseValue = (val: string): number => {
-    return parseFloat(val.replace(',', '.')) || 0;
-};
-
-const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
-    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
-        setter(inputValue);
-    }
-};
-
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(amount);
-};
+// Use settings-aware currency formatting
+function useFormatCurrency() {
+    const { currency } = useSettings();
+    return (amount: number) => formatCurrencyUtil(amount, currency);
+}
 
 export default function AddSnapshotModal({ isOpen, onClose, asset, assets, persons, onSubmit }: AddSnapshotModalProps) {
+    const formatCurrency = useFormatCurrency();
     const [selectedAssetId, setSelectedAssetId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
     const [showSuggestions, setShowSuggestions] = useState(false);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
+import { parseValue, handleNumberInput } from '../utils';
 
 interface EditSnapshotModalProps {
     isOpen: boolean;
@@ -14,17 +15,6 @@ interface EditSnapshotModalProps {
     onSubmit: (id: number, data: { date: string; value: number; investmentChange: number; notes: string }) => void;
     onDelete: (id: number) => void;
 }
-
-// Helper functions
-const parseValue = (val: string): number => {
-    return parseFloat(val.replace(',', '.')) || 0;
-};
-
-const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
-    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
-        setter(inputValue);
-    }
-};
 
 export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit, onDelete }: EditSnapshotModalProps) {
     const [date, setDate] = useState('');

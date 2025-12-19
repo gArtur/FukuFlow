@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Asset, AssetCategory, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
+import { parseValue, handleNumberInput } from '../utils';
 
 interface AddAssetModalProps {
     isOpen: boolean;
@@ -10,16 +11,6 @@ interface AddAssetModalProps {
     onUpdate?: (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => void;
     persons: Person[];
 }
-
-const parseValue = (val: string): number => {
-    return parseFloat(val.replace(',', '.')) || 0;
-};
-
-const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
-    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
-        setter(inputValue);
-    }
-};
 
 export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
     const { categories } = useSettings();

@@ -1,9 +1,10 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
-import type { Asset, Person, ValueEntry } from './types';
+import { usePersons } from './hooks/usePersons';
+import type { Asset, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';
@@ -39,25 +40,15 @@ function AppContent() {
     refreshAssets
   } = usePortfolio();
 
-  const [persons, setPersons] = useState<Person[]>([]);
-  const [personsLoading, setPersonsLoading] = useState(true);
-
-
-  const fetchPersons = useCallback(async () => {
-    setPersonsLoading(true);
-    try {
-      const data = await ApiClient.getPersons();
-      setPersons(data);
-    } catch (error) {
-      console.error('Failed to fetch persons:', error);
-    } finally {
-      setPersonsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPersons();
-  }, [fetchPersons]);
+  // Use the usePersons hook for person management
+  const {
+    persons,
+    isLoading: personsLoading,
+    addPerson,
+    updatePerson,
+    deletePerson,
+    reorderPersons
+  } = usePersons();
 
   // Set filter based on settings (initial load and updates)
   useEffect(() => {
@@ -157,62 +148,11 @@ function AppContent() {
     setEditAsset(null);
   };
 
-  // Person management handlers
-  const handleAddPerson = async (name: string) => {
-    try {
-      const newPerson = await ApiClient.addPerson(name);
-      setPersons(prev => [...prev, newPerson]);
-    } catch (error) {
-      console.error('Failed to add person:', error);
-    }
-  };
-
-  const handleUpdatePerson = async (id: string, updates: { name?: string, displayOrder?: number }) => {
-    try {
-      await ApiClient.updatePerson(id, updates);
-      setPersons(prev => {
-        const updatedList = prev.map(p =>
-          p.id === id ? { ...p, ...updates } : p
-        );
-
-        // Sort by displayOrder
-        return updatedList.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-      });
-    } catch (error) {
-      console.error('Failed to update person:', error);
-    }
-  };
-
+  // Wrapper for deletePerson that also updates the filter if needed
   const handleDeletePerson = async (id: string) => {
-    try {
-      await ApiClient.deletePerson(id);
-      setPersons(prev => prev.filter(p => p.id !== id));
-      if (selectedOwner === id) {
-        setSelectedOwner('all');
-      }
-    } catch (error) {
-      console.error('Failed to delete person:', error);
-    }
-  };
-
-
-
-  const handleReorderPersons = async (ids: string[]) => {
-    try {
-      // Optimistic update
-      setPersons(prev => {
-        const personMap = new Map(prev.map(p => [p.id, p]));
-        const newPersons = ids.map((id, index) => {
-          const p = personMap.get(id);
-          return p ? { ...p, displayOrder: index } : null;
-        }).filter(Boolean) as Person[];
-        return newPersons;
-      });
-
-      await ApiClient.reorderPersons(ids);
-    } catch (error) {
-      console.error('Failed to reorder persons:', error);
-      fetchPersons(); // Revert on error
+    const success = await deletePerson(id);
+    if (success && selectedOwner === id) {
+      setSelectedOwner('all');
     }
   };
 
@@ -335,9 +275,9 @@ function AppContent() {
             <main className="main-content">
               <Settings
                 persons={persons}
-                onAddPerson={handleAddPerson}
-                onUpdatePerson={handleUpdatePerson}
-                onReorderPersons={handleReorderPersons}
+                onAddPerson={addPerson}
+                onUpdatePerson={updatePerson}
+                onReorderPersons={reorderPersons}
                 onDeletePerson={handleDeletePerson}
                 assets={allAssets}
                 onRefreshAssets={refreshAssets}

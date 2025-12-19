@@ -1,20 +1,3 @@
-/* Settings Layout adjustments for Dashboard Card */
-.settings-card-override {
-    display: flex;
-    flex-direction: column;
-    /* height: calc(100vh - 100px); */
-    /* overflow: hidden; */
-    min-height: calc(100vh - 100px);
-}
-
-.settings-layout-wrapper {
-    flex: 1;
-    /* overflow: hidden; */
-    padding: 0 !important;
-    display: flex;
-    flex-direction: column;
-}
-
 .settings-layout {
     display: flex;
     gap: var(--space-xl);

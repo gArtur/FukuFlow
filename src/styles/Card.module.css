@@ -1,0 +1,108 @@
+/* Card Component Styles - CSS Module */
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+}
+
+.cardHover:hover {
+    border-color: var(--border-color-light);
+    transform: translateY(-2px);
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.cardTitle {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.cardContent {
+    /* Content area styles */
+}
+
+/* Dashboard card variant */
+.dashboardCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+}
+
+.dashboardCardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.dashboardCardHeader h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.dashboardCardContent {
+    padding: var(--space-lg);
+}
+
+/* Chart card variant */
+.chartCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+@media (min-width: 1024px) {
+    .chartCard {
+        margin-bottom: 0;
+    }
+}
+
+/* Mover card variant */
+.moverCard {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+    transition: all 0.2s ease;
+}
+
+.moverCard:hover {
+    border-color: var(--border-color-light);
+    transform: translateY(-2px);
+}
+
+/* Empty state */
+.emptyState {
+    text-align: center;
+    padding: var(--space-2xl);
+}
+
+.emptyIcon {
+    font-size: 48px;
+    margin-bottom: var(--space-md);
+}
+
+.emptyTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+}
+
+.emptyText {
+    font-size: 14px;
+    color: var(--text-muted);
+}

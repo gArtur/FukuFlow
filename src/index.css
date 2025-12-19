@@ -519,12 +519,12 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-sm);
 }
 
 .movers-header-left {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-sm);
 }
 
@@ -551,6 +551,7 @@ body {
 .movers-title {
   font-size: 16px;
   font-weight: 600;
+  margin: 0;
 }
 
 .movers-count {
@@ -2364,18 +2365,13 @@ body {
 }
 
 .settings-section {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: var(--space-md);
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-xl);
 }
 
 .settings-section h2 {
-  font-size: 1.1rem;
-  margin-bottom: var(--space-sm);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--border-color);
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: var(--space-md);
   color: var(--text-primary);
 }
 
@@ -2555,17 +2551,14 @@ body {
 }
 
 .settings-section {
-  margin-bottom: 0;
+  margin-bottom: var(--space-xl);
 }
 
 .settings-section h2 {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+  color: var(--text-primary);
   margin-bottom: var(--space-md);
-  margin-left: var(--space-sm);
 }
 
 .settings-card {
