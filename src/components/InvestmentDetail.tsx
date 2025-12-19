@@ -7,7 +7,6 @@ import TotalWorthChart from './TotalWorthChart';
 interface InvestmentDetailProps {
     asset: Asset;
     persons: Person[];
-    onAddSnapshot: () => void;
     onEdit: () => void;
     onDelete: () => void;
     onEditSnapshot: (snapshot: ValueEntry & { id: number }) => void;
@@ -17,7 +16,6 @@ interface InvestmentDetailProps {
 export default function InvestmentDetail({
     asset,
     persons,
-    onAddSnapshot,
     onEdit,
     onDelete,
     onEditSnapshot,
@@ -68,9 +66,12 @@ export default function InvestmentDetail({
             }
 
             // ROI: (Current Value - Cumulative Invested) / Cumulative Invested
+            // Cum G/L: Current Value - Cumulative Invested
+            const cumGL = entry.value - runningInvested;
+
             let roi = 0;
             if (runningInvested > 0) {
-                roi = ((entry.value - runningInvested) / runningInvested) * 100;
+                roi = (cumGL / runningInvested) * 100;
             }
 
             return {
@@ -78,6 +79,7 @@ export default function InvestmentDetail({
                 cumInvested: runningInvested,
                 periodGL,
                 periodGLPercent,
+                cumGL,
                 roi,
                 actualIndex: index
             };
@@ -103,13 +105,14 @@ export default function InvestmentDetail({
 
     // CSV Export
     const handleExportCSV = () => {
-        const headers = ['Date', 'Value', 'Invested', 'Period G/L', 'Period G/L %', 'ROI', 'Notes'];
+        const headers = ['Date', 'Value', 'Invested', 'Period G/L', 'Period G/L %', 'Cum. G/L', 'ROI', 'Notes'];
         const rows = enhancedHistory.map(h => [
             new Date(h.date).toISOString().split('T')[0],
             h.value.toString(),
             h.cumInvested.toString(),
             h.periodGL.toFixed(2),
             h.periodGLPercent.toFixed(2) + '%',
+            h.cumGL.toFixed(2),
             h.roi.toFixed(2) + '%',
             `"${(h.notes || '').replace(/"/g, '""')}"`
         ]);
@@ -187,10 +190,22 @@ export default function InvestmentDetail({
                 <div className="history-header-row">
                     <h3 className="history-title">Snapshot History</h3>
                     <div className="history-actions-group">
-                        <button onClick={handleExportCSV} className="btn-small-outline">
+                        <button
+                            onClick={handleExportCSV}
+                            className="btn-small-outline"
+                            disabled={isHidden}
+                            title={isHidden ? "Disabled in Private Mode" : "Export CSV"}
+                            style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        >
                             Export CSV
                         </button>
-                        <button onClick={onOpenImportModal} className="btn-small-outline">
+                        <button
+                            onClick={onOpenImportModal}
+                            className="btn-small-outline"
+                            disabled={isHidden}
+                            title={isHidden ? "Disabled in Private Mode" : "Import CSV"}
+                            style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        >
                             Import CSV
                         </button>
                     </div>
@@ -205,6 +220,7 @@ export default function InvestmentDetail({
                                 <th>Value</th>
                                 <th>Invested</th>
                                 <th>Period G/L</th>
+                                <th>Cum. G/L</th>
                                 <th>Cum. ROI</th>
                                 <th className="text-right">Actions</th>
                             </tr>
@@ -243,9 +259,14 @@ export default function InvestmentDetail({
                                                 {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
                                             </span>
                                             <span style={{ fontSize: '11px', opacity: 0.8 }} className={entry.periodGL >= 0 ? 'text-green' : 'text-red'}>
-                                                {entry.periodGL >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
+                                                {entry.periodGLPercent >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
                                             </span>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <span className={entry.cumGL >= 0 ? 'text-green' : 'text-red'}>
+                                            {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
+                                        </span>
                                     </td>
                                     <td>
                                         <span className={entry.roi >= 0 ? 'text-green' : 'text-red'}>
@@ -256,6 +277,9 @@ export default function InvestmentDetail({
                                         <button
                                             className="table-action-btn"
                                             onClick={() => onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })}
+                                            disabled={isHidden}
+                                            title={isHidden ? "Disabled in Private Mode" : "Edit"}
+                                            style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                                         >
                                             Edit
                                         </button>
@@ -279,6 +303,9 @@ export default function InvestmentDetail({
                                 <button
                                     className="mobile-action-btn"
                                     onClick={() => onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })}
+                                    disabled={isHidden}
+                                    title={isHidden ? "Disabled in Private Mode" : "Edit"}
+                                    style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                                 >
                                     Edit
                                 </button>
@@ -311,6 +338,13 @@ export default function InvestmentDetail({
                                         {entry.periodGL >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="mobile-history-row">
+                                <span className="mobile-label">Cum. G/L</span>
+                                <span className={`mobile-value ${entry.cumGL >= 0 ? 'text-green' : 'text-red'}`}>
+                                    {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
+                                </span>
                             </div>
 
                             <div className="mobile-history-row">

@@ -21,7 +21,7 @@ interface AssetCardProps {
 }
 
 export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }: AssetCardProps) {
-    const { formatAmount } = usePrivacy();
+    const { formatAmount, isHidden } = usePrivacy();
     const { categories } = useSettings();
 
     const gain = asset.currentValue - asset.purchaseAmount;
@@ -93,8 +93,10 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
                 </div>
                 <button
                     className="snapshot-btn"
-                    onClick={handleAddSnapshot}
-                    title="Add Snapshot"
+                    onClick={!isHidden ? handleAddSnapshot : undefined}
+                    title={isHidden ? "Disabled in Private Mode" : "Add Snapshot"}
+                    disabled={isHidden}
+                    style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                 >
                     +
                 </button>

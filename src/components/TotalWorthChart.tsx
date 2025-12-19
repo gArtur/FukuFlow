@@ -1,4 +1,6 @@
 import { usePrivacy } from '../contexts/PrivacyContext';
+import { useSettings } from '../contexts/SettingsContext';
+import type { TimeRange } from '../types';
 
 
 interface TotalWorthChartProps {
@@ -11,8 +13,6 @@ interface TotalWorthChartProps {
     };
     title?: string;
 }
-
-type TimeRange = 'YTD' | '1Y' | '5Y' | 'MAX' | 'Custom';
 
 import { useState, useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
@@ -30,7 +30,8 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }: TotalWorthChartProps) {
-    const [timeRange, setTimeRange] = useState<TimeRange>('1Y');
+    const { defaultDateRange } = useSettings();
+    const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
     const { isHidden, formatAmount } = usePrivacy();
@@ -115,18 +116,21 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
     const currentValue = history.length > 0 ? history[history.length - 1].value : 0;
     const currentInvested = history.length > 0 ? history[history.length - 1].invested : 0;
     const startValue = history.length > 0 ? history[0].value : 0;
+    const startInvested = history.length > 0 ? history[0].invested : 0;
 
     const displayGain = stats ? stats.totalGain : (currentValue - currentInvested);
     const displayGainPercent = stats ? stats.gainPercentage : (currentInvested > 0 ? (displayGain / currentInvested) * 100 : 0);
 
-    // For privacy mode, normalize data to percentage changes from start
-    const normalizeValue = (val: number) => {
-        if (startValue === 0) return 0;
-        return ((val - startValue) / startValue) * 100;
+    // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)
+    // If Start Invested is 0, fall back to Start Value to avoid divide by zero, or just show 0
+    const baseline = startInvested > 0 ? startInvested : (startValue > 0 ? startValue : 1);
+
+    const normalize = (val: number) => {
+        return ((val - baseline) / baseline) * 100;
     };
 
-    const normalizedValueData = history.map(h => normalizeValue(h.value));
-    const normalizedInvestedData = history.map(h => normalizeValue(h.invested));
+    const normalizedValueData = history.map(h => normalize(h.value));
+    const normalizedInvestedData = history.map(h => normalize(h.invested));
 
     const data = {
         labels: history.map(h => {
@@ -146,12 +150,32 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     const ctx = context.chart.ctx;
                     const chartArea = context.chart.chartArea;
                     if (!chartArea) return 'transparent';
-                    const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+
+                    const { top, bottom } = chartArea;
+                    const yAxis = context.chart.scales.y;
+
+                    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
+
+                    if (!yAxis) {
+                        gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
+                        gradient.addColorStop(1, 'rgba(0, 217, 165, 0)');
+                        return gradient;
+                    }
+
+                    const zeroPixel = yAxis.getPixelForValue(0);
+                    const totalHeight = bottom - top;
+                    let zeroStop = (zeroPixel - top) / totalHeight;
+
+                    // Clamp to 0-1 range to handle cases where 0 is off-chart
+                    zeroStop = Math.max(0, Math.min(1, zeroStop));
+
                     gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                    gradient.addColorStop(1, 'rgba(0, 217, 165, 0)');
+                    gradient.addColorStop(zeroStop, 'rgba(0, 217, 165, 0)');
+                    gradient.addColorStop(1, 'rgba(0, 217, 165, 0.3)');
+
                     return gradient;
                 },
-                fill: true,
+                fill: 'origin',
                 tension: 0.4,
                 pointRadius: 0,
                 pointHoverRadius: 6,

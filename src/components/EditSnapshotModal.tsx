@@ -14,6 +14,17 @@ interface EditSnapshotModalProps {
     onDelete: (id: number) => void;
 }
 
+// Helper functions
+const parseValue = (val: string): number => {
+    return parseFloat(val.replace(',', '.')) || 0;
+};
+
+const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
+    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
+        setter(inputValue);
+    }
+};
+
 export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit, onDelete }: EditSnapshotModalProps) {
     const [date, setDate] = useState('');
     const [value, setValue] = useState('');
@@ -37,8 +48,8 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
         e.preventDefault();
         onSubmit(snapshot.id, {
             date: new Date(date).toISOString(),
-            value: parseFloat(value) || 0,
-            investmentChange: parseFloat(investmentChange) || 0,
+            value: parseValue(value),
+            investmentChange: parseValue(investmentChange),
             notes: notes.trim()
         });
         onClose();
@@ -86,10 +97,11 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                         <div className="form-group">
                             <label>Value</label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
+                                inputMode="decimal"
                                 value={value}
-                                onChange={(e) => setValue(e.target.value)}
+                                onChange={(e) => handleNumberInput(e.target.value, setValue)}
+                                onFocus={(e) => e.target.select()}
                                 required
                             />
                         </div>
@@ -97,10 +109,23 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                         <div className="form-group">
                             <label>Investment Change</label>
                             <input
-                                type="number"
-                                step="0.01"
+                                type="text"
+                                inputMode="decimal"
                                 value={investmentChange}
-                                onChange={(e) => setInvestmentChange(e.target.value)}
+                                onChange={(e) => {
+                                    // Allow negative sign at start for investment change
+                                    const val = e.target.value;
+                                    if (val === '' || val === '-' || /^-?[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                        setInvestmentChange(val);
+                                    }
+                                }}
+                                onBlur={() => {
+                                    // Clean up trailing delimiter or standalone minus
+                                    if (investmentChange === '-' || investmentChange.endsWith('.') || investmentChange.endsWith(',')) {
+                                        setInvestmentChange(prev => prev.replace(/[-.,]+$/, ''));
+                                    }
+                                }}
+                                onFocus={(e) => e.target.select()}
                             />
                             <small className="form-hint">
                                 Positive = money added, Negative = money withdrawn

@@ -549,7 +549,7 @@ body {
 }
 
 .movers-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -2358,7 +2358,7 @@ body {
 
 /* Settings Page */
 .settings-page {
-  padding: var(--space-xl);
+  padding: var(--space-lg);
   max-width: 800px;
   margin: 0 auto;
 }
@@ -2367,13 +2367,13 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
-  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .settings-section h2 {
-  font-size: 1.25rem;
-  margin-bottom: var(--space-md);
+  font-size: 1.1rem;
+  margin-bottom: var(--space-sm);
   padding-bottom: var(--space-sm);
   border-bottom: 1px solid var(--border-color);
   color: var(--text-primary);
@@ -2647,9 +2647,9 @@ body {
 /* Currency Grid */
 .currency-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: var(--space-sm);
-  padding: var(--space-md);
+  padding: var(--space-sm);
 }
 
 .currency-option {
@@ -2657,7 +2657,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-md);
+  padding: var(--space-sm);
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -2677,9 +2677,9 @@ body {
 }
 
 .currency-code {
-  font-weight: 700;
-  font-size: 16px;
-  margin-bottom: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 2px;
 }
 
 .currency-symbol {
@@ -2883,4 +2883,761 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ===== PORTFOLIO HEATMAP STYLES ===== */
+
+/* Main Container with Glassmorphism */
+.heatmap-container {
+  background: rgba(22, 22, 26, 0.85);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Header Section */
+.heatmap-header {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--border-color);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+}
+
+.heatmap-title-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.heatmap-main-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.heatmap-main-title svg {
+  color: var(--accent-primary);
+}
+
+.heatmap-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Controls Bar */
+.heatmap-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+@media (min-width: 768px) {
+  .heatmap-controls {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+/* Time Range Slider Section */
+.heatmap-slider-section {
+  flex: 1;
+  max-width: 500px;
+}
+
+.slider-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: var(--space-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.range-slider-container {
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.range-slider {
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(201, 162, 39, 0.4);
+  border: 2px solid var(--bg-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(201, 162, 39, 0.5);
+}
+
+.range-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent-primary);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(201, 162, 39, 0.4);
+  border: 2px solid var(--bg-card);
+}
+
+.range-slider-container::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  z-index: 0;
+}
+
+.range-slider-track {
+  position: absolute;
+  height: 6px;
+  background: linear-gradient(90deg, var(--accent-primary), rgba(201, 162, 39, 0.6));
+  border-radius: 3px;
+  z-index: 1;
+  transition: left 0.1s ease, width 0.1s ease;
+}
+
+.range-labels {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.range-separator {
+  color: var(--text-muted);
+}
+
+.heatmap-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-xl);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.heatmap-slider-section {
+  flex: 1;
+  min-width: 300px;
+}
+
+.heatmap-header-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.filter-group {
+  display: flex;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  border: 1px solid var(--border-color);
+  gap: 2px;
+}
+
+.filter-btn {
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.filter-btn.active {
+  background: var(--accent-primary);
+  color: #000;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* View Mode Toggle */
+.view-mode-toggle {
+  display: flex;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  border: 1px solid var(--border-color);
+}
+
+.view-mode-btn {
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+  color: var(--text-primary);
+}
+
+.view-mode-btn.active {
+  background: var(--accent-primary);
+  color: #000;
+}
+
+/* Heatmap Grid Wrapper */
+.heatmap-grid-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 20px;
+  position: relative;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Month Headers */
+.heatmap-month-header {
+  display: flex;
+  padding: 0;
+  margin-left: 0;
+  margin-right: 0;
+  font-size: 10px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  background: #0A0A0C;
+  /* Mask vertical scroll */
+  z-index: 100;
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Removed ::after spacer as padding is more reliable */
+
+.heatmap-asset-name-header {
+  width: 180px;
+  min-width: 180px;
+  padding: var(--space-md) var(--space-md);
+  position: sticky;
+  left: 0;
+  background: #0A0A0C;
+  /* Solid App Bg */
+  z-index: 110;
+  /* High enough to stay above vertical and horizontal stickies */
+  border-right: 1px solid var(--border-color);
+}
+
+.heatmap-month {
+  width: 60px;
+  /* Matches data cell: 56px + 2px margin each side */
+  min-width: 60px;
+  text-align: center;
+  padding: var(--space-md) var(--space-xs);
+  margin: 0;
+}
+
+.heatmap-month:last-of-type {
+  margin-right: 110px;
+  /* Buffer for sticky Total column */
+}
+
+.heatmap-total-header {
+  width: 110px;
+  min-width: 110px;
+  text-align: center;
+  padding: var(--space-md) var(--space-sm);
+  position: sticky;
+  right: 0;
+  background: #0A0A0C;
+  /* Solid App Bg */
+  z-index: 100;
+  border-left: 1px solid var(--border-color);
+  /* Fix sub-pixel gaps on right edge */
+  box-shadow: 2px 0 0 #0A0A0C;
+}
+
+/* Heatmap Row */
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  transition: background 0.15s ease;
+  width: max-content;
+  min-width: 100%;
+  margin: 0;
+  background: #0A0A0C;
+  /* Solid App Bg for the entire row to mask scroll */
+}
+
+/* Removed ::after spacer as padding is more reliable */
+
+.heatmap-row:hover {
+  background: linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), #0A0A0C;
+}
+
+.heatmap-row.portfolio-total {
+  background: #0A0A0C;
+  box-shadow: inset 0 -2px 0 rgba(201, 162, 39, 0.3);
+  font-weight: 600;
+  position: sticky;
+  top: 32px;
+  z-index: 90;
+}
+
+.heatmap-row.portfolio-total:hover {
+  background: #111114;
+}
+
+/* Asset Name Cell */
+.heatmap-asset-name {
+  width: 180px;
+  min-width: 180px;
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  position: sticky;
+  left: 0;
+  background: #0A0A0C;
+  /* Solid App Bg */
+  z-index: 80;
+  border-right: 1px solid var(--border-color);
+}
+
+.heatmap-asset-name.clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.heatmap-asset-name.clickable:hover {
+  background: linear-gradient(rgba(201, 162, 39, 0.1), rgba(201, 162, 39, 0.1)), #0A0A0C;
+}
+
+.heatmap-asset-name.clickable:hover .asset-name-text {
+  color: var(--accent-primary);
+}
+
+.heatmap-row.portfolio-total .heatmap-asset-name {
+  background: #0A0A0C;
+  border-left: 3px solid var(--accent-primary);
+}
+
+.asset-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.asset-icon.portfolio-icon {
+  background: var(--accent-primary);
+  color: #000;
+  font-size: 14px;
+}
+
+.asset-name-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.asset-name-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.asset-owner-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* Data Cells */
+.heatmap-cell {
+  width: 56px;
+  min-width: 56px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  margin: 2px;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.1);
+  z-index: 10;
+  /* Lower than sticky columns (80+) */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.heatmap-cell:last-of-type {
+  margin-right: 110px;
+  /* Buffer for sticky Total column */
+}
+
+.heatmap-cell.no-data {
+  opacity: 0.6;
+}
+
+.heatmap-cell.no-data::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 4px;
+  height: 4px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+/* Non-existing periods (asset didn't exist yet) */
+.heatmap-cell.not-exists {
+  background: transparent;
+  border: 1px dashed var(--border-color);
+  cursor: default;
+  opacity: 0.3;
+}
+
+.heatmap-cell.not-exists:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+/* Inception cell (asset start) */
+.heatmap-cell.inception {
+  background: rgba(99, 102, 241, 0.2);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: #818cf8;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* Color Scale Classes */
+.heatmap-cell.gain-high {
+  background: linear-gradient(135deg, #00D9A5 0%, #34D399 100%);
+  color: #000;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.heatmap-cell.gain-medium {
+  background: rgba(0, 217, 165, 0.65);
+  color: #fff;
+}
+
+.heatmap-cell.gain-low {
+  background: rgba(0, 217, 165, 0.35);
+  color: var(--text-primary);
+}
+
+.heatmap-cell.neutral {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+}
+
+.heatmap-cell.loss-low {
+  background: rgba(255, 107, 107, 0.35);
+  color: var(--text-primary);
+}
+
+.heatmap-cell.loss-medium {
+  background: rgba(255, 107, 107, 0.65);
+  color: #fff;
+}
+
+.heatmap-cell.loss-high {
+  background: linear-gradient(135deg, #FF6B6B 0%, #EF4444 100%);
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Total Cell */
+.heatmap-cell-total {
+  width: 110px;
+  min-width: 110px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  padding: var(--space-xs) var(--space-sm);
+  padding-right: 2px;
+  /* Extra padding to prevent 1px gap on right edge */
+  position: sticky;
+  right: 0;
+  background: #0A0A0C;
+  /* Solid App Bg */
+  border-left: 1px solid var(--border-color);
+  z-index: 80;
+  /* Fix sub-pixel gaps on right edge */
+  box-shadow: 2px 0 0 #0A0A0C;
+}
+
+.heatmap-cell-total.positive {
+  color: var(--accent-green);
+}
+
+.heatmap-cell-total.negative {
+  color: var(--accent-red);
+}
+
+/* Summary Stats */
+.heatmap-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-xl);
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+  border-top: 1px solid var(--border-color);
+}
+
+@media (min-width: 768px) {
+  .heatmap-summary {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.heatmap-stat-card {
+  text-align: center;
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.heatmap-stat-card .stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: var(--space-xs);
+}
+
+.heatmap-stat-card .stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.heatmap-stat-card .stat-value.positive {
+  color: var(--accent-green);
+}
+
+.heatmap-stat-card .stat-value.negative {
+  color: var(--accent-red);
+}
+
+.heatmap-stat-card .stat-percent {
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: var(--space-xs);
+  opacity: 0.8;
+}
+
+/* Color Legend */
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--space-xl);
+  border-top: 1px solid var(--border-color);
+}
+
+.legend-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.legend-gradient {
+  display: flex;
+  gap: 2px;
+}
+
+.legend-cell {
+  width: 24px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.legend-cell.loss-high {
+  background: linear-gradient(135deg, #FF6B6B, #EF4444);
+}
+
+.legend-cell.loss-medium {
+  background: rgba(255, 107, 107, 0.65);
+}
+
+.legend-cell.loss-low {
+  background: rgba(255, 107, 107, 0.35);
+}
+
+.legend-cell.neutral {
+  background: var(--bg-secondary);
+}
+
+.legend-cell.gain-low {
+  background: rgba(0, 217, 165, 0.35);
+}
+
+.legend-cell.gain-medium {
+  background: rgba(0, 217, 165, 0.65);
+}
+
+.legend-cell.gain-high {
+  background: linear-gradient(135deg, #00D9A5, #34D399);
+}
+
+/* Tooltip */
+.heatmap-tooltip {
+  position: fixed;
+  background: rgba(16, 16, 20, 0.98);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  min-width: 200px;
+  z-index: 1000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  animation: tooltipFadeIn 0.12s ease-out;
+  pointer-events: none;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.tooltip-header strong {
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.tooltip-category {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--bg-secondary);
+  border-radius: 4px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.tooltip-month {
+  font-size: 12px;
+  color: var(--accent-primary);
+  font-weight: 500;
+  margin-bottom: var(--space-sm);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tooltip-stats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.tooltip-row span:first-child {
+  color: var(--text-muted);
+}
+
+.tooltip-row span:last-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tooltip-row .positive {
+  color: var(--accent-green) !important;
+}
+
+.tooltip-row .negative {
+  color: var(--accent-red) !important;
 }

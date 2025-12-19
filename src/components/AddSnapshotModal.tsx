@@ -10,6 +10,21 @@ interface AddSnapshotModalProps {
     onSubmit: (assetId: string, snapshot: { value: number; date: string; investmentChange: number; notes: string }) => void;
 }
 
+// Helper functions (outside component or defined before usage)
+const parseValue = (val: string): number => {
+    return parseFloat(val.replace(',', '.')) || 0;
+};
+
+const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
+    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
+        setter(inputValue);
+    }
+};
+
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(amount);
+};
+
 export default function AddSnapshotModal({ isOpen, onClose, asset, assets, persons, onSubmit }: AddSnapshotModalProps) {
     const [selectedAssetId, setSelectedAssetId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState<string>('');
@@ -23,21 +38,22 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     const activeAsset = asset || (assets?.find(a => a.id === selectedAssetId) ?? null);
     const lastValue = activeAsset?.currentValue || 0;
 
+    const getOwnerName = (ownerId: string) => {
+        return persons?.find(p => p.id === ownerId)?.name || 'Unknown';
+    };
+
+    const getAssetDisplayName = (a: Asset) => {
+        const ownerName = getOwnerName(a.ownerId);
+        const formattedValue = formatCurrency(a.currentValue);
+        return `${a.name} (${ownerName}) - ${formattedValue}`;
+    };
+
     useEffect(() => {
         if (isOpen) {
             if (asset) {
                 setSelectedAssetId(asset.id);
-                // When pre-selected (not global mode), we might keeps simple name or full format?
-                // The Modal usually shows separate info in non-global mode.
-                // But lines 156-163 handle non-global mode display.
-                // The request specifically talked about "Investment selection" which implies Global Mode.
-                // So line 30 can probably stay as is or be updated if we want consistency, 
-                // but checking line 107 "isGlobalMode" wraps the combobox.
-                // If not global mode, the combobox isn't shown, so line 30 affects what? 
-                // Line 113 uses searchQuery. If !isGlobalMode, the input isn't rendered.
-                // So this block is fine as is for now, but let's check line 118 logic later.
                 setSearchQuery(asset.name);
-                setValue(asset.currentValue.toString());
+                setValue('');
             } else if (assets && assets.length > 0) {
                 setSelectedAssetId('');
                 setSearchQuery('');
@@ -53,7 +69,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     // Update value when selected asset changes
     useEffect(() => {
         if (activeAsset && !asset) {
-            setValue(activeAsset.currentValue.toString());
+            setValue('');
         }
     }, [activeAsset, asset]);
 
@@ -63,30 +79,30 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     const isGlobalMode = !asset && assets && assets.length > 0;
 
     // Filter assets based on search query (search by name or owner)
+    // If the search query matches exactly the selected asset's display name, allow showing all options
+    // This happens when user clicks the input after selection - we want to show all options
+    // so they can switch, without needing to clear manually.
+    const isExactMatch = activeAsset && searchQuery === getAssetDisplayName(activeAsset);
+
     const filteredAssets = isGlobalMode && assets
-        ? assets.filter(a => {
+        ? (isExactMatch ? assets : assets.filter(a => {
             const ownerName = persons?.find(p => p.id === a.ownerId)?.name || '';
             const searchLower = searchQuery.toLowerCase();
             return a.name.toLowerCase().includes(searchLower) ||
                 ownerName.toLowerCase().includes(searchLower);
-        })
+        }))
         : [];
 
-    const getOwnerName = (ownerId: string) => {
-        return persons?.find(p => p.id === ownerId)?.name || 'Unknown';
-    };
+
 
     const handleAssetSelect = (selectedAsset: Asset) => {
         setSelectedAssetId(selectedAsset.id);
-        const formattedValue = formatCurrency(selectedAsset.currentValue);
-        const ownerName = getOwnerName(selectedAsset.ownerId);
-        // Format: Name (Owner) - Value
-        setSearchQuery(`${selectedAsset.name} (${ownerName}) - ${formattedValue}`);
-        setValue(selectedAsset.currentValue.toString());
+        setSearchQuery(getAssetDisplayName(selectedAsset));
+        setValue('');
         setShowSuggestions(false);
     };
 
-    const currentValueNum = parseFloat(value) || 0;
+    const currentValueNum = parseValue(value);
     const changeAmount = currentValueNum - lastValue;
     const changePercent = lastValue > 0 ? ((changeAmount / lastValue) * 100) : 0;
 
@@ -97,15 +113,13 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
         onSubmit(activeAsset.id, {
             value: currentValueNum,
             date: new Date(date).toISOString(),
-            investmentChange: parseFloat(investmentChange) || 0,
+            investmentChange: parseValue(investmentChange),
             notes: notes.trim()
         });
         onClose();
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(amount);
-    };
+
 
     return (
         <div className="modal-overlay" onClick={onClose}>
@@ -132,11 +146,13 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                                         if (activeAsset) {
                                             // Ideally we want to clear if the user changes the text meaningfully,
                                             // but for now clearing on any change while active is safer/simpler or we need better logic.
-                                            // However, if they just backspace, they might want to search again.
                                             setSelectedAssetId('');
                                         }
                                     }}
-                                    onFocus={() => setShowSuggestions(true)}
+                                    onFocus={(e) => {
+                                        setShowSuggestions(true);
+                                        e.target.select();
+                                    }}
                                     placeholder="Type to search investments..."
                                     className="combobox-input"
                                     autoComplete="off"
@@ -186,10 +202,10 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                     <div className="form-group">
                         <label>Current Value</label>
                         <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             value={value}
-                            onChange={(e) => setValue(e.target.value)}
+                            onChange={(e) => handleNumberInput(e.target.value, setValue)}
                             placeholder="Enter new value"
                             required
                         />
@@ -204,10 +220,22 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                     <div className="form-group">
                         <label>Investment Change (+ add / - withdraw)</label>
                         <input
-                            type="number"
-                            step="0.01"
+                            type="text"
+                            inputMode="decimal"
                             value={investmentChange}
-                            onChange={(e) => setInvestmentChange(e.target.value)}
+                            onChange={(e) => {
+                                // Allow negative sign at start for investment change
+                                const val = e.target.value;
+                                if (val === '' || val === '-' || /^-?[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                    setInvestmentChange(val);
+                                }
+                            }}
+                            onBlur={() => {
+                                // Clean up trailing delimiter or standalone minus
+                                if (investmentChange === '-' || investmentChange.endsWith('.') || investmentChange.endsWith(',')) {
+                                    setInvestmentChange(prev => prev.replace(/[-.,]+$/, ''));
+                                }
+                            }}
                             placeholder="e.g., 500 or -200"
                         />
                         <small className="form-hint">

@@ -40,3 +40,25 @@ export const DEFAULT_PERSON_IDS = {
     wife: 'person-wife',
     daughter: 'person-daughter'
 } as const;
+
+export type TimeRange = 'YTD' | '1Y' | '5Y' | 'MAX' | 'Custom';
+
+export const CATEGORY_LABELS: Record<string, string> = {
+    etf: 'ETFs',
+    crypto: 'Crypto',
+    real_estate: 'Real Estate',
+    stocks: 'Stocks',
+    cash: 'Cash',
+    bonds: 'Bonds',
+    metal: 'Metals'
+};
+
+export const CATEGORY_COLORS: Record<string, string> = {
+    etf: '#00D9A5',
+    crypto: '#F59E0B',
+    real_estate: '#8B5CF6',
+    stocks: '#3B82F6',
+    cash: '#10B981',
+    bonds: '#6366f1',
+    metal: '#94a3b8'
+};

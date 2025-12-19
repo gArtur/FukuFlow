@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { ApiClient } from '../lib/apiClient';
 import type { Person } from '../types';
+import '../settings_styles.css';
 
 interface SettingsProps {
     persons: Person[];
@@ -10,8 +11,55 @@ interface SettingsProps {
     onDeletePerson: (id: string) => Promise<void>;
 }
 
+// Custom Select Component for matching the design
+const CustomSelect = ({ label, value, options, onChange }: { label: string, value: string, options: { value: string, label: string }[], onChange: (val: string) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedOption = options.find(o => o.value === value) || options[0];
+
+    return (
+        <div className="custom-select-container" ref={containerRef}>
+            <label className="settings-label">{label}</label>
+            <div className={`custom-select-trigger ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
+                <span>{selectedOption?.label}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`select-arrow ${isOpen ? 'rotated' : ''}`}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+            {isOpen && (
+                <div className="custom-select-options">
+                    {options.map(opt => (
+                        <div
+                            key={opt.value}
+                            className={`custom-select-option ${opt.value === value ? 'selected' : ''}`}
+                            onClick={() => {
+                                onChange(opt.value);
+                                setIsOpen(false);
+                            }}
+                        >
+                            {opt.label}
+                            {opt.value === value && <span className="check-icon">✓</span>}
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 export default function Settings({ persons, onAddPerson, onUpdatePerson, onDeletePerson }: SettingsProps) {
-    const { currency, setCurrency, categories, addCategory, updateCategory, deleteCategory } = useSettings();
+    const { currency, setCurrency, defaultFilter, setDefaultFilter, defaultDateRange, setDefaultDateRange, categories, addCategory, updateCategory, deleteCategory } = useSettings();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Person Management State
@@ -31,7 +79,24 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
     // Backup/Restore State
     const [restoring, setRestoring] = useState(false);
 
-    // --- Person Handlers ---
+    // Options
+    const currencyOptions = [
+        { value: 'USD', label: 'USD ($)' },
+        { value: 'PLN', label: 'PLN (zł)' },
+        { value: 'EUR', label: 'EUR (€)' },
+        { value: 'GBP', label: 'GBP (£)' },
+        { value: 'JPY', label: 'JPY (¥)' },
+        { value: 'CHF', label: 'CHF (Fr)' },
+        { value: 'CAD', label: 'CAD ($)' },
+        { value: 'AUD', label: 'AUD ($)' }
+    ];
+
+    const filterOptions = [
+        { value: 'all', label: 'All' },
+        ...persons.map(p => ({ value: p.id, label: p.name }))
+    ];
+
+    // Handlers
     const handleAddPerson = async () => {
         if (addPersonValue.trim()) {
             await onAddPerson(addPersonValue.trim());
@@ -48,7 +113,6 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
         }
     };
 
-    // --- Category Handlers ---
     const handleAddCategory = async () => {
         if (addCategoryLabel.trim()) {
             await addCategory(addCategoryLabel.trim(), addCategoryColor);
@@ -77,7 +141,6 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
         }
     };
 
-    // --- Backup/Restore Handlers ---
     const handleBackup = async () => {
         try {
             const blob = await ApiClient.getBackup();
@@ -123,193 +186,184 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
         };
         reader.readAsText(file);
     };
-
-    const [activeTab, setActiveTab] = useState<'general' | 'people' | 'categories' | 'data'>('general');
-
-    // ... (Keep existing state and handlers) ...
-    // Note: I will need to provide the full file content to ensure state retention if using replace_file_content effectively or I should have used multi_replace or full rewrite.
-    // Given the complexity of moving JSX around significantly, I will Rewrite the Render Return primarily.
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 
     return (
-        <div className="settings-container">
-            {/* Sidebar */}
-            <nav className="settings-sidebar">
-                <div
-                    className={`settings-nav-item ${activeTab === 'general' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('general')}
-                >
-                    <span className="settings-nav-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                    </span>
-                    <span>General</span>
+        <div className="dashboard-container">
+            <div className="dashboard-card settings-card-override">
+                <div className="dashboard-card-header">
+                    <h2>Settings</h2>
                 </div>
-                <div
-                    className={`settings-nav-item ${activeTab === 'people' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('people')}
-                >
-                    <span className="settings-nav-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    </span>
-                    <span>People</span>
-                </div>
-                <div
-                    className={`settings-nav-item ${activeTab === 'categories' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('categories')}
-                >
-                    <span className="settings-nav-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-                    </span>
-                    <span>Categories</span>
-                </div>
-                <div
-                    className={`settings-nav-item ${activeTab === 'data' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('data')}
-                >
-                    <span className="settings-nav-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    </span>
-                    <span>Data & Security</span>
-                </div>
-            </nav>
 
-            {/* Content Area */}
-            <div className="settings-content-area fade-in">
-                {activeTab === 'general' && (
-                    <div className="settings-section">
-                        <h2>Currency</h2>
-                        <div className="settings-card">
-                            <div className="currency-grid">
-                                {[
-                                    { code: 'USD', symbol: '$' },
-                                    { code: 'PLN', symbol: 'zł' },
-                                    { code: 'EUR', symbol: '€' },
-                                    { code: 'GBP', symbol: '£' },
-                                    { code: 'JPY', symbol: '¥' },
-                                    { code: 'CHF', symbol: 'Fr' },
-                                    { code: 'CAD', symbol: '$' },
-                                    { code: 'AUD', symbol: '$' }
-                                ].map(opt => (
-                                    <div
-                                        key={opt.code}
-                                        className={`currency-option ${currency === opt.code ? 'active' : ''}`}
-                                        onClick={() => setCurrency(opt.code)}
-                                    >
-                                        <span className="currency-code">{opt.code}</span>
-                                        <span className="currency-symbol">{opt.symbol}</span>
-                                    </div>
-                                ))}
+                <div className="dashboard-card-content settings-layout-wrapper">
+                    <div className="settings-layout">
+                        {/* Sidebar */}
+                        <nav className="settings-sidebar">
+                            <button
+                                className="settings-tab"
+                                onClick={() => scrollToSection('general')}
+                            >
+                                General
+                            </button>
+                            <button
+                                className="settings-tab"
+                                onClick={() => scrollToSection('people')}
+                            >
+                                People
+                            </button>
+                            <button
+                                className="settings-tab"
+                                onClick={() => scrollToSection('categories')}
+                            >
+                                Categories
+                            </button>
+                            <button
+                                className="settings-tab"
+                                onClick={() => scrollToSection('data')}
+                            >
+                                Backup
+                            </button>
+                        </nav>
+
+                        {/* Content */}
+                        <div className="settings-content">
+                            {/* General Section */}
+                            <div id="general" className="movers-header" style={{ marginTop: 0 }}>
+                                <div className="movers-header-left">
+                                    <h2 className="movers-title">General</h2>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                )}
+                            <div className="settings-group-card">
+                                <div className="settings-row">
+                                    <div className="settings-group">
+                                        <CustomSelect
+                                            label="Currency Selection"
+                                            value={currency || 'USD'}
+                                            options={currencyOptions}
+                                            onChange={setCurrency}
+                                        />
+                                    </div>
+                                    <div className="settings-group">
+                                        <CustomSelect
+                                            label="Default Diagram Filter"
+                                            value={defaultFilter || 'all'}
+                                            options={filterOptions}
+                                            onChange={setDefaultFilter}
+                                        />
+                                    </div>
+                                    <div className="settings-group">
+                                        <label className="settings-label">Default Date Range</label>
+                                        <div className="date-range-pills">
+                                            {(['YTD', '1Y', '5Y', 'MAX'] as const).map(range => (
+                                                <button
+                                                    key={range}
+                                                    className={`date-pill ${defaultDateRange === range ? 'active' : ''}`}
+                                                    onClick={() => setDefaultDateRange(range)}
+                                                >
+                                                    {range}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                {activeTab === 'people' && (
-                    <div className="settings-section">
-                        <h2>People</h2>
-                        <div className="settings-card">
-                            <div className="settings-list">
+                            <div className="section-divider"></div>
+
+                            {/* People Section */}
+                            <div id="people" className="movers-header">
+                                <div className="movers-header-left">
+                                    <h2 className="movers-title">People</h2>
+                                    <span className="movers-count">{persons.length} people</span>
+                                </div>
+                                <button
+                                    className="add-asset-btn-inline"
+                                    onClick={() => setAddingPerson(!addingPerson)}
+                                >
+                                    <span>{addingPerson ? '✕' : '+'}</span> {addingPerson ? 'Cancel' : 'Add Person'}
+                                </button>
+                            </div>
+
+                            {addingPerson && (
+                                <div className="add-person-card">
+                                    <div className="add-person-header">
+                                        <h3>Add Person</h3>
+                                    </div>
+                                    <div className="add-person-form-row">
+                                        <div className="input-group">
+                                            <label className="input-label-sm">NAME</label>
+                                            <input
+                                                value={addPersonValue}
+                                                onChange={e => setAddPersonValue(e.target.value)}
+                                                placeholder="e.g. John Doe"
+                                                className="input-dark"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <button onClick={handleAddPerson} className="btn-add-purple">
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="settings-items-grid">
                                 {persons.map(person => (
-                                    <div key={person.id} className="list-item">
+                                    <div key={person.id} className="item-card">
                                         {editingPerson === person.id ? (
-                                            <div className="edit-row">
+                                            <div className="edit-person-inline">
                                                 <input
                                                     value={editPersonValue}
                                                     onChange={e => setEditPersonValue(e.target.value)}
-                                                    className="form-input"
-                                                    autoFocus
-                                                />
-                                                <button onClick={handleUpdatePerson} className="btn-icon" title="Save">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                                </button>
-                                                <button onClick={() => setEditingPerson(null)} className="btn-icon" title="Cancel">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                <div className="person-info">
-                                                    <span className="person-name">{person.name}</span>
-                                                </div>
-                                                <div className="actions">
-                                                    <button onClick={() => { setEditingPerson(person.id); setEditPersonValue(person.name); }} className="btn-icon" title="Edit">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                                    </button>
-                                                    <button onClick={() => onDeletePerson(person.id)} className="btn-icon delete" title="Delete">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                                    </button>
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {addingPerson ? (
-                                <div className="add-input-row">
-                                    <input
-                                        value={addPersonValue}
-                                        onChange={e => setAddPersonValue(e.target.value)}
-                                        placeholder="Name..."
-                                        className="form-input"
-                                        style={{ flex: 1 }}
-                                        autoFocus
-                                    />
-                                    <button onClick={handleAddPerson} className="btn-primary-sm">Add</button>
-                                    <button onClick={() => setAddingPerson(false)} className="btn-secondary-sm">Cancel</button>
-                                </div>
-                            ) : (
-                                <button onClick={() => setAddingPerson(true)} className="btn-add-row">
-                                    + Add Person
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {activeTab === 'categories' && (
-                    <div className="settings-section">
-                        <h2>Asset Categories</h2>
-                        <div className="settings-card">
-                            <div className="settings-list">
-                                {categories.map(category => (
-                                    <div key={category.id} className="list-item">
-                                        {editingCategory === category.id ? (
-                                            <div className="edit-row">
-                                                <input
-                                                    value={editCategoryLabel}
-                                                    onChange={e => setEditCategoryLabel(e.target.value)}
-                                                    className="form-input"
+                                                    className="input-dark"
                                                     style={{ flex: 1 }}
+                                                    autoFocus
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') handleUpdatePerson();
+                                                        if (e.key === 'Escape') setEditingPerson(null);
+                                                    }}
                                                 />
-                                                <input
-                                                    type="color"
-                                                    value={editCategoryColor}
-                                                    onChange={e => setEditCategoryColor(e.target.value)}
-                                                    className="color-picker-input"
-                                                />
-                                                <button onClick={handleUpdateCategory} className="btn-icon" title="Save">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                                </button>
-                                                <button onClick={() => setEditingCategory(null)} className="btn-icon" title="Cancel">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                                                </button>
+                                                <div className="edit-actions">
+                                                    <button onClick={handleUpdatePerson} className="btn-icon-check">✓</button>
+                                                    <button onClick={() => setEditingPerson(null)} className="btn-icon-cross">✕</button>
+                                                </div>
                                             </div>
                                         ) : (
                                             <>
-                                                <div className="category-item-content">
-                                                    <div className="color-preview" style={{ backgroundColor: category.color }}></div>
-                                                    <span className="category-label">{category.label}</span>
+                                                <div className="item-card-left">
+                                                    <div className="person-avatar">
+                                                        {person.name.charAt(0).toUpperCase()}
+                                                    </div>
                                                 </div>
-                                                <div className="actions">
-                                                    <button onClick={() => {
-                                                        setEditingCategory(category.id);
-                                                        setEditCategoryLabel(category.label);
-                                                        setEditCategoryColor(category.color);
-                                                    }} className="btn-icon" title="Edit">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                                <div className="item-card-info">
+                                                    <span className="item-name">{person.name}</span>
+                                                </div>
+
+                                                <div className="item-card-actions">
+                                                    <button
+                                                        onClick={() => { setEditingPerson(person.id); setEditPersonValue(person.name); }}
+                                                        className="action-icon-btn"
+                                                        title="Edit"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                        </svg>
                                                     </button>
-                                                    <button onClick={() => handleDeleteCategory(category.id)} className="btn-icon delete" title="Delete">
-                                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                                    <button
+                                                        onClick={() => onDeletePerson(person.id)}
+                                                        className="action-icon-btn delete"
+                                                        title="Delete"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        </svg>
                                                     </button>
                                                 </div>
                                             </>
@@ -318,54 +372,188 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                                 ))}
                             </div>
 
-                            {addingCategory ? (
-                                <div className="add-input-row">
-                                    <input
-                                        value={addCategoryLabel}
-                                        onChange={e => setAddCategoryLabel(e.target.value)}
-                                        placeholder="Category Name"
-                                        className="form-input"
-                                        style={{ flex: 1 }}
-                                    />
-                                    <input
-                                        type="color"
-                                        value={addCategoryColor}
-                                        onChange={e => setAddCategoryColor(e.target.value)}
-                                        className="color-picker-input"
-                                    />
-                                    <button onClick={handleAddCategory} className="btn-primary-sm">Add</button>
-                                    <button onClick={() => setAddingCategory(false)} className="btn-secondary-sm">Cancel</button>
-                                </div>
-                            ) : (
-                                <button onClick={() => setAddingCategory(true)} className="btn-add-row">
-                                    + Add Category
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                )}
+                            <div className="section-divider"></div>
 
-                {activeTab === 'data' && (
-                    <div className="settings-section">
-                        <h2>Data & Security</h2>
-                        <div className="settings-card">
-                            <div className="data-card-grid">
-                                <div className="data-card" onClick={handleBackup}>
-                                    <div className="data-card-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            {/* Categories Section */}
+                            <div id="categories" className="movers-header">
+                                <div className="movers-header-left">
+                                    <h2 className="movers-title">Categories</h2>
+                                    <span className="movers-count">{categories.length} categories</span>
+                                </div>
+                                <button
+                                    className="add-asset-btn-inline"
+                                    onClick={() => setAddingCategory(!addingCategory)}
+                                >
+                                    <span>{addingCategory ? '✕' : '+'}</span> {addingCategory ? 'Cancel' : 'New Category'}
+                                </button>
+                            </div>
+
+                            {addingCategory && (
+                                <div className="add-person-card">
+                                    <div className="add-person-header">
+                                        <h3>New Category</h3>
                                     </div>
-                                    <div>
-                                        <h3>Backup Data</h3>
-                                        <p>Download a secure JSON file of your entire portfolio.</p>
+                                    <div className="add-person-form-row">
+                                        <div className="input-group" style={{ flex: 2 }}>
+                                            <label className="input-label-sm">NAME</label>
+                                            <input
+                                                value={addCategoryLabel}
+                                                onChange={e => setAddCategoryLabel(e.target.value)}
+                                                placeholder="e.g. Commodities"
+                                                className="input-dark"
+                                                autoFocus
+                                            />
+                                        </div>
+                                        <div className="input-group" style={{ flex: 3 }}>
+                                            <label className="input-label-sm">COLOR</label>
+                                            <div className="color-swatches-row">
+                                                {[
+                                                    '#10b981', // Green
+                                                    '#8b5cf6', // Purple
+                                                    '#6b7280', // Gray
+                                                    '#ec4899', // Pink
+                                                    '#f97316', // Orange
+                                                    '#3b82f6', // Blue
+                                                    '#eab308', // Yellow
+                                                ].map(color => (
+                                                    <button
+                                                        key={color}
+                                                        className={`color-swatch-btn ${addCategoryColor === color ? 'selected' : ''}`}
+                                                        style={{ backgroundColor: color }}
+                                                        onClick={() => setAddCategoryColor(color)}
+                                                    >
+                                                        {addCategoryColor === color && (
+                                                            <svg className="swatch-check" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                                                <polyline points="20 6 9 17 4 12"></polyline>
+                                                            </svg>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                                <button className="color-swatch-add" onClick={() => document.getElementById('custom-color-picker')?.click()}>
+                                                    +
+                                                </button>
+                                                <input
+                                                    id="custom-color-picker"
+                                                    type="color"
+                                                    value={addCategoryColor}
+                                                    onChange={e => setAddCategoryColor(e.target.value)}
+                                                    className="hidden-color-input"
+                                                />
+                                            </div>
+                                        </div>
+                                        <button onClick={handleAddCategory} className="btn-add-purple">
+                                            Add
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="data-card" onClick={handleRestoreClick}>
-                                    <div className="data-card-icon">
-                                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            )}
+
+                            <div className="settings-items-grid">
+                                {categories.map(category => (
+                                    <div key={category.id} className="item-card">
+                                        {editingCategory === category.id ? (
+                                            <>
+                                                <div className="pill-wrapper">
+                                                    <div
+                                                        className="category-pill editable"
+                                                        style={{ backgroundColor: editCategoryColor }}
+                                                    ></div>
+                                                    <input
+                                                        type="color"
+                                                        value={editCategoryColor}
+                                                        onChange={e => setEditCategoryColor(e.target.value)}
+                                                        className="color-input-overlay"
+                                                    />
+                                                </div>
+                                                <div className="edit-person-inline">
+                                                    <input
+                                                        value={editCategoryLabel}
+                                                        onChange={e => setEditCategoryLabel(e.target.value)}
+                                                        className="input-dark"
+                                                        style={{ flex: 1 }}
+                                                        autoFocus
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleUpdateCategory();
+                                                            if (e.key === 'Escape') setEditingCategory(null);
+                                                        }}
+                                                    />
+                                                    <div className="edit-actions">
+                                                        <button onClick={handleUpdateCategory} className="btn-icon-check">✓</button>
+                                                        <button onClick={() => setEditingCategory(null)} className="btn-icon-cross">✕</button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="item-card-left">
+                                                    <div className="category-pill" style={{ backgroundColor: category.color }}></div>
+                                                </div>
+                                                <div className="item-card-info">
+                                                    <span className="item-name">{category.label}</span>
+                                                </div>
+
+                                                <div className="item-card-actions">
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditingCategory(category.id);
+                                                            setEditCategoryLabel(category.label);
+                                                            setEditCategoryColor(category.color);
+                                                        }}
+                                                        className="action-icon-btn"
+                                                        title="Edit"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteCategory(category.id)}
+                                                        className="action-icon-btn delete"
+                                                        title="Delete"
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
-                                    <div>
-                                        <h3>Restore Data</h3>
-                                        <p>{restoring ? 'Restoring in progress...' : 'Upload a backup file to restore your portfolio.'}</p>
+                                ))}
+                            </div>
+
+                            <div className="section-divider"></div>
+
+                            {/* Backup Section */}
+                            <div id="data" className="movers-header">
+                                <div className="movers-header-left">
+                                    <h2 className="movers-title">Backup</h2>
+                                </div>
+                            </div>
+                            <div className="settings-group-card">
+                                <div className="data-row">
+                                    <div className="data-block">
+                                        <div className="data-block-info">
+                                            <h3>Backup Data</h3>
+                                            <p>Download a JSON file of your portfolio.</p>
+                                        </div>
+                                        <button onClick={handleBackup} className="btn-primary-gold-block">
+                                            Backup Data
+                                            <span className="icon-right">↓</span>
+                                        </button>
+                                    </div>
+
+                                    <div className="data-block">
+                                        <div className="data-block-info">
+                                            <h3>Restore Data</h3>
+                                            <p>Overwrite current data with a backup file.</p>
+                                        </div>
+                                        <button onClick={handleRestoreClick} className="btn-primary-gold-block">
+                                            {restoring ? 'Restoring...' : 'Restore Data'}
+                                            <span className="icon-right">↑</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -378,7 +566,7 @@ export default function Settings({ persons, onAddPerson, onUpdatePerson, onDelet
                             />
                         </div>
                     </div>
-                )}
+                </div>
             </div>
         </div>
     );

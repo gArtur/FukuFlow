@@ -1,9 +1,11 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { ApiClient } from '../lib/apiClient';
-import type { AssetCategory } from '../types';
+import type { AssetCategory, TimeRange } from '../types';
 
 interface Settings {
     currency: string;
+    defaultFilter: string;
+    defaultDateRange: TimeRange;
 }
 
 interface Category {
@@ -17,6 +19,10 @@ interface Category {
 interface SettingsContextType {
     currency: string;
     setCurrency: (currency: string) => Promise<void>;
+    defaultFilter: string;
+    setDefaultFilter: (filter: string) => Promise<void>;
+    defaultDateRange: TimeRange;
+    setDefaultDateRange: (range: TimeRange) => Promise<void>;
     categories: Category[];
     addCategory: (label: string, color: string) => Promise<void>;
     updateCategory: (id: string, label: string, color: string) => Promise<void>;
@@ -28,7 +34,7 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-    const [settings, setSettings] = useState<Settings>({ currency: 'USD' });
+    const [settings, setSettings] = useState<Settings>({ currency: 'USD', defaultFilter: 'all', defaultDateRange: '1Y' });
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -41,8 +47,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                     ApiClient.getCategories()
                 ]);
 
-                if (settingsData && settingsData.currency) {
-                    setSettings({ currency: settingsData.currency });
+                if (settingsData) {
+                    setSettings({
+                        currency: settingsData.currency || 'USD',
+                        defaultFilter: settingsData.defaultFilter || 'all',
+                        defaultDateRange: settingsData.defaultDateRange || '1Y'
+                    });
                 }
 
                 if (categoriesData) {
@@ -61,9 +71,27 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const setCurrency = async (newCurrency: string) => {
         try {
             await ApiClient.updateSetting('currency', newCurrency);
-            setSettings({ currency: newCurrency });
+            setSettings(prev => ({ ...prev, currency: newCurrency }));
         } catch (error) {
             console.error('Failed to update currency:', error);
+        }
+    };
+
+    const setDefaultFilter = async (newFilter: string) => {
+        try {
+            await ApiClient.updateSetting('defaultFilter', newFilter);
+            setSettings(prev => ({ ...prev, defaultFilter: newFilter }));
+        } catch (error) {
+            console.error('Failed to update default filter:', error);
+        }
+    };
+
+    const setDefaultDateRange = async (newRange: TimeRange) => {
+        try {
+            await ApiClient.updateSetting('defaultDateRange', newRange);
+            setSettings(prev => ({ ...prev, defaultDateRange: newRange }));
+        } catch (error) {
+            console.error('Failed to update default date range:', error);
         }
     };
 
@@ -116,6 +144,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         <SettingsContext.Provider value={{
             currency: settings.currency,
             setCurrency,
+            defaultFilter: settings.defaultFilter,
+            setDefaultFilter,
+            defaultDateRange: settings.defaultDateRange,
+            setDefaultDateRange,
             categories,
             addCategory,
             updateCategory,

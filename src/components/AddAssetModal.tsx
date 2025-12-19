@@ -11,6 +11,16 @@ interface AddAssetModalProps {
     persons: Person[];
 }
 
+const parseValue = (val: string): number => {
+    return parseFloat(val.replace(',', '.')) || 0;
+};
+
+const handleNumberInput = (inputValue: string, setter: (val: string) => void) => {
+    if (inputValue === '' || /^[0-9]*[.,]?[0-9]*$/.test(inputValue)) {
+        setter(inputValue);
+    }
+};
+
 export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
     const { categories } = useSettings();
     const [name, setName] = useState('');
@@ -59,8 +69,8 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                 category,
                 ownerId,
                 purchaseDate,
-                purchaseAmount: parseFloat(purchaseAmount) || 0,
-                currentValue: parseFloat(currentValue) || parseFloat(purchaseAmount) || 0,
+                purchaseAmount: parseValue(purchaseAmount),
+                currentValue: parseValue(currentValue) || parseValue(purchaseAmount),
             };
             onSubmit(assetData);
         }
@@ -135,26 +145,24 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                                 <div className="form-group">
                                     <label className="form-label">Purchase Amount (PLN)</label>
                                     <input
-                                        type="number"
+                                        type="text"
+                                        inputMode="decimal"
                                         className="form-input"
                                         placeholder="0"
                                         value={purchaseAmount}
-                                        onChange={e => setPurchaseAmount(e.target.value)}
+                                        onChange={e => handleNumberInput(e.target.value, setPurchaseAmount)}
                                         required
-                                        min="0"
-                                        step="0.01"
                                     />
                                 </div>
                                 <div className="form-group">
                                     <label className="form-label">Current Value (PLN)</label>
                                     <input
-                                        type="number"
+                                        type="text"
+                                        inputMode="decimal"
                                         className="form-input"
                                         placeholder="0"
                                         value={currentValue}
-                                        onChange={e => setCurrentValue(e.target.value)}
-                                        min="0"
-                                        step="0.01"
+                                        onChange={e => handleNumberInput(e.target.value, setCurrentValue)}
                                     />
                                 </div>
                             </div>

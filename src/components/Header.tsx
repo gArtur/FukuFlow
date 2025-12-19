@@ -3,11 +3,10 @@ import { usePrivacy } from '../contexts/PrivacyContext';
 import { useNavigate } from 'react-router-dom';
 
 interface HeaderProps {
-    date: string;
     onAddSnapshot: () => void;
 }
 
-export default function Header({ date, onAddSnapshot }: HeaderProps) {
+export default function Header({ onAddSnapshot }: HeaderProps) {
     const { isHidden, togglePrivacy } = usePrivacy();
     const navigate = useNavigate();
 
@@ -31,6 +30,24 @@ export default function Header({ date, onAddSnapshot }: HeaderProps) {
                             <rect x="14" y="3" width="7" height="7"></rect>
                             <rect x="14" y="14" width="7" height="7"></rect>
                             <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+
+                    <button
+                        className="icon-btn"
+                        onClick={() => navigate('/heatmap')}
+                        title="Portfolio Heatmap"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="3" width="5" height="5" rx="1"></rect>
+                            <rect x="10" y="3" width="5" height="5" rx="1"></rect>
+                            <rect x="17" y="3" width="4" height="5" rx="1"></rect>
+                            <rect x="3" y="10" width="5" height="5" rx="1"></rect>
+                            <rect x="10" y="10" width="5" height="5" rx="1"></rect>
+                            <rect x="17" y="10" width="4" height="5" rx="1"></rect>
+                            <rect x="3" y="17" width="5" height="4" rx="1"></rect>
+                            <rect x="10" y="17" width="5" height="4" rx="1"></rect>
+                            <rect x="17" y="17" width="4" height="4" rx="1"></rect>
                         </svg>
                     </button>
 
@@ -63,7 +80,13 @@ export default function Header({ date, onAddSnapshot }: HeaderProps) {
                             </svg>
                         )}
                     </button>
-                    <button className="add-snapshot-btn" onClick={onAddSnapshot}>
+                    <button
+                        className="add-snapshot-btn"
+                        onClick={onAddSnapshot}
+                        disabled={isHidden}
+                        title={isHidden ? "Disabled in Private Mode" : "Add Snapshot"}
+                        style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                    >
                         <span>+</span>
                         <span>Add Snapshot</span>
                     </button>

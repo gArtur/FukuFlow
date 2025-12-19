@@ -5,7 +5,7 @@ import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
 import type { Asset, Person, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
-import { SettingsProvider } from './contexts/SettingsContext';
+import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';
 import FamilyFilter from './components/FamilyFilter';
 import TotalWorthChart from './components/TotalWorthChart';
@@ -17,6 +17,7 @@ import EditSnapshotModal from './components/EditSnapshotModal';
 import ImportCSVModal from './components/ImportCSVModal';
 import InvestmentDetail from './components/InvestmentDetail';
 import Settings from './components/Settings';
+import PortfolioHeatmap from './components/PortfolioHeatmap';
 import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
 
@@ -24,6 +25,7 @@ import MigrationTool from './components/MigrationTool';
  * Shared logic and state for the application
  */
 function AppContent() {
+  const { defaultFilter, isLoading: settingsLoading } = useSettings();
   const {
     filteredAssets,
     selectedOwner,
@@ -40,6 +42,7 @@ function AppContent() {
   const [persons, setPersons] = useState<Person[]>([]);
   const [personsLoading, setPersonsLoading] = useState(true);
 
+
   const fetchPersons = useCallback(async () => {
     setPersonsLoading(true);
     try {
@@ -55,6 +58,13 @@ function AppContent() {
   useEffect(() => {
     fetchPersons();
   }, [fetchPersons]);
+
+  // Set filter based on settings (initial load and updates)
+  useEffect(() => {
+    if (!settingsLoading) {
+      setSelectedOwner(defaultFilter || 'all');
+    }
+  }, [settingsLoading, defaultFilter, setSelectedOwner]);
 
   const navigate = useNavigate();
 
@@ -192,17 +202,12 @@ function AppContent() {
     }
   };
 
-  const today = new Date().toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+
 
   const hasLocalData = localStorage.getItem('wealth-persons') || localStorage.getItem('wealth-portfolio');
-  const isInitialLoad = (assetsLoading && allAssets.length === 0) || personsLoading;
+  const isInitialLoad = (assetsLoading && allAssets.length === 0) || personsLoading || settingsLoading;
 
   const headerProps = {
-    date: today,
     onAddSnapshot: handleGlobalAddSnapshot
   };
 
@@ -216,118 +221,130 @@ function AppContent() {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={
-        <div className="app">
-          <Header
-            date={today}
-            onAddSnapshot={handleGlobalAddSnapshot}
-          />
-
-          <main className="main-content">
-            {hasLocalData && (
-              <MigrationTool onComplete={() => window.location.reload()} />
-            )}
-
-            <FamilyFilter
-              persons={persons}
-              selected={selectedOwner}
-              onSelect={setSelectedOwner}
+    <>
+      <Routes>
+        <Route path="/" element={
+          <div className="app">
+            <Header
+              onAddSnapshot={handleGlobalAddSnapshot}
             />
 
-            <div className="charts-row">
-              <TotalWorthChart assets={filteredAssets} stats={stats} />
-              <AllocationChart stats={stats} assets={filteredAssets} persons={persons} />
-            </div>
+            <main className="main-content">
+              {hasLocalData && (
+                <MigrationTool onComplete={() => window.location.reload()} />
+              )}
 
-            <MyMovers
-              assets={filteredAssets}
+              <FamilyFilter
+                persons={persons}
+                selected={selectedOwner}
+                onSelect={setSelectedOwner}
+              />
+
+              <div className="charts-row">
+                <TotalWorthChart assets={filteredAssets} stats={stats} />
+                <AllocationChart stats={stats} assets={filteredAssets} persons={persons} />
+              </div>
+
+              <MyMovers
+                assets={filteredAssets}
+                persons={persons}
+                onCardClick={handleCardClick}
+                onAddSnapshot={handleAddSnapshot}
+                onAddAsset={() => setShowAddModal(true)}
+              />
+            </main>
+
+            <button
+              className="fab"
+              onClick={handleGlobalAddSnapshot}
+              aria-label="Add snapshot"
+            >
+              +
+            </button>
+
+            <AddAssetModal
+              isOpen={showAddModal}
+              onClose={handleCloseAddModal}
+              onSubmit={addAsset}
+              editAsset={editAsset}
+              onUpdate={updateAsset}
               persons={persons}
-              onCardClick={handleCardClick}
-              onAddSnapshot={handleAddSnapshot}
-              onAddAsset={() => setShowAddModal(true)}
             />
-          </main>
 
-          <button
-            className="fab"
-            onClick={handleGlobalAddSnapshot}
-            aria-label="Add snapshot"
-          >
-            +
-          </button>
+          </div>
+        } />
 
-          <AddAssetModal
-            isOpen={showAddModal}
-            onClose={handleCloseAddModal}
-            onSubmit={addAsset}
+        <Route path="/asset/:id" element={
+          <AssetDetailView
+            headerProps={headerProps}
+            allAssets={allAssets}
+            persons={persons}
+            onAddSnapshot={handleAddSnapshot}
+            onEdit={(asset: Asset) => { setEditAsset(asset); setShowAddModal(true); }}
+            onDelete={async (id: string) => {
+              if (confirm('Are you sure you want to delete this investment?')) {
+                await deleteAsset(id);
+                handleBackToDashboard();
+              }
+            }}
+            onEditSnapshot={handleEditSnapshot}
+            setShowImportModal={setShowImportModal}
+            // Modals state passed down
             editAsset={editAsset}
-            onUpdate={updateAsset}
-            persons={persons}
+            // Edit Snapshot Modal Handling
+            showEditSnapshotModal={showEditSnapshotModal}
+            setShowEditSnapshotModal={setShowEditSnapshotModal}
+            editingSnapshot={editingSnapshot}
+            handleUpdateSnapshot={handleUpdateSnapshot}
+            handleDeleteSnapshot={handleDeleteSnapshot}
+            // Import Modal Handling
+            showImportModal={showImportModal}
+            onImport={handleImportSnapshots}
+            showAddModal={showAddModal}
+            onCloseAddModal={handleCloseAddModal}
+            onAddAsset={addAsset}
+            onUpdateAsset={updateAsset}
           />
+        } />
 
-          <AddSnapshotModal
-            isOpen={showSnapshotModal}
-            onClose={() => setShowSnapshotModal(false)}
-            asset={snapshotAsset}
-            assets={allAssets}
-            persons={persons}
-            onSubmit={handleSubmitSnapshot}
-          />
-        </div>
-      } />
+        <Route path="/heatmap" element={
+          <div className="app">
+            <Header {...headerProps} />
+            <main className="main-content">
+              <PortfolioHeatmap
+                assets={allAssets}
+                persons={persons}
+              />
+            </main>
+          </div>
+        } />
 
-      <Route path="/asset/:id" element={
-        <AssetDetailView
-          headerProps={headerProps}
-          allAssets={allAssets}
-          persons={persons}
-          onAddSnapshot={handleAddSnapshot}
-          onEdit={(asset: Asset) => { setEditAsset(asset); setShowAddModal(true); }}
-          onDelete={async (id: string) => {
-            if (confirm('Are you sure you want to delete this investment?')) {
-              await deleteAsset(id);
-              handleBackToDashboard();
-            }
-          }}
-          onEditSnapshot={handleEditSnapshot}
-          setShowImportModal={setShowImportModal}
-          // Modals state passed down
-          showSnapshotModal={showSnapshotModal}
-          setShowSnapshotModal={setShowSnapshotModal}
-          snapshotAsset={snapshotAsset}
-          handleSubmitSnapshot={handleSubmitSnapshot}
-          showEditSnapshotModal={showEditSnapshotModal}
-          setShowEditSnapshotModal={setShowEditSnapshotModal}
-          editingSnapshot={editingSnapshot}
-          handleUpdateSnapshot={handleUpdateSnapshot}
-          handleDeleteSnapshot={handleDeleteSnapshot}
-          showImportModal={showImportModal}
-          onImport={(snapshots: any, id: string) => handleImportSnapshots(id, snapshots)}
-          showAddModal={showAddModal}
-          onCloseAddModal={handleCloseAddModal}
-          onAddAsset={addAsset}
-          onUpdateAsset={updateAsset}
-          editAsset={editAsset}
-        />
-      } />
+        <Route path="/settings" element={
+          <div className="app">
+            <Header {...headerProps} />
+            <main className="main-content">
+              <Settings
+                persons={persons}
+                onAddPerson={handleAddPerson}
+                onUpdatePerson={handleUpdatePerson}
+                onDeletePerson={handleDeletePerson}
+              />
+            </main>
+          </div>
+        } />
 
-      <Route path="/settings" element={
-        <div className="app">
-          <Header {...headerProps} />
-          <main className="main-content">
-            <Settings
-              persons={persons}
-              onAddPerson={handleAddPerson}
-              onUpdatePerson={handleUpdatePerson}
-              onDeletePerson={handleDeletePerson}
-            />
-          </main>
-        </div>
-      } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      <AddSnapshotModal
+        isOpen={showSnapshotModal}
+        onClose={() => setShowSnapshotModal(false)}
+        asset={snapshotAsset}
+        assets={allAssets}
+        persons={persons}
+        onSubmit={handleSubmitSnapshot}
+      />
+    </>
   );
 }
 
@@ -342,10 +359,6 @@ function AssetDetailView({
   onDelete,
   onEditSnapshot,
   setShowImportModal,
-  showSnapshotModal,
-  setShowSnapshotModal,
-  snapshotAsset,
-  handleSubmitSnapshot,
   showEditSnapshotModal,
   setShowEditSnapshotModal,
   editingSnapshot,
@@ -374,7 +387,6 @@ function AssetDetailView({
         <InvestmentDetail
           asset={asset}
           persons={persons}
-          onAddSnapshot={() => onAddSnapshot(asset)}
           onEdit={() => onEdit(asset)}
           onDelete={() => onDelete(asset.id)}
           onEditSnapshot={onEditSnapshot}
@@ -390,12 +402,7 @@ function AssetDetailView({
         +
       </button>
 
-      <AddSnapshotModal
-        isOpen={showSnapshotModal}
-        onClose={() => setShowSnapshotModal(false)}
-        asset={snapshotAsset}
-        onSubmit={handleSubmitSnapshot}
-      />
+
 
       <EditSnapshotModal
         isOpen={showEditSnapshotModal}

@@ -15,7 +15,7 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
             <section className="movers-section">
                 <div className="movers-header">
                     <div className="movers-header-left">
-                        <h2 className="movers-title">My Investments</h2>
+                        <h2 className="movers-title">My Assets</h2>
                         <span className="movers-count">0 assets</span>
                     </div>
                     <button className="add-asset-btn-inline" onClick={onAddAsset}>
@@ -24,8 +24,8 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
                 </div>
                 <div className="empty-state">
                     <div className="empty-icon">💰</div>
-                    <h3 className="empty-title">No investments yet</h3>
-                    <p className="empty-text">Tap the + button to add your first investment</p>
+                    <h3 className="empty-title">No assets yet</h3>
+                    <p className="empty-text">Tap the + button to add your first asset</p>
                 </div>
             </section>
         );
@@ -41,7 +41,7 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
         <section className="movers-section">
             <div className="movers-header">
                 <div className="movers-header-left">
-                    <h2 className="movers-title">My Investments</h2>
+                    <h2 className="movers-title">My Assets</h2>
                     <span className="movers-count">{assets.length} assets</span>
                 </div>
                 <button className="add-asset-btn-inline" onClick={onAddAsset}>
