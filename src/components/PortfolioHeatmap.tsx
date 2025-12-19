@@ -3,6 +3,13 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import type { Asset, Person } from '../types';
+import { formatCurrency } from '../utils';
+import {
+    formatMonthLabel,
+    formatFullMonthYear,
+    getPreviousMonth,
+    generateMonthRange
+} from '../utils/dateUtils';
 
 interface PortfolioHeatmapProps {
     assets: Asset[];
@@ -47,30 +54,7 @@ interface TooltipData {
 
 type ViewMode = 'percent' | 'value';
 
-// Format currency
-const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pl-PL', {
-        style: 'currency',
-        currency: 'PLN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(value);
-};
-
-// Format month label
-const formatMonthLabel = (month: string): string => {
-    const [year, m] = month.split('-');
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return `${monthNames[parseInt(m) - 1]} ${year.slice(2)}`;
-};
-
-// Get full month name
-const formatFullMonth = (month: string): string => {
-    const [year, m] = month.split('-');
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'];
-    return `${monthNames[parseInt(m) - 1]} ${year}`;
-};
+// formatCurrency, formatMonthLabel, formatFullMonthYear imported from utils
 
 // Get color class based on percentage change
 const getColorClass = (changePercent: number): string => {
@@ -83,34 +67,7 @@ const getColorClass = (changePercent: number): string => {
     return 'loss-high';
 };
 
-// Get previous month string
-const getPreviousMonth = (month: string): string => {
-    const [year, m] = month.split('-').map(Number);
-    if (m === 1) {
-        return `${year - 1}-12`;
-    }
-    return `${year}-${String(m - 1).padStart(2, '0')}`;
-};
-
-// Get next month string
-const getNextMonth = (month: string): string => {
-    const [year, m] = month.split('-').map(Number);
-    if (m === 12) {
-        return `${year + 1}-01`;
-    }
-    return `${year}-${String(m + 1).padStart(2, '0')}`;
-};
-
-// Generate all months between start and end
-const generateMonthRange = (start: string, end: string): string[] => {
-    const months: string[] = [];
-    let current = start;
-    while (current <= end) {
-        months.push(current);
-        current = getNextMonth(current);
-    }
-    return months;
-};
+// getPreviousMonth, getNextMonth, generateMonthRange imported from utils/dateUtils
 
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -653,7 +610,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                         <strong>{tooltip.assetName}</strong>
                         {tooltip.category && <span className="tooltip-category">{tooltip.category}</span>}
                     </div>
-                    <div className="tooltip-month">{formatFullMonth(tooltip.month)}</div>
+                    <div className="tooltip-month">{formatFullMonthYear(tooltip.month)}</div>
                     <div className="tooltip-stats">
                         <div className="tooltip-row">
                             <span>Start Value:</span>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Asset } from '../types';
+import { useFormatting } from '../hooks/useFormatting';
 
 interface UpdateValueModalProps {
     isOpen: boolean;
@@ -8,16 +9,8 @@ interface UpdateValueModalProps {
     onSubmit: (id: string, newValue: number) => void;
 }
 
-const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pl-PL', {
-        style: 'currency',
-        currency: 'PLN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(value);
-};
-
 export default function UpdateValueModal({ isOpen, onClose, asset, onSubmit }: UpdateValueModalProps) {
+    const { formatCurrency } = useFormatting();
     const [newValue, setNewValue] = useState('');
 
     useEffect(() => {

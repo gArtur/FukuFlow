@@ -4,6 +4,8 @@ import type { Asset, Person, ValueEntry } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
 import TotalWorthChart from './TotalWorthChart';
+import { useSnapshotHistory } from '../hooks/useSnapshotHistory';
+import { exportSnapshotsToCsv } from '../utils/csvExport';
 
 interface InvestmentDetailProps {
     asset: Asset;
@@ -35,57 +37,8 @@ export default function InvestmentDetail({
     const gain = asset.currentValue - asset.purchaseAmount;
     const gainPercent = asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100) : 0;
 
-    // Process history to add derived fields
-    const enhancedHistory = useMemo(() => {
-        const sortedHistory = [...(asset.valueHistory || [])].sort((a, b) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
-
-        let runningInvested = 0;
-
-        return sortedHistory.map((entry, index) => {
-            const prevEntry = index > 0 ? sortedHistory[index - 1] : null;
-            const investChange = entry.investmentChange || 0;
-
-            // Update running invested amount
-            runningInvested += investChange;
-
-            // Period Gain/Loss: (Current Value - Previous Value) - Net Investment Change
-            const prevValue = prevEntry ? prevEntry.value : 0;
-            const periodGL = (entry.value - prevValue) - investChange;
-
-            // Calculate Period G/L Percent
-            // What is the denominator? Often it's the previous value (adjusted for flows?) or just previous value.
-            // Requirement:"That will show information how much more the asset is valuable compared to latests snapshot minus investmen change"
-            // Typically Period Return % = (EndValue - (StartValue + Flows)) / (StartValue + Flows)
-            // Or simpler: PeriodGL / (StartValue + Flows)
-            // Let's use (StartValue + Flows) as the basis.
-            const basis = prevValue + investChange;
-            let periodGLPercent = 0;
-            if (basis !== 0) {
-                periodGLPercent = (periodGL / basis) * 100;
-            }
-
-            // ROI: (Current Value - Cumulative Invested) / Cumulative Invested
-            // Cum G/L: Current Value - Cumulative Invested
-            const cumGL = entry.value - runningInvested;
-
-            let roi = 0;
-            if (runningInvested > 0) {
-                roi = (cumGL / runningInvested) * 100;
-            }
-
-            return {
-                ...entry,
-                cumInvested: runningInvested,
-                periodGL,
-                periodGLPercent,
-                cumGL,
-                roi,
-                actualIndex: index
-            };
-        }).reverse(); // Most recent first
-    }, [asset.valueHistory]);
+    // Process history to add derived fields (extracted to hook)
+    const enhancedHistory = useSnapshotHistory(asset.valueHistory);
 
     // Pagination logic
     const totalPages = Math.ceil(enhancedHistory.length / ITEMS_PER_PAGE);
@@ -104,27 +57,9 @@ export default function InvestmentDetail({
         setShowDeleteConfirm(false);
     };
 
-    // CSV Export
+    // CSV Export (extracted to utility)
     const handleExportCSV = () => {
-        const headers = ['Date', 'Value', 'Investment Change', 'Notes'];
-        const rows = enhancedHistory.map(h => [
-            new Date(h.date).toISOString().split('T')[0],
-            h.value.toString(),
-            (h.investmentChange || 0).toString(),
-            `"${(h.notes || '').replace(/"/g, '""')}"`
-        ]);
-
-        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-
-        const dateStr = new Date().toISOString().split('T')[0];
-        const sanitize = (str: string) => str.replace(/[\\/:*?"<>|]/g, '_');
-        const personName = sanitize(owner?.name || 'Unknown');
-        const investmentName = sanitize(asset.name);
-        link.download = `${dateStr} ${personName} - ${investmentName}.csv`;
-        link.click();
+        exportSnapshotsToCsv(enhancedHistory, asset.name, owner?.name);
     };
 
     return (

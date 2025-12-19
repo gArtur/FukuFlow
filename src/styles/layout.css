@@ -1,0 +1,46 @@
+/**
+ * Layout Styles
+ * App container, main content, and grid layouts
+ */
+
+.app {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+.main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-md);
+    padding-bottom: 100px;
+}
+
+@media (min-width: 1024px) {
+    .main-content {
+        padding: var(--space-xl);
+    }
+
+    .charts-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: var(--space-lg);
+    }
+
+    /* Prevent grid blowout */
+    .charts-row>* {
+        min-width: 0;
+    }
+}
+
+/* Dashboard container */
+.dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-md);
+}
+
+@media (min-width: 1024px) {
+    .dashboard-container {
+        padding: var(--space-xl);
+    }
+}

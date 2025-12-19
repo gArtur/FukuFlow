@@ -1,4 +1,5 @@
 import type { PortfolioStats } from '../types';
+import { useFormatting } from '../hooks/useFormatting';
 
 interface DashboardProps {
     stats: PortfolioStats;
@@ -6,21 +7,8 @@ interface DashboardProps {
     isFiltered: boolean;
 }
 
-const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pl-PL', {
-        style: 'currency',
-        currency: 'PLN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(value);
-};
-
-const formatPercent = (value: number): string => {
-    const sign = value >= 0 ? '+' : '';
-    return `${sign}${value.toFixed(2)}%`;
-};
-
 export default function Dashboard({ stats, totalStats, isFiltered }: DashboardProps) {
+    const { formatCurrency, formatPercent } = useFormatting();
     const displayStats = stats;
     const isPositive = displayStats.totalGain >= 0;
 

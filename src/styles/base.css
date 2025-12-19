@@ -1,0 +1,69 @@
+/**
+ * Base/Reset Styles
+ * Global resets and foundational styles
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+}
+
+#root {
+    min-height: 100vh;
+}
+
+/* Text color utilities */
+.text-green {
+    color: var(--accent-green);
+}
+
+.text-red {
+    color: var(--accent-red);
+}
+
+/* Responsive visibility utilities */
+.mobile-only {
+    display: block !important;
+}
+
+.desktop-only {
+    display: none !important;
+}
+
+@media (min-width: 640px) {
+    .mobile-only {
+        display: none !important;
+    }
+
+    .desktop-only {
+        display: block !important;
+    }
+}
+
+/* Margin/spacing utilities */
+.mb-4 {
+    margin-bottom: var(--space-md);
+}
+
+.mb-8 {
+    margin-bottom: var(--space-xl);
+}

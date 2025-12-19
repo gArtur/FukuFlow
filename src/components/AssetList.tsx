@@ -1,5 +1,6 @@
 import type { Asset, Person } from '../types';
 import { CATEGORY_LABELS } from '../types';
+import { useFormatting } from '../hooks/useFormatting';
 
 interface AssetListProps {
     assets: Asset[];
@@ -9,16 +10,8 @@ interface AssetListProps {
     onEdit: (asset: Asset) => void;
 }
 
-const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('pl-PL', {
-        style: 'currency',
-        currency: 'PLN',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(value);
-};
-
 export default function AssetList({ assets, persons, onUpdateValue, onDelete, onEdit }: AssetListProps) {
+    const { formatCurrency } = useFormatting();
     if (assets.length === 0) {
         return (
             <section className="assets-section">
