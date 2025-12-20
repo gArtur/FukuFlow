@@ -1,7 +1,12 @@
+/* Remove duplicate padding - main-content already provides page padding */
+.dashboard-container:has(.settings-layout) {
+    padding: 0;
+}
+
 .settings-layout {
     display: flex;
     gap: var(--space-xl);
-    padding: var(--space-lg);
+    /* Removed padding - using main-content's padding instead */
     /* height: 100%; */
     /* overflow-y: auto; */
     align-items: flex-start;
@@ -51,6 +56,12 @@
 .settings-section {
     scroll-margin-top: 60px;
     margin-bottom: var(--space-xl);
+}
+
+/* Reset margin on .movers-title to match dashboard spacing.
+   Overrides the legacy .settings-section h2 rule in index.css. */
+.settings-section .movers-title {
+    margin: 0;
 }
 
 .section-divider {

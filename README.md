@@ -2,18 +2,33 @@
 
 A modern, elegant personal wealth management dashboard for tracking investments across multiple asset categories and family members.
 
+> [!NOTE]
+> This application was vibe-coded with Antigravity. 🛸✨
+
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-7-purple) ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 
 ## Features
 
+### Dashboard & Visualization
 - 📊 **Premium Dashboard** - Visualize total worth and performance with high-performance interactive charts.
 - 📈 **Interactive Sparklines** - Real-time gradient-filled performance graphs on every investment card for instant trend analysis.
-- 👨‍👩‍👧‍👦 **Multi-Person Management** - Dynamic person management with automatic filtering and per-owner tracking.
+- 🗺️ **Portfolio Heatmap** - Month-by-month performance heatmap with Red-White-Green gradient, showing percentage changes across all assets with interactive tooltips.
 - 🍰 **Dual-Mode Allocation** - Flip between Category grouping and Individual Investment views in a stunning doughnut visualization.
-- 🕒 **Advanced Snapshot System** - Detailed history for every asset with date-specific values, investment tracking, and performance notes.
+
+### Asset Management
+- 👨‍👩‍👧‍👦 **Multi-Person Management** - Dynamic person management with drag-and-drop reordering and per-owner tracking.
+- 🕒 **Advanced Snapshot System** - Detailed history for every asset with date-specific values, cumulative G/L tracking, and performance notes.
+- 🔍 **Synced Filters** - Filter settings sync across Dashboard and Heatmap views, with persistent default filter preferences.
+
+### Data & Privacy
 - 📁 **Smart CSV Import** - Bulk import snapshot history with support for multiple date formats and drag-and-drop interface.
+- 💾 **Backup & Restore** - Full database backup export and restore functionality with data overwrite warnings.
 - 🔒 **Privacy Mode** - Securely hide sensitive financial data while preserving trend visibility via percentage-based visualization.
+
+### User Experience
+- ⚙️ **Redesigned Settings** - Single-page scrollable settings with sticky sidebar navigation for General, People, Categories, and Backup sections.
 - 🎨 **Modern Dark UI** - State-of-the-art glassmorphism design with a curated color palette and micro-animations.
+- 📱 **Responsive Design** - Mobile-optimized header and layouts that adapt to any screen size.
 
 ## Tech Stack
 
@@ -78,42 +93,83 @@ The build output is in the `dist/` folder.
 ```
 Wealth-Management/
 ├── server/
-│   ├── index.js        # Express server with SQLite
-│   ├── seed.js         # Sample data seeder
-│   └── wealth.db       # SQLite database (auto-created)
+│   ├── index.js          # Express server entry point
+│   ├── db.js             # Database initialization
+│   ├── routes/           # API route handlers
+│   │   ├── assets.js     # Asset CRUD operations
+│   │   ├── persons.js    # Person management
+│   │   ├── categories.js # Category management
+│   │   ├── snapshots.js  # Snapshot operations
+│   │   ├── settings.js   # App settings
+│   │   └── backup.js     # Backup & restore
+│   ├── seed.js           # Sample data seeder
+│   └── db/wealth.db      # SQLite database (auto-created)
 ├── src/
-│   ├── components/     # React components
-│   ├── contexts/       # React contexts (Privacy)
-│   ├── hooks/          # Custom hooks (usePortfolio)
-│   ├── lib/            # API client
-│   ├── types/          # TypeScript definitions
-│   └── App.tsx         # Main application
+│   ├── components/       # React components
+│   │   ├── settings/     # Settings sub-components
+│   │   └── ...           # Dashboard, Charts, Modals
+│   ├── contexts/         # React contexts (Privacy)
+│   ├── hooks/            # Custom hooks (usePortfolio)
+│   ├── lib/              # API client
+│   ├── styles/           # Modular CSS files
+│   ├── types/            # TypeScript definitions
+│   ├── utils/            # Utility functions
+│   └── App.tsx           # Main application
 ├── package.json
 └── README.md
 ```
 
 ## API Endpoints
 
+### Persons
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/persons` | List all persons |
 | POST | `/api/persons` | Add a new person |
+| PUT | `/api/persons/:id` | Update a person |
 | DELETE | `/api/persons/:id` | Delete a person |
+| PUT | `/api/persons/reorder` | Reorder persons |
+
+### Assets
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | GET | `/api/assets` | List all assets with history |
 | POST | `/api/assets` | Add a new asset |
 | PUT | `/api/assets/:id` | Update an asset |
 | DELETE | `/api/assets/:id` | Delete an asset |
+
+### Snapshots
+| Method | Endpoint | Description |
+|--------|----------|-------------|
 | POST | `/api/assets/:id/snapshot` | Add a value snapshot |
 | PUT | `/api/snapshots/:id` | Update a snapshot |
 | DELETE | `/api/snapshots/:id` | Delete a snapshot |
+
+### Categories
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/categories` | List all categories |
+| POST | `/api/categories` | Add a new category |
+| PUT | `/api/categories/:id` | Update a category |
+| DELETE | `/api/categories/:id` | Delete a category |
+
+### Settings & Backup
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/settings` | Get app settings |
+| PUT | `/api/settings` | Update app settings |
+| GET | `/api/backup` | Export database backup |
+| POST | `/api/backup/restore` | Restore from backup |
 
 ## Screenshots
 
 The application features a dark, premium design with:
 - Total Worth chart with time range filters
-- Asset allocation doughnut chart
-- Investment cards with quick snapshot actions
-- Detailed investment history view
+- Portfolio Heatmap with monthly performance tracking
+- Asset allocation doughnut chart (by category or individual asset)
+- Investment cards with quick snapshot actions and sparklines
+- Detailed investment history view with cumulative G/L
+- Redesigned settings panel with sidebar navigation
 
 ## License
 
