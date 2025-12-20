@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import type { Asset, Person } from '../types';
-import { formatCurrency } from '../utils';
+// remove formatCurrency import as we'll use formatAmount from settings
 import {
     formatMonthLabel,
     formatFullMonthYear,
@@ -73,7 +73,7 @@ import { useSettings } from '../contexts/SettingsContext';
 
 export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapProps) {
     const { isHidden } = usePrivacy();
-    const { defaultFilter, isLoading: settingsLoading } = useSettings();
+    const { defaultFilter, currency, formatAmount, isLoading: settingsLoading } = useSettings();
     const navigate = useNavigate();
     const [viewMode, setViewMode] = useState<ViewMode>('percent');
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -258,8 +258,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
     // Helper to format values for display - MASKS CURRENCY IN PRIVACY MODE
     const formatValue = (val: number, isCurrency: boolean = false) => {
-        if (isCurrency && isHidden) return '***** zł';
-        if (isCurrency) return formatCurrency(val);
+        if (isCurrency && isHidden) return `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}`;
+        if (isCurrency) return formatAmount(val);
         // Percentages are ALWAYS visible
         if (val > 0) return `+${val.toFixed(1)}%`;
         return `${val.toFixed(1)}%`;
@@ -517,7 +517,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                     <div className={`heatmap-cell-total ${portfolioRow.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
                         {viewMode === 'percent'
                             ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
-                            : (isHidden ? '*****' : formatCurrency(portfolioRow.totalChange))
+                            : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(portfolioRow.totalChange))
                         }
                     </div>
                 </div>
@@ -549,7 +549,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                         <div className={`heatmap-cell-total ${row.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
                             {viewMode === 'percent'
                                 ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
-                                : (isHidden ? '*****' : formatCurrency(row.totalChange))
+                                : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(row.totalChange))
                             }
                         </div>
                     </div>
@@ -614,16 +614,16 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                     <div className="tooltip-stats">
                         <div className="tooltip-row">
                             <span>Start Value:</span>
-                            <span>{isHidden ? '***** zł' : formatCurrency(tooltip.previousValue)}</span>
+                            <span>{isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.previousValue)}</span>
                         </div>
                         <div className="tooltip-row">
                             <span>End Value:</span>
-                            <span>{isHidden ? '***** zł' : formatCurrency(tooltip.value)}</span>
+                            <span>{isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.value)}</span>
                         </div>
                         <div className="tooltip-row">
                             <span>Result:</span>
                             <span className={tooltip.change >= 0 ? 'gain-text' : 'loss-text'}>
-                                {isHidden ? '***** zł' : formatCurrency(tooltip.change)}
+                                {isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.change)}
                             </span>
                         </div>
                         <div className="tooltip-row grand-total">

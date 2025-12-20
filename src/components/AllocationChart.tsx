@@ -230,7 +230,7 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                             className="allocation-legend-dot"
                             style={{ backgroundColor: item.color }}
                         />
-                        <span className="allocation-legend-label" title={item.label} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <span className="allocation-legend-label" title={item.label}>
                             {item.label}
                         </span>
                         <span className="allocation-legend-percent">{item.percentage}%</span>

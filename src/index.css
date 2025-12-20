@@ -387,7 +387,8 @@
 }
 
 .allocation-legend-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 10px 1fr 45px 90px;
   align-items: center;
   gap: var(--space-sm);
   font-size: 13px;
@@ -401,13 +402,23 @@
 }
 
 .allocation-legend-label {
-  flex: 1;
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.allocation-legend-percent {
+  text-align: right;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .allocation-legend-value {
+  text-align: right;
   font-weight: 500;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ===== MY MOVERS SECTION ===== */
