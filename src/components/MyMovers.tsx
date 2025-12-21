@@ -32,9 +32,7 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
     }
 
     const sortedAssets = [...assets].sort((a, b) => {
-        const gainA = Math.abs(a.currentValue - a.purchaseAmount);
-        const gainB = Math.abs(b.currentValue - b.purchaseAmount);
-        return gainB - gainA;
+        return a.name.localeCompare(b.name);
     });
 
     return (

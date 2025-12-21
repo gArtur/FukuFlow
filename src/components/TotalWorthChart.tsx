@@ -118,8 +118,27 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
     const startValue = history.length > 0 ? history[0].value : 0;
     const startInvested = history.length > 0 ? history[0].invested : 0;
 
-    const displayGain = stats ? stats.totalGain : (currentValue - currentInvested);
-    const displayGainPercent = stats ? stats.gainPercentage : (currentInvested > 0 ? (displayGain / currentInvested) * 100 : 0);
+    // Calculate gain/loss for the selected period
+    const startTotalGain = startValue - startInvested;
+    const endTotalGain = currentValue - currentInvested;
+    const calculatedGain = endTotalGain - startTotalGain;
+
+    // Calculate ROI for the period
+    // Formula: Period Gain / (Start Value + Net New Investment)
+    // Denominator represents the effective capital at risk during the period
+    const investedChange = currentInvested - startInvested;
+    const averageCapital = startValue + investedChange; // Simplified "Ending Principal"
+
+    // Fallback for MAX to use stats if available (for precise All-Time numbers), otherwise calculated
+    const isMax = timeRange === 'MAX';
+    const displayGain = isMax && stats ? stats.totalGain : calculatedGain;
+
+    let displayGainPercent = 0;
+    if (isMax && stats) {
+        displayGainPercent = stats.gainPercentage;
+    } else {
+        displayGainPercent = averageCapital > 0 ? (calculatedGain / averageCapital) * 100 : 0;
+    }
 
     // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)
     // If Start Invested is 0, fall back to Start Value to avoid divide by zero, or just show 0

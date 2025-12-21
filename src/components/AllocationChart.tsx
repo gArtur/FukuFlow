@@ -172,36 +172,16 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
         <div className="chart-card allocation-card">
             <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 className="chart-title">Allocation</h3>
-                <div className="chart-toggle" style={{ display: 'flex', gap: '0.25rem', background: 'var(--bg-secondary)', padding: '2px', borderRadius: '6px' }}>
+                <div className="time-range-tabs">
                     <button
+                        className={`time-tab ${viewMode === 'category' ? 'active' : ''}`}
                         onClick={() => setViewMode('category')}
-                        style={{
-                            background: viewMode === 'category' ? 'var(--bg-primary)' : 'transparent',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            color: viewMode === 'category' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            fontSize: '0.75rem',
-                            cursor: 'pointer',
-                            fontWeight: viewMode === 'category' ? 600 : 400,
-                            boxShadow: viewMode === 'category' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
-                        }}
                     >
                         Type
                     </button>
                     <button
+                        className={`time-tab ${viewMode === 'investment' ? 'active' : ''}`}
                         onClick={() => setViewMode('investment')}
-                        style={{
-                            background: viewMode === 'investment' ? 'var(--bg-primary)' : 'transparent',
-                            border: 'none',
-                            borderRadius: '4px',
-                            padding: '4px 8px',
-                            color: viewMode === 'investment' ? 'var(--text-primary)' : 'var(--text-secondary)',
-                            fontSize: '0.75rem',
-                            cursor: 'pointer',
-                            fontWeight: viewMode === 'investment' ? 600 : 400,
-                            boxShadow: viewMode === 'investment' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none'
-                        }}
                     >
                         Investments
                     </button>
