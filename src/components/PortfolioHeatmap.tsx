@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
@@ -78,6 +78,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const [viewMode, setViewMode] = useState<ViewMode>('percent');
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
     const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
     const gridRef = useRef<HTMLDivElement>(null);
 
     // Sync with default filter from settings
@@ -254,8 +255,16 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const heatmapData = useMemo(() => {
         // Use filteredAssets for the heatmap rows
         const rows = filteredAssets.map(asset => processAssetData(asset));
+
+        // Sort based on current sort direction
+        if (sortDirection === 'asc') {
+            return rows.sort((a, b) => a.totalChangePercent - b.totalChangePercent);
+        } else if (sortDirection === 'desc') {
+            return rows.sort((a, b) => b.totalChangePercent - a.totalChangePercent);
+        }
+        // Default: alphabetical sort
         return rows.sort((a, b) => a.name.localeCompare(b.name));
-    }, [filteredAssets, processAssetData]);
+    }, [filteredAssets, processAssetData, sortDirection]);
 
 
 
@@ -357,28 +366,121 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         setTooltip(null);
     };
 
-    // Format display value based on mode and privacy
-    const formatCellValue = (cell: HeatmapCell) => {
-        if (!cell.exists) return ''; // Empty for non-existing periods
-        if (cell.isInception) return 'START'; // Mark inception cells
+    // Format the compact value display for cells (e.g., "15.2k" or "1.5M")
+    const formatCompactValue = (value: number): string => {
+        if (isHidden) return '***';
+        if (Math.abs(value) >= 1000000) {
+            return `${(value / 1000000).toFixed(1)}M`;
+        }
+        if (Math.abs(value) >= 1000) {
+            return `${(value / 1000).toFixed(1)}k`;
+        }
+        return value.toFixed(0);
+    };
 
-        // Allow display if asset exists (forward filled) even if !hasData
+    // Render cell content with change on top and value below
+    const renderCellContent = (cell: HeatmapCell) => {
+        if (!cell.exists) return null; // Empty for non-existing periods
+        if (cell.isInception) return <span className="cell-inception-label">START</span>;
 
+        // Format the change display
+        let changeDisplay: string;
         if (viewMode === 'percent') {
-            // Percentages are allowed even in privacy mode
-            if (cell.changePercent > 0) return `+${cell.changePercent.toFixed(1)}%`;
-            return `${cell.changePercent.toFixed(1)}%`;
+            changeDisplay = cell.changePercent > 0
+                ? `+${cell.changePercent.toFixed(1)}%`
+                : `${cell.changePercent.toFixed(1)}%`;
+        } else {
+            if (isHidden) {
+                changeDisplay = '*****';
+            } else {
+                const sign = cell.change >= 0 ? '+' : '';
+                changeDisplay = `${sign}${(cell.change / 1000).toFixed(2)}k`;
+            }
         }
 
-        // Detailed value view - mask if hidden
-        if (isHidden) return '*****';
-        const sign = cell.change >= 0 ? '+' : '';
-        return `${sign}${(cell.change / 1000).toFixed(2)}k`;
+        return (
+            <>
+                <span className="cell-change">{changeDisplay}</span>
+                <span className="cell-value">{formatCompactValue(cell.value)}</span>
+            </>
+        );
     };
 
     // Slider index helpers
     const startIndex = allMonths.indexOf(rangeStart);
     const endIndex = allMonths.indexOf(rangeEnd);
+
+    // Quick filter helpers
+    const getQuickFilterRange = (filter: 'YTD' | '1Y' | '5Y' | 'MAX'): { start: string; end: string } => {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        switch (filter) {
+            case 'YTD':
+                return {
+                    start: `${currentYear}-01`,
+                    end: maxMonth
+                };
+            case '1Y': {
+                const oneYearAgo = new Date(now);
+                oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                const startMonth = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}`;
+                return {
+                    start: startMonth < minMonth ? minMonth : startMonth,
+                    end: maxMonth
+                };
+            }
+            case '5Y': {
+                const fiveYearsAgo = new Date(now);
+                fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+                const startMonth = `${fiveYearsAgo.getFullYear()}-${String(fiveYearsAgo.getMonth() + 1).padStart(2, '0')}`;
+                return {
+                    start: startMonth < minMonth ? minMonth : startMonth,
+                    end: maxMonth
+                };
+            }
+            case 'MAX':
+            default:
+                return { start: minMonth, end: maxMonth };
+        }
+    };
+
+    const applyQuickFilter = (filter: 'YTD' | '1Y' | '5Y' | 'MAX') => {
+        const { start, end } = getQuickFilterRange(filter);
+        setRangeStart(start);
+        setRangeEnd(end);
+    };
+
+    // Check which quick filter is currently active
+    const activeQuickFilter = useMemo((): 'YTD' | '1Y' | '5Y' | 'MAX' | null => {
+        const ytd = getQuickFilterRange('YTD');
+        const oneY = getQuickFilterRange('1Y');
+        const fiveY = getQuickFilterRange('5Y');
+        const max = getQuickFilterRange('MAX');
+
+        if (rangeStart === max.start && rangeEnd === max.end) return 'MAX';
+        if (rangeStart === ytd.start && rangeEnd === ytd.end) return 'YTD';
+        if (rangeStart === oneY.start && rangeEnd === oneY.end) return '1Y';
+        if (rangeStart === fiveY.start && rangeEnd === fiveY.end) return '5Y';
+        return null;
+    }, [rangeStart, rangeEnd, minMonth, maxMonth]);
+
+    // Toggle sort direction
+    const toggleSort = () => {
+        if (sortDirection === null) {
+            setSortDirection('desc'); // First click: best performers first
+        } else if (sortDirection === 'desc') {
+            setSortDirection('asc'); // Second click: worst performers first
+        } else {
+            setSortDirection(null); // Third click: back to alphabetical
+        }
+    };
+
+    // Helper to check if a month is the first month of its year
+    const isFirstMonthOfYear = (month: string, index: number): boolean => {
+        if (index === 0) return false; // Don't show separator before first column
+        return month.endsWith('-01');
+    };
 
     return (
         <>
@@ -430,7 +532,20 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
                 {/* Time Range Slider */}
                 <div className="heatmap-slider-section">
-                    <label className="slider-label">Time Range</label>
+                    <div className="slider-header">
+                        <label className="slider-label">Time Range</label>
+                        <div className="time-range-tabs">
+                            {(['YTD', '1Y', '5Y', 'MAX'] as const).map(filter => (
+                                <button
+                                    key={filter}
+                                    className={`time-tab ${activeQuickFilter === filter ? 'active' : ''}`}
+                                    onClick={() => applyQuickFilter(filter)}
+                                >
+                                    {filter}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <div className="range-slider-container">
                         <input
                             type="range"
@@ -466,73 +581,102 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
                 {/* Heatmap Grid */}
                 <div className="heatmap-grid-wrapper" ref={gridRef}>
-                    {/* Month Headers */}
-                    <div className="heatmap-month-header">
-                        <div className="heatmap-asset-name-header">Asset</div>
-                        {visibleMonths.map(month => (
-                            <div key={month} className="heatmap-month">
-                                {formatMonthLabel(month)}
-                            </div>
-                        ))}
-                        <div className="heatmap-total-header">Total</div>
-                    </div>
-
-                    {/* Portfolio Total Row */}
-                    <div className="heatmap-row portfolio-total">
-                        <div className="heatmap-asset-name">
-                            <span className="asset-icon portfolio-icon">★</span>
-                            <span className="asset-name-text">{portfolioRow.name}</span>
-                        </div>
-                        {portfolioRow.cells.map(cell => (
-                            <div
-                                key={cell.month}
-                                className={`heatmap-cell ${getColorClass(cell.changePercent)}`}
-                                onMouseEnter={(e) => handleCellHover(e, portfolioRow, cell)}
-                                onMouseLeave={handleCellLeave}
-                            >
-                                {formatCellValue(cell)}
-                            </div>
-                        ))}
-                        <div className={`heatmap-cell-total ${portfolioRow.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
-                            {viewMode === 'percent'
-                                ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
-                                : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(portfolioRow.totalChange))
-                            }
-                        </div>
-                    </div>
-
-                    {/* Asset Rows */}
-                    {heatmapData.map(row => (
-                        <div key={row.id} className="heatmap-row">
-                            <div
-                                className="heatmap-asset-name clickable"
-                                onClick={() => navigate(`/asset/${row.id}`)}
-                                title={`View ${row.name} details`}
-                            >
-                                <span className="asset-icon">{row.category.charAt(0).toUpperCase()}</span>
-                                <div className="asset-name-details">
-                                    <span className="asset-name-text">{row.name}</span>
-                                    <span className="asset-owner-badge">{row.ownerName}</span>
-                                </div>
-                            </div>
-                            {row.cells.map(cell => (
-                                <div
-                                    key={cell.month}
-                                    className={`heatmap-cell ${cell.exists ? (cell.isInception ? 'inception' : getColorClass(cell.changePercent)) : 'not-exists'} ${cell.exists && !cell.hasData ? 'no-data' : ''}`}
-                                    onMouseEnter={cell.exists ? (e) => handleCellHover(e, row, cell) : undefined}
-                                    onMouseLeave={cell.exists ? handleCellLeave : undefined}
-                                >
-                                    {formatCellValue(cell)}
-                                </div>
+                    <div className="heatmap-main-grid">
+                        {/* Month Headers */}
+                        <div className="heatmap-month-header">
+                            <div className="heatmap-asset-name-header">Asset</div>
+                            {visibleMonths.map((month, index) => (
+                                <Fragment key={month}>
+                                    {isFirstMonthOfYear(month, index) && (
+                                        <div className="year-separator" />
+                                    )}
+                                    <div className="heatmap-month">
+                                        {isFirstMonthOfYear(month, index) && (
+                                            <span className="year-label">{month.substring(0, 4)}</span>
+                                        )}
+                                        {formatMonthLabel(month)}
+                                    </div>
+                                </Fragment>
                             ))}
-                            <div className={`heatmap-cell-total ${row.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                            <div
+                                className="heatmap-total-header sortable"
+                                onClick={toggleSort}
+                                title="Click to sort by performance"
+                            >
+                                Total
+                                {sortDirection && (
+                                    <span className="sort-indicator">
+                                        {sortDirection === 'desc' ? ' ↓' : ' ↑'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Portfolio Total Row */}
+                        <div className="heatmap-row portfolio-total">
+                            <div className="heatmap-asset-name">
+                                <span className="asset-icon portfolio-icon">★</span>
+                                <span className="asset-name-text">{portfolioRow.name}</span>
+                            </div>
+                            {portfolioRow.cells.map((cell, index) => (
+                                <Fragment key={cell.month}>
+                                    {isFirstMonthOfYear(cell.month, index) && (
+                                        <div className="year-separator" />
+                                    )}
+                                    <div
+                                        className={`heatmap-cell ${getColorClass(cell.changePercent)}`}
+                                        onMouseEnter={(e) => handleCellHover(e, portfolioRow, cell)}
+                                        onMouseLeave={handleCellLeave}
+                                    >
+                                        {renderCellContent(cell)}
+                                    </div>
+                                </Fragment>
+                            ))}
+                            <div className={`heatmap-cell-total ${portfolioRow.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
                                 {viewMode === 'percent'
-                                    ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
-                                    : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(row.totalChange))
+                                    ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
+                                    : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(portfolioRow.totalChange))
                                 }
                             </div>
                         </div>
-                    ))}
+
+                        {/* Asset Rows */}
+                        {heatmapData.map(row => (
+                            <div key={row.id} className="heatmap-row">
+                                <div
+                                    className="heatmap-asset-name clickable"
+                                    onClick={() => navigate(`/asset/${row.id}`)}
+                                    title={`View ${row.name} details`}
+                                >
+                                    <span className="asset-icon">{row.category.charAt(0).toUpperCase()}</span>
+                                    <div className="asset-name-details">
+                                        <span className="asset-name-text">{row.name}</span>
+                                        <span className="asset-owner-badge">{row.ownerName}</span>
+                                    </div>
+                                </div>
+                                {row.cells.map((cell, index) => (
+                                    <Fragment key={cell.month}>
+                                        {isFirstMonthOfYear(cell.month, index) && (
+                                            <div className="year-separator" />
+                                        )}
+                                        <div
+                                            className={`heatmap-cell ${cell.exists ? (cell.isInception ? 'inception' : getColorClass(cell.changePercent)) : 'not-exists'} ${cell.exists && !cell.hasData ? 'no-data' : ''}`}
+                                            onMouseEnter={cell.exists ? (e) => handleCellHover(e, row, cell) : undefined}
+                                            onMouseLeave={cell.exists ? handleCellLeave : undefined}
+                                        >
+                                            {renderCellContent(cell)}
+                                        </div>
+                                    </Fragment>
+                                ))}
+                                <div className={`heatmap-cell-total ${row.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                                    {viewMode === 'percent'
+                                        ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
+                                        : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(row.totalChange))
+                                    }
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 {/* Color Legend - Inside Card */}

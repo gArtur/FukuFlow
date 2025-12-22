@@ -2833,16 +2833,22 @@
   margin-bottom: var(--space-md);
 }
 
+.slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
 
 .slider-label {
-  display: block;
   font-size: 12px;
   font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: var(--space-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
+
 
 .range-slider-container {
   position: relative;
@@ -2959,16 +2965,25 @@
 
 /* Removed ::after spacer as padding is more reliable */
 
+/* Heatmap Main Grid Container - allows for centering within scroll wrapper */
+.heatmap-main-grid {
+  width: max-content;
+  min-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
 .heatmap-asset-name-header {
   width: 180px;
   min-width: 180px;
-  padding: var(--space-md) var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  /* Match row padding */
   position: sticky;
   left: 0;
   background: #0A0A0C;
-  /* Solid App Bg */
-  z-index: 110;
-  /* High enough to stay above vertical and horizontal stickies */
+  z-index: 120;
+  /* High enough to stay above everything */
   border-right: 1px solid var(--border-color);
 }
 
@@ -2979,6 +2994,26 @@
   text-align: center;
   padding: var(--space-md) var(--space-xs);
   margin: 0;
+  position: relative;
+}
+
+/* Year separator column element */
+.year-separator {
+  width: 2px;
+  min-width: 2px;
+  background: var(--accent-primary);
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+.heatmap-month .year-label {
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent-primary);
+  letter-spacing: 0.5px;
 }
 
 .heatmap-month:last-of-type {
@@ -2996,15 +3031,30 @@
   background: #0A0A0C;
   /* Solid App Bg */
   z-index: 100;
-  border-left: 1px solid var(--border-color);
-  /* Fix sub-pixel gaps on right edge */
-  box-shadow: 2px 0 0 #0A0A0C;
+  /* Use inset shadow for border to prevent layout shift */
+  box-shadow: inset 1px 0 0 var(--border-color), 2px 0 0 #0A0A0C;
+}
+
+/* Sortable Total header */
+.heatmap-total-header.sortable {
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.heatmap-total-header.sortable:hover {
+  color: var(--accent-primary);
+}
+
+.sort-indicator {
+  color: var(--accent-primary);
+  font-weight: 700;
 }
 
 /* Heatmap Row */
 .heatmap-row {
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  /* Ensure children fill height to mask separator */
   border-bottom: 1px solid var(--border-color);
   transition: background 0.15s ease;
   width: max-content;
@@ -3017,7 +3067,18 @@
 /* Removed ::after spacer as padding is more reliable */
 
 .heatmap-row:hover {
-  background: linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.02)), #0A0A0C;
+  background: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), #0A0A0C;
+}
+
+/* Enhanced row hover highlight for easier tracking */
+.heatmap-row:hover .heatmap-asset-name {
+  background: linear-gradient(rgba(201, 162, 39, 0.08), rgba(201, 162, 39, 0.08)), #0A0A0C;
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+  /* Use inset shadow instead of border to prevent shift */
+}
+
+.heatmap-row:hover .heatmap-cell-total {
+  background: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), #0A0A0C;
 }
 
 .heatmap-row.portfolio-total {
@@ -3026,7 +3087,15 @@
   font-weight: 600;
   position: sticky;
   top: 32px;
-  z-index: 90;
+  z-index: 95;
+  /* Above regular asset name (80) */
+}
+
+/* Ensure cells in sticky row have solid background to mask underlying content */
+/* REMOVED: background-color override that was hiding colored cells */
+.heatmap-row.portfolio-total .heatmap-cell {
+  background-clip: padding-box;
+  /* Use the cell's own background color (green/red) but ensure opacity/stacking is correct */
 }
 
 .heatmap-row.portfolio-total:hover {
@@ -3044,9 +3113,10 @@
   position: sticky;
   left: 0;
   background: #0A0A0C;
-  /* Solid App Bg */
-  z-index: 80;
+  z-index: 110;
+  /* Above regular cells (10) and month headers (100) */
   border-right: 1px solid var(--border-color);
+  background-clip: padding-box;
 }
 
 .heatmap-asset-name.clickable {
@@ -3064,7 +3134,8 @@
 
 .heatmap-row.portfolio-total .heatmap-asset-name {
   background: #0A0A0C;
-  border-left: 3px solid var(--accent-primary);
+  box-shadow: inset 3px 0 0 var(--accent-primary);
+  /* Use inset shadow instead of border to prevent shift */
 }
 
 .asset-icon {
@@ -3112,10 +3183,12 @@
 .heatmap-cell {
   width: 56px;
   min-width: 56px;
-  height: 36px;
+  height: 48px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
   font-size: 10px;
   font-weight: 600;
   cursor: pointer;
@@ -3125,6 +3198,27 @@
   position: relative;
 }
 
+/* Cell content - change on top */
+.cell-change {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Cell content - value on bottom */
+.cell-value {
+  font-size: 8px;
+  font-weight: 500;
+  opacity: 0.75;
+  line-height: 1.1;
+}
+
+/* Inception label */
+.cell-inception-label {
+  font-size: 8px;
+  letter-spacing: 0.5px;
+}
+
 .heatmap-cell:hover {
   transform: scale(1.1);
   z-index: 10;
@@ -3132,12 +3226,15 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+
+
 .heatmap-cell:last-of-type {
   margin-right: 110px;
   /* Buffer for sticky Total column */
 }
 
-.heatmap-cell.no-data {
+.heatmap-cell.no-data .cell-change,
+.heatmap-cell.no-data .cell-value {
   opacity: 0.6;
 }
 
@@ -3156,15 +3253,16 @@
 /* Non-existing periods (asset didn't exist yet) */
 .heatmap-cell.not-exists {
   background: transparent;
-  border: 1px dashed var(--border-color);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
   cursor: default;
-  opacity: 0.3;
 }
 
 .heatmap-cell.not-exists:hover {
   transform: none;
   box-shadow: none;
 }
+
+
 
 /* Inception cell (asset start) */
 /* Inception cell (asset start) */
@@ -3219,7 +3317,8 @@
 .heatmap-cell-total {
   width: 110px;
   min-width: 110px;
-  height: 36px;
+  height: auto;
+  /* Allow stretch to fill row */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3227,15 +3326,22 @@
   font-weight: 700;
   padding: var(--space-xs) var(--space-sm);
   padding-right: 2px;
-  /* Extra padding to prevent 1px gap on right edge */
   position: sticky;
   right: 0;
-  background: #0A0A0C;
-  /* Solid App Bg */
-  border-left: 1px solid var(--border-color);
   z-index: 80;
-  /* Fix sub-pixel gaps on right edge */
-  box-shadow: 2px 0 0 #0A0A0C;
+  isolation: isolate;
+  /* Create new stacking context for ::before */
+  /* Use inset shadow instead of border */
+  box-shadow: inset 1px 0 0 var(--border-color), 2px 0 0 #0A0A0C;
+}
+
+/* Opaque background backing for masking */
+.heatmap-cell-total::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #0A0A0C;
+  z-index: -1;
 }
 
 .heatmap-cell-total.positive {
