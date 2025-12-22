@@ -152,8 +152,8 @@ export default function InvestmentDetail({
                                 <th>Value</th>
                                 <th>Invested</th>
                                 <th>Period G/L</th>
-                                <th>Cum. G/L</th>
-                                <th>Cum. ROI</th>
+                                <th>YTD</th>
+                                <th>Cumulative</th>
                                 <th className="text-right">Actions</th>
                             </tr>
                         </thead>
@@ -196,14 +196,24 @@ export default function InvestmentDetail({
                                         </div>
                                     </td>
                                     <td>
-                                        <span className={entry.cumGL >= 0 ? 'text-green' : 'text-red'}>
-                                            {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
-                                        </span>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span className={entry.ytdROI >= 0 ? 'text-green' : 'text-red'} style={{ fontWeight: 600, fontSize: '14px' }}>
+                                                {entry.ytdROI >= 0 ? '+' : ''}{entry.ytdROI.toFixed(2)}%
+                                            </span>
+                                            <span style={{ fontSize: '11px', opacity: 0.8 }} className={entry.ytdGL >= 0 ? 'text-green' : 'text-red'}>
+                                                {entry.ytdGL >= 0 ? '+' : ''}{formatAmount(entry.ytdGL)}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td>
-                                        <span className={entry.roi >= 0 ? 'text-green' : 'text-red'}>
-                                            {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
-                                        </span>
+                                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                            <span className={entry.roi >= 0 ? 'text-green' : 'text-red'} style={{ fontWeight: 600, fontSize: '14px' }}>
+                                                {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
+                                            </span>
+                                            <span style={{ fontSize: '11px', opacity: 0.8 }} className={entry.cumGL >= 0 ? 'text-green' : 'text-red'}>
+                                                {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="text-right">
                                         <button
@@ -273,17 +283,27 @@ export default function InvestmentDetail({
                             </div>
 
                             <div className="mobile-history-row">
-                                <span className="mobile-label">Cum. G/L</span>
-                                <span className={`mobile-value ${entry.cumGL >= 0 ? 'text-green' : 'text-red'}`}>
-                                    {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
-                                </span>
+                                <span className="mobile-label">YTD</span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div className={`mobile-value ${entry.ytdROI >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
+                                        {entry.ytdROI >= 0 ? '+' : ''}{entry.ytdROI.toFixed(2)}%
+                                    </div>
+                                    <div className={`mobile-sub-value ${entry.ytdGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
+                                        {entry.ytdGL >= 0 ? '+' : ''}{formatAmount(entry.ytdGL)}
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="mobile-history-row">
-                                <span className="mobile-label">Cum. ROI</span>
-                                <span className={`mobile-value ${entry.roi >= 0 ? 'text-green' : 'text-red'}`}>
-                                    {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
-                                </span>
+                                <span className="mobile-label">Cumulative</span>
+                                <div style={{ textAlign: 'right' }}>
+                                    <div className={`mobile-value ${entry.roi >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
+                                        {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
+                                    </div>
+                                    <div className={`mobile-sub-value ${entry.cumGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
+                                        {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
+                                    </div>
+                                </div>
                             </div>
 
                             {entry.notes && (

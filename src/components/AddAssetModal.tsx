@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Asset, AssetCategory, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
-import { parseValue, handleNumberInput } from '../utils';
 
 interface AddAssetModalProps {
     isOpen: boolean;
@@ -17,18 +16,12 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
     const [name, setName] = useState('');
     const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
     const [ownerId, setOwnerId] = useState('');
-    const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split('T')[0]);
-    const [purchaseAmount, setPurchaseAmount] = useState('');
-    const [currentValue, setCurrentValue] = useState('');
 
     useEffect(() => {
         if (editAsset) {
             setName(editAsset.name);
             setCategory(editAsset.category);
             setOwnerId(editAsset.ownerId);
-            setPurchaseDate(editAsset.purchaseDate);
-            setPurchaseAmount(editAsset.purchaseAmount.toString());
-            setCurrentValue(editAsset.currentValue.toString());
         } else {
             resetForm();
         }
@@ -38,9 +31,6 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
         setName('');
         setCategory(categories[0]?.key || 'stocks');
         setOwnerId(persons.length > 0 ? persons[0].id : '');
-        setPurchaseDate(new Date().toISOString().split('T')[0]);
-        setPurchaseAmount('');
-        setCurrentValue('');
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -59,9 +49,9 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                 name,
                 category,
                 ownerId,
-                purchaseDate,
-                purchaseAmount: parseValue(purchaseAmount),
-                currentValue: parseValue(currentValue) || parseValue(purchaseAmount),
+                purchaseDate: new Date().toISOString().split('T')[0],
+                purchaseAmount: 0,
+                currentValue: 0,
             };
             onSubmit(assetData);
         }
@@ -119,46 +109,6 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                         </div>
                     </div>
 
-                    {!editAsset && (
-                        <>
-                            <div className="form-group">
-                                <label className="form-label">Purchase Date</label>
-                                <input
-                                    type="date"
-                                    className="form-input"
-                                    value={purchaseDate}
-                                    onChange={e => setPurchaseDate(e.target.value)}
-                                    required
-                                />
-                            </div>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label className="form-label">Purchase Amount (PLN)</label>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        className="form-input"
-                                        placeholder="0"
-                                        value={purchaseAmount}
-                                        onChange={e => handleNumberInput(e.target.value, setPurchaseAmount)}
-                                        required
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label className="form-label">Current Value (PLN)</label>
-                                    <input
-                                        type="text"
-                                        inputMode="decimal"
-                                        className="form-input"
-                                        placeholder="0"
-                                        value={currentValue}
-                                        onChange={e => handleNumberInput(e.target.value, setCurrentValue)}
-                                    />
-                                </div>
-                            </div>
-                        </>
-                    )}
 
                     <button type="submit" className="form-submit">
                         {editAsset ? 'Save Changes' : 'Add Investment'}

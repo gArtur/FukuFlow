@@ -27,25 +27,19 @@ router.post('/', (req, res) => {
     const id = asset.id || uuidv4();
     const { name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol } = asset;
 
-    db.serialize(() => {
-        db.run(`INSERT INTO assets (id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol],
-            function (err) {
-                if (err) return res.status(500).json({ error: err.message });
+    db.run(`INSERT INTO assets (id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol],
+        function (err) {
+            if (err) return res.status(500).json({ error: err.message });
 
-                const date = purchaseDate || new Date().toISOString();
-                db.run('INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
-                    [id, date, currentValue, purchaseAmount, 'Initial investment'], (err) => {
-                        if (err) return res.status(500).json({ error: err.message });
-                        res.status(201).json({
-                            ...asset,
-                            id,
-                            valueHistory: [{ date, value: currentValue, investmentChange: purchaseAmount, notes: 'Initial investment' }]
-                        });
-                    });
+            // Return asset with empty valueHistory - user will add/import snapshots later
+            res.status(201).json({
+                ...asset,
+                id,
+                valueHistory: []
             });
-    });
+        });
 });
 
 // PUT update asset

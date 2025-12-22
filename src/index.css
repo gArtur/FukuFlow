@@ -1238,9 +1238,7 @@
 
 /* ===== INVESTMENT DETAIL VIEW ===== */
 .investment-detail {
-  min-height: 100vh;
-  background: var(--bg-primary);
-  padding: var(--space-lg);
+  /* Padding and layout are handled by parent .main-content container */
 }
 
 .detail-header {
