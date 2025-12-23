@@ -29,3 +29,4 @@ server/db/wealth.db
 .env.local
 .env.*.local
 server/.env
+/server/db
