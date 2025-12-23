@@ -7,6 +7,7 @@ import { usePersons } from './hooks/usePersons';
 import type { Asset, Person, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import type { HeaderProps } from './components/Header';
 import FamilyFilter from './components/FamilyFilter';
@@ -22,6 +23,8 @@ import Settings from './components/Settings';
 import PortfolioHeatmap from './components/PortfolioHeatmap';
 import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
+import LoginPage from './components/LoginPage';
+import SetupPage from './components/SetupPage';
 
 /**
  * Shared logic and state for the application
@@ -408,14 +411,48 @@ function AssetDetailView({
   );
 }
 
+/**
+ * Auth wrapper - shows login/setup pages or main content based on auth state
+ */
+function AuthenticatedApp() {
+  const { isAuthenticated, needsSetup, isLoading } = useAuth();
+
+  // Show loading while checking auth status
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  // Show setup page for first-time users
+  if (needsSetup) {
+    return <SetupPage />;
+  }
+
+  // Show login page for unauthenticated users
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
+
+  // Show main app for authenticated users
+  return (
+    <SettingsProvider>
+      <PrivacyProvider>
+        <AppContent />
+      </PrivacyProvider>
+    </SettingsProvider>
+  );
+}
+
 export default function App() {
   return (
     <BrowserRouter>
-      <SettingsProvider>
-        <PrivacyProvider>
-          <AppContent />
-        </PrivacyProvider>
-      </SettingsProvider>
+      <AuthProvider>
+        <AuthenticatedApp />
+      </AuthProvider>
     </BrowserRouter>
   );
 }

@@ -1,0 +1,205 @@
+/* ============================================
+   AUTH PAGES STYLES
+   Login and Setup page styling
+   ============================================ */
+
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
+    padding: 20px;
+}
+
+.auth-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.auth-card.setup-card {
+    max-width: 440px;
+}
+
+.auth-logo {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+    color: var(--accent-color);
+}
+
+.auth-logo svg {
+    width: 100%;
+    height: 100%;
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px;
+}
+
+.auth-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 0 0 32px;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-input-group {
+    position: relative;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 14px 48px 14px 16px;
+    font-size: 1rem;
+    background: var(--input-bg, var(--bg-dark));
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb, 108, 92, 231), 0.2);
+}
+
+.auth-input::placeholder {
+    color: var(--text-tertiary);
+}
+
+.auth-input.auth-input-error {
+    border-color: var(--danger-color, #e74c3c);
+}
+
+.auth-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.auth-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 4px;
+}
+
+.auth-toggle-password:hover {
+    opacity: 1;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--gradient-primary, linear-gradient(135deg, #D4AF37 0%, #C9A227 50%, #B8921B 100%));
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+    margin-top: 8px;
+}
+
+.auth-button:hover:not(:disabled) {
+    opacity: 0.9;
+    filter: brightness(1.05);
+}
+
+.auth-button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.auth-button:disabled {
+    background: var(--bg-tertiary, #333);
+    color: var(--text-muted, #666);
+    cursor: not-allowed;
+}
+
+.auth-error {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.auth-hint {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    text-align: left;
+    padding-left: 4px;
+}
+
+.auth-hint-error {
+    color: var(--danger-color, #e74c3c);
+}
+
+.auth-note {
+    margin-top: 24px;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+}
+
+/* High contrast theme adjustments */
+[data-theme="high-contrast"] .auth-card {
+    border-width: 2px;
+    border-color: var(--border-color);
+}
+
+[data-theme="high-contrast"] .auth-input {
+    border-width: 2px;
+}
+
+[data-theme="high-contrast"] .auth-button {
+    font-weight: 700;
+}
+
+/* Light theme adjustments */
+[data-theme="light"] .auth-container {
+    background: var(--bg-primary);
+}
+
+[data-theme="light"] .auth-card {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .auth-input {
+    background: #FFFFFF;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .auth-input::placeholder {
+    color: var(--text-muted);
+}
+
+[data-theme="light"] .auth-button:disabled {
+    background: #D1D5DB;
+    color: #9CA3AF;
+}

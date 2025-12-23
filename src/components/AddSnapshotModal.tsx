@@ -84,7 +84,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
             const searchLower = searchQuery.toLowerCase();
             return a.name.toLowerCase().includes(searchLower) ||
                 ownerName.toLowerCase().includes(searchLower);
-        }))
+        })).sort((a, b) => a.name.localeCompare(b.name))
         : [];
 
 

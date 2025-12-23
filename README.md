@@ -39,7 +39,44 @@ A modern, elegant personal wealth management dashboard for tracking investments 
 | Backend | Node.js, Express |
 | Database | SQLite3 |
 
-## Quick Start
+### Docker Deployment (Recommended)
+
+**Prerequisites:**
+- Docker
+- Docker Compose
+
+**1. Configuration**
+
+Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+**2. Generate a Secure JWT Secret**
+
+You **must** set a secure `JWT_SECRET` in your `.env` file. Run this command to generate one:
+
+```bash
+# Generate a random 64-character hex string
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+Copy the output and paste it into your `.env` file:
+```env
+JWT_SECRET=your_generated_secret_here
+```
+
+**3. Run the Application**
+
+Build and start the container:
+```bash
+docker-compose up -d --build
+```
+
+The application will be available at `http://localhost:3001`.
+
+### Local Development (Manual)
+
 
 ### Prerequisites
 

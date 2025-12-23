@@ -675,3 +675,239 @@
 .item-card.drag-over {
     border-top: 2px solid var(--accent-primary);
 }
+
+/* ============================================
+   Security Settings Section
+   ============================================ */
+
+.security-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-md);
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    gap: var(--space-lg);
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.setting-label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.setting-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-primary);
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1px solid var(--accent-red, #e74c3c);
+    color: var(--accent-red, #e74c3c);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.btn-danger:hover {
+    background: rgba(231, 76, 60, 0.1);
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--accent-red, #e74c3c);
+    border-radius: var(--radius-md);
+    color: var(--accent-red, #e74c3c);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-logout:hover {
+    background: rgba(231, 76, 60, 0.1);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    background: var(--accent-primary);
+    border: none;
+    color: #000;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Password Change Form */
+.password-change-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.password-form-header {
+    margin-bottom: var(--space-sm);
+}
+
+.password-form-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: var(--text-primary);
+}
+
+.password-form-header p {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.password-form-actions {
+    display: flex;
+    gap: var(--space-md);
+    margin-top: var(--space-md);
+}
+
+.password-form-actions .btn-cancel,
+.password-form-actions .btn-data-action {
+    flex: 1;
+}
+
+.btn-cancel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+}
+
+.btn-cancel:disabled,
+.btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-save {
+    flex: 1;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-field label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-field input {
+    padding: 12px 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.form-field input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+.form-field input:disabled {
+    opacity: 0.6;
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: flex-end;
+    margin-top: var(--space-sm);
+}
+
+.error-message {
+    background: rgba(231, 76, 60, 0.1);
+    border: 1px solid rgba(231, 76, 60, 0.3);
+    color: #e74c3c;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+}
+
+.success-message {
+    background: rgba(46, 204, 113, 0.1);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    color: #2ecc71;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+}

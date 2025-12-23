@@ -8,7 +8,8 @@ import {
     GeneralSettings,
     PeopleSettings,
     CategoriesSettings,
-    BackupSettings
+    BackupSettings,
+    SecuritySettings
 } from './settings/index';
 
 interface SettingsProps {
@@ -101,6 +102,9 @@ export default function Settings({
                     <button className="settings-tab" onClick={() => scrollToSection('data')}>
                         Backup
                     </button>
+                    <button className="settings-tab" onClick={() => scrollToSection('security')}>
+                        Security
+                    </button>
                 </nav>
 
                 {/* Content Area */}
@@ -147,6 +151,10 @@ export default function Settings({
                     <BackupSettings
                         onShowRestoreModal={() => setShowRestoreModal(true)}
                     />
+
+                    <div className="section-divider"></div>
+
+                    <SecuritySettings />
                 </div>
             </div>
 

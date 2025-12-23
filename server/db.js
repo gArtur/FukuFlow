@@ -8,6 +8,8 @@ const dbPath = path.resolve(__dirname, 'db', 'wealth.db');
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
         console.error('Error opening database', err.message);
+        console.error('FATAL: Cannot start server without database connection');
+        process.exit(1);
     } else {
         console.log('Connected to the SQLite database.');
     }
@@ -61,6 +63,14 @@ function initializeDb() {
         db.run(`CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
+        )`);
+
+        // Auth table - single user only (id = 1)
+        db.run(`CREATE TABLE IF NOT EXISTS auth (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            passwordHash TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL
         )`);
 
         // Add columns if they don't exist (for existing databases)

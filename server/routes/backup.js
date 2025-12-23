@@ -14,23 +14,23 @@ router.get('/', (req, res) => {
 
     db.serialize(() => {
         db.all('SELECT * FROM persons', (err, rows) => {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: 'Failed to create backup' });
             backup.persons = rows;
 
             db.all('SELECT * FROM assets', (err, rows) => {
-                if (err) return res.status(500).json({ error: err.message });
+                if (err) return res.status(500).json({ error: 'Failed to create backup' });
                 backup.assets = rows;
 
                 db.all('SELECT * FROM asset_history', (err, rows) => {
-                    if (err) return res.status(500).json({ error: err.message });
+                    if (err) return res.status(500).json({ error: 'Failed to create backup' });
                     backup.history = rows;
 
                     db.all('SELECT * FROM categories', (err, rows) => {
-                        if (err) return res.status(500).json({ error: err.message });
+                        if (err) return res.status(500).json({ error: 'Failed to create backup' });
                         backup.categories = rows;
 
                         db.all('SELECT * FROM settings', (err, rows) => {
-                            if (err) return res.status(500).json({ error: err.message });
+                            if (err) return res.status(500).json({ error: 'Failed to create backup' });
                             backup.settings = rows;
                             res.json(backup);
                         });
@@ -96,7 +96,7 @@ router.post('/restore', (req, res) => {
         } catch (error) {
             db.run('ROLLBACK');
             console.error('Restore failed:', error);
-            res.status(500).json({ error: 'Restore failed: ' + error.message });
+            res.status(500).json({ error: 'Restore failed' });
         }
     });
 });

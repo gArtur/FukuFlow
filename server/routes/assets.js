@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
+const { validateAsset, validateAssetUpdate, validateSnapshot } = require('../validation/schemas');
 
 // GET all assets with history - Optimized: Single JOIN query instead of N+1
 router.get('/', (req, res) => {
@@ -14,7 +15,7 @@ router.get('/', (req, res) => {
         LEFT JOIN asset_history h ON a.id = h.assetId
         ORDER BY a.id, h.date ASC
     `, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return res.status(500).json({ error: 'Failed to fetch assets' });
 
         // Group by asset ID in memory - O(n) single pass
         const assetsMap = new Map();
@@ -48,8 +49,8 @@ router.get('/', (req, res) => {
     });
 });
 
-// POST create asset
-router.post('/', (req, res) => {
+// POST create asset (with validation)
+router.post('/', validateAsset, (req, res) => {
     const asset = req.body;
     const id = asset.id || uuidv4();
     const { name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol } = asset;
@@ -58,7 +59,7 @@ router.post('/', (req, res) => {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol],
         function (err) {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: 'Failed to create asset' });
 
             // Return asset with empty valueHistory - user will add/import snapshots later
             res.status(201).json({
@@ -69,8 +70,8 @@ router.post('/', (req, res) => {
         });
 });
 
-// PUT update asset
-router.put('/:id', (req, res) => {
+// PUT update asset (with validation)
+router.put('/:id', validateAssetUpdate, (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
@@ -90,36 +91,36 @@ router.put('/:id', (req, res) => {
     const values = [...Object.values(filteredUpdates), id];
 
     db.run(`UPDATE assets SET ${fields} WHERE id = ?`, values, (err) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return res.status(500).json({ error: 'Failed to update asset' });
         res.json({ id, ...filteredUpdates });
     });
 });
 
-// POST add snapshot
-router.post('/:id/snapshot', (req, res) => {
+// POST add snapshot (with validation)
+router.post('/:id/snapshot', validateSnapshot, (req, res) => {
     const { id } = req.params;
     const { value, date = new Date().toISOString(), investmentChange = 0, notes = '' } = req.body;
 
     db.serialize(() => {
         db.get('SELECT purchaseAmount FROM assets WHERE id = ?', [id], (err, row) => {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
             if (!row) return res.status(404).json({ error: 'Asset not found' });
 
             const newPurchaseAmount = row.purchaseAmount + investmentChange;
 
             db.run('UPDATE assets SET purchaseAmount = ? WHERE id = ?', [newPurchaseAmount, id], (err) => {
-                if (err) return res.status(500).json({ error: err.message });
+                if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
                 db.run('INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
                     [id, date, value, investmentChange, notes], function (err) {
-                        if (err) return res.status(500).json({ error: err.message });
+                        if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
                         db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC LIMIT 1', [id], (err, latestSnapshot) => {
-                            if (err) return res.status(500).json({ error: err.message });
+                            if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
                             if (latestSnapshot) {
                                 db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [latestSnapshot.value, id], (err) => {
-                                    if (err) return res.status(500).json({ error: err.message });
+                                    if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
                                     res.json({ assetId: id, date, value, investmentChange, notes });
                                 });
                             } else {
@@ -133,17 +134,17 @@ router.post('/:id/snapshot', (req, res) => {
 });
 
 // POST legacy value update
-router.post('/:id/value', (req, res) => {
+router.post('/:id/value', validateSnapshot, (req, res) => {
     const { id } = req.params;
     const { value, date = new Date().toISOString() } = req.body;
 
     db.serialize(() => {
         db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, id], (err) => {
-            if (err) return res.status(500).json({ error: err.message });
+            if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
             db.run('INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
                 [id, date, value, 0, ''], (err) => {
-                    if (err) return res.status(500).json({ error: err.message });
+                    if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
                     res.json({ assetId: id, date, value });
                 });
         });
@@ -153,7 +154,7 @@ router.post('/:id/value', (req, res) => {
 // DELETE asset
 router.delete('/:id', (req, res) => {
     db.run('DELETE FROM assets WHERE id = ?', [req.params.id], (err) => {
-        if (err) return res.status(500).json({ error: err.message });
+        if (err) return res.status(500).json({ error: 'Failed to delete asset' });
         res.status(204).send();
     });
 });

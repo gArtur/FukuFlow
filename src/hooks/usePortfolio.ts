@@ -6,14 +6,17 @@ export function usePortfolio() {
     const [assets, setAssets] = useState<Asset[]>([]);
     const [selectedOwner, setSelectedOwner] = useState<string>('all');
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchAssets = useCallback(async () => {
         setIsLoading(true);
         try {
+            setError(null);
             const data = await ApiClient.getAssets();
             setAssets(data);
         } catch (error) {
             console.error('Failed to fetch assets:', error);
+            setError('Failed to load assets. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -120,6 +123,7 @@ export function usePortfolio() {
         deleteAsset,
         updateAsset,
         isLoading,
+        error,
         refreshAssets: fetchAssets
     };
 }

@@ -1,0 +1,28 @@
+services:
+  app:
+    container_name: wealth-management-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_PATH=./db/wealth.db
+      # Use the variable from .env file or default
+      - JWT_SECRET=${JWT_SECRET:-change_this_secret_in_production_env}
+      - JWT_EXPIRY=${JWT_EXPIRY:-7d}
+    volumes:
+      # Persist the SQLite database
+      - wealth_data:/app/server/db
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  wealth_data:
