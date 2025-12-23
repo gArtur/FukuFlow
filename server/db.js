@@ -66,9 +66,11 @@ function initializeDb() {
         )`);
 
         // Auth table - single user only (id = 1)
+        // tokenVersion is incremented on password change to invalidate old tokens
         db.run(`CREATE TABLE IF NOT EXISTS auth (
             id INTEGER PRIMARY KEY CHECK (id = 1),
             passwordHash TEXT NOT NULL,
+            tokenVersion INTEGER DEFAULT 1,
             createdAt TEXT NOT NULL,
             updatedAt TEXT NOT NULL
         )`);
@@ -77,6 +79,7 @@ function initializeDb() {
         db.run(`ALTER TABLE asset_history ADD COLUMN investmentChange REAL DEFAULT 0`, () => { });
         db.run(`ALTER TABLE asset_history ADD COLUMN notes TEXT`, () => { });
         db.run(`ALTER TABLE persons ADD COLUMN displayOrder INTEGER DEFAULT 0`, () => { });
+        db.run(`ALTER TABLE auth ADD COLUMN tokenVersion INTEGER DEFAULT 1`, () => { });
     });
 }
 

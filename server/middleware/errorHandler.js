@@ -5,13 +5,30 @@
 const config = require('../config');
 
 /**
+ * Sanitize potentially sensitive data from error messages and stacks
+ */
+function sanitizeForLogs(text) {
+    if (!text) return text;
+    return text
+        .replace(/password[=:]["']?[^"',\s\n]*/gi, 'password=[REDACTED]')
+        .replace(/token[=:]["']?[^"',\s\n]*/gi, 'token=[REDACTED]')
+        .replace(/auth[=:]["']?[^"',\s\n]*/gi, 'auth=[REDACTED]')
+        .replace(/bearer\s+[a-zA-Z0-9._-]+/gi, 'Bearer [REDACTED]')
+        .replace(/secret[=:]["']?[^"',\s\n]*/gi, 'secret=[REDACTED]');
+}
+
+/**
  * Error handler middleware - must be registered LAST
  */
 function errorHandler(err, req, res, next) {
-    // Log full error server-side (always)
+    // Sanitize error details before logging
+    const sanitizedMessage = sanitizeForLogs(err.message);
+    const sanitizedStack = config.isProduction ? '[redacted]' : sanitizeForLogs(err.stack);
+
+    // Log error server-side (sanitized)
     console.error('Server Error:', {
-        message: err.message,
-        stack: err.stack,
+        message: sanitizedMessage,
+        stack: sanitizedStack,
         path: req.path,
         method: req.method,
         timestamp: new Date().toISOString()

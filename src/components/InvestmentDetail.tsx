@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
+import BackButton from './BackButton';
 import type { Asset, Person, ValueEntry } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -69,6 +70,7 @@ export default function InvestmentDetail({
             <div className="detail-hero" style={{ marginBottom: '24px' }}>
                 <div className="detail-title-row" style={{ alignItems: 'center', marginBottom: 0, flexWrap: 'wrap' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                        <BackButton />
                         <h1 className="detail-title">{asset.name}</h1>
                         <span className="detail-pill">
                             {categoryLabel}

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
+const { validateBackupRestore } = require('../validation/schemas');
 
 // GET backup
 router.get('/', (req, res) => {
@@ -41,13 +42,10 @@ router.get('/', (req, res) => {
     });
 });
 
-// POST restore
-router.post('/restore', (req, res) => {
+// POST restore (with comprehensive validation)
+router.post('/restore', validateBackupRestore, (req, res) => {
+    // req.body is now validated and sanitized by Joi
     const backup = req.body;
-
-    if (!backup.persons || !backup.assets || !backup.history || !backup.categories) {
-        return res.status(400).json({ error: 'Invalid backup format' });
-    }
 
     db.serialize(() => {
         db.run('BEGIN TRANSACTION');

@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
-const { validateAsset, validateAssetUpdate, validateSnapshot } = require('../validation/schemas');
+const { validateAsset, validateAssetUpdate, validateSnapshot, validateUuidParam } = require('../validation/schemas');
 
 // GET all assets with history - Optimized: Single JOIN query instead of N+1
 router.get('/', (req, res) => {
@@ -70,25 +70,34 @@ router.post('/', validateAsset, (req, res) => {
         });
 });
 
+// Whitelist of allowed fields for asset updates - frozen for security
+const ALLOWED_ASSET_UPDATE_FIELDS = Object.freeze(new Set(['name', 'category', 'ownerId', 'symbol']));
+
 // PUT update asset (with validation)
-router.put('/:id', validateAssetUpdate, (req, res) => {
+router.put('/:id', validateUuidParam, validateAssetUpdate, (req, res) => {
     const { id } = req.params;
     const updates = req.body;
 
-    const allowedFields = ['name', 'category', 'ownerId', 'symbol'];
-    const filteredUpdates = Object.keys(updates)
-        .filter(key => allowedFields.includes(key))
-        .reduce((obj, key) => {
-            obj[key] = updates[key];
-            return obj;
-        }, {});
+    // Filter to only allowed fields using the immutable whitelist
+    const filteredUpdates = {};
+    for (const key of Object.keys(updates)) {
+        if (ALLOWED_ASSET_UPDATE_FIELDS.has(key)) {
+            filteredUpdates[key] = updates[key];
+        }
+    }
 
     if (Object.keys(filteredUpdates).length === 0) {
         return res.json({ id, message: 'No valid fields provided for update' });
     }
 
-    const fields = Object.keys(filteredUpdates).map(k => `${k} = ?`).join(', ');
-    const values = [...Object.values(filteredUpdates), id];
+    // Double-validate: Only use field names that are in the frozen whitelist
+    // This ensures no injection is possible even if filteredUpdates is somehow modified
+    const safeFields = Object.keys(filteredUpdates)
+        .filter(k => ALLOWED_ASSET_UPDATE_FIELDS.has(k));
+
+    const fields = safeFields.map(k => `${k} = ?`).join(', ');
+    const values = safeFields.map(k => filteredUpdates[k]);
+    values.push(id);
 
     db.run(`UPDATE assets SET ${fields} WHERE id = ?`, values, (err) => {
         if (err) return res.status(500).json({ error: 'Failed to update asset' });
@@ -97,7 +106,7 @@ router.put('/:id', validateAssetUpdate, (req, res) => {
 });
 
 // POST add snapshot (with validation)
-router.post('/:id/snapshot', validateSnapshot, (req, res) => {
+router.post('/:id/snapshot', validateUuidParam, validateSnapshot, (req, res) => {
     const { id } = req.params;
     const { value, date = new Date().toISOString(), investmentChange = 0, notes = '' } = req.body;
 
@@ -134,7 +143,7 @@ router.post('/:id/snapshot', validateSnapshot, (req, res) => {
 });
 
 // POST legacy value update
-router.post('/:id/value', validateSnapshot, (req, res) => {
+router.post('/:id/value', validateUuidParam, validateSnapshot, (req, res) => {
     const { id } = req.params;
     const { value, date = new Date().toISOString() } = req.body;
 
@@ -151,8 +160,8 @@ router.post('/:id/value', validateSnapshot, (req, res) => {
     });
 });
 
-// DELETE asset
-router.delete('/:id', (req, res) => {
+// DELETE asset (with UUID validation)
+router.delete('/:id', validateUuidParam, (req, res) => {
     db.run('DELETE FROM assets WHERE id = ?', [req.params.id], (err) => {
         if (err) return res.status(500).json({ error: 'Failed to delete asset' });
         res.status(204).send();

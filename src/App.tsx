@@ -25,6 +25,8 @@ import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
 import LoginPage from './components/LoginPage';
 import SetupPage from './components/SetupPage';
+import ScrollToTop from './components/ScrollToTop';
+import { generateAssetUrl, resolveAssetFromSlug } from './utils/navigation';
 
 /**
  * Shared logic and state for the application
@@ -74,7 +76,10 @@ function AppContent() {
 
   // Navigation handlers
   const handleCardClick = (asset: Asset) => {
-    navigate(`/asset/${asset.id}`);
+    const owner = persons.find(p => p.id === asset.ownerId);
+    if (owner) {
+      navigate(generateAssetUrl(owner.name, asset.name));
+    }
   };
 
   const handleBackToDashboard = () => {
@@ -230,7 +235,7 @@ function AppContent() {
           </div>
         } />
 
-        <Route path="/asset/:id" element={
+        <Route path="/:ownerSlug/:assetSlug" element={
           <AssetDetailView
             headerProps={headerProps}
             allAssets={allAssets}
@@ -353,8 +358,9 @@ function AssetDetailView({
   editAsset,
   headerProps
 }: AssetDetailViewProps) {
-  const { id } = useParams<{ id: string }>();
-  const asset = allAssets.find((a: Asset) => a.id === id);
+  const { ownerSlug, assetSlug } = useParams<{ ownerSlug: string; assetSlug: string }>();
+
+  const { asset } = resolveAssetFromSlug(allAssets, persons, ownerSlug, assetSlug);
 
   if (!asset) {
     return <Navigate to="/" replace />;
@@ -450,6 +456,7 @@ function AuthenticatedApp() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <AuthenticatedApp />
       </AuthProvider>

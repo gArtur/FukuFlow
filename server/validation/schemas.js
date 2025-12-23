@@ -71,10 +71,14 @@ const schemas = {
         value: Joi.string().max(50).required()
     }),
 
-    // Auth schemas
+    // Auth schemas - Strong password policy
     authSetup: Joi.object({
-        password: Joi.string().min(4).max(100).required()
-            .messages({ 'string.min': 'Password must be at least 4 characters' })
+        password: Joi.string().min(12).max(128).required()
+            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+            .messages({
+                'string.min': 'Password must be at least 12 characters',
+                'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+            })
     }),
 
     authLogin: Joi.object({
@@ -83,13 +87,62 @@ const schemas = {
 
     authChangePassword: Joi.object({
         currentPassword: Joi.string().required(),
-        newPassword: Joi.string().min(4).max(100).required()
-            .messages({ 'string.min': 'New password must be at least 4 characters' })
+        newPassword: Joi.string().min(12).max(128).required()
+            .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+            .messages({
+                'string.min': 'New password must be at least 12 characters',
+                'string.pattern.base': 'Password must contain at least one uppercase letter, one lowercase letter, and one number'
+            })
     }),
 
-    // ID parameter schema
-    idParam: Joi.object({
-        id: Joi.string().required()
+    // ID parameter schema - requires valid UUID format
+    uuidParam: Joi.object({
+        id: Joi.string().uuid().required()
+            .messages({ 'string.guid': 'Invalid ID format - must be a valid UUID' })
+    }),
+
+    // Legacy ID parameter (for snapshot IDs which are integers)
+    integerIdParam: Joi.object({
+        id: Joi.number().integer().positive().required()
+            .messages({ 'number.base': 'Invalid ID format - must be an integer' })
+    }),
+
+    // Backup restore schema - comprehensive validation
+    backupRestore: Joi.object({
+        persons: Joi.array().items(Joi.object({
+            id: Joi.string().uuid().required(),
+            name: Joi.string().max(100).required(),
+            displayOrder: Joi.number().integer().min(0).optional()
+        })).required(),
+        assets: Joi.array().items(Joi.object({
+            id: Joi.string().uuid().required(),
+            name: Joi.string().max(200).required(),
+            category: Joi.string().max(50).required(),
+            ownerId: Joi.string().uuid().required(),
+            purchaseAmount: Joi.number().required(),
+            purchaseDate: Joi.string().required(),
+            currentValue: Joi.number().required(),
+            symbol: Joi.string().max(20).allow(null, '').optional()
+        })).required(),
+        history: Joi.array().items(Joi.object({
+            id: Joi.number().integer().required(),
+            assetId: Joi.string().uuid().required(),
+            date: Joi.string().required(),
+            value: Joi.number().required(),
+            investmentChange: Joi.number().allow(null).optional(),
+            notes: Joi.string().max(1000).allow(null, '').optional()
+        })).required(),
+        categories: Joi.array().items(Joi.object({
+            id: Joi.string().uuid().required(),
+            key: Joi.string().max(50).required(),
+            label: Joi.string().max(50).required(),
+            color: Joi.string().pattern(/^#[0-9A-Fa-f]{6}$/).required(),
+            isDefault: Joi.number().valid(0, 1).optional()
+        })).required(),
+        settings: Joi.array().items(Joi.object({
+            key: Joi.string().valid('currency', 'theme', 'defaultFilter', 'defaultDateRange').required(),
+            value: Joi.string().max(50).required()
+        })).optional()
     })
 };
 
@@ -157,6 +210,10 @@ module.exports = {
     validateAuthLogin: validate('authLogin'),
     validateAuthChangePassword: validate('authChangePassword'),
 
-    // ID param validation
-    validateIdParam: validate('idParam', 'params')
+    // ID param validations (High security: validate all route params)
+    validateUuidParam: validate('uuidParam', 'params'),
+    validateIntegerIdParam: validate('integerIdParam', 'params'),
+
+    // Backup validations
+    validateBackupRestore: validate('backupRestore')
 };

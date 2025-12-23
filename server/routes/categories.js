@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
-const { validateCategory } = require('../validation/schemas');
+const { validateCategory, validateUuidParam } = require('../validation/schemas');
 
 // GET all categories
 router.get('/', (req, res) => {
@@ -28,7 +28,7 @@ router.post('/', validateCategory, (req, res) => {
 });
 
 // PUT update category (with validation)
-router.put('/:id', validateCategory, (req, res) => {
+router.put('/:id', validateUuidParam, validateCategory, (req, res) => {
     const { label, color } = req.body;
     const { id } = req.params;
 
@@ -42,7 +42,7 @@ router.put('/:id', validateCategory, (req, res) => {
 });
 
 // DELETE category (cascades to assets)
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUuidParam, (req, res) => {
     const { id } = req.params;
 
     db.get('SELECT key FROM categories WHERE id = ?', [id], (err, category) => {

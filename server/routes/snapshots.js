@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
-const { validateSnapshotUpdate } = require('../validation/schemas');
+const { validateSnapshotUpdate, validateIntegerIdParam } = require('../validation/schemas');
 
-// DELETE snapshot
-router.delete('/:id', (req, res) => {
+// DELETE snapshot (with integer ID validation)
+router.delete('/:id', validateIntegerIdParam, (req, res) => {
     const snapshotId = req.params.id;
 
     db.get('SELECT assetId, investmentChange FROM asset_history WHERE id = ?', [snapshotId], (err, snapshot) => {
@@ -31,7 +31,7 @@ router.delete('/:id', (req, res) => {
 });
 
 // PUT update snapshot (with validation)
-router.put('/:id', validateSnapshotUpdate, (req, res) => {
+router.put('/:id', validateIntegerIdParam, validateSnapshotUpdate, (req, res) => {
     const snapshotId = req.params.id;
     const { date, value, investmentChange, notes } = req.body;
 

@@ -65,8 +65,8 @@ router.post('/setup', setupLimiter, validateAuthSetup, async (req, res) => {
             );
         });
 
-        // Generate token
-        const token = generateToken({ userId: 1 });
+        // Generate token with tokenVersion = 1 for new accounts
+        const token = generateToken({ userId: 1, tokenVersion: 1 });
 
         res.status(201).json({
             message: 'Password created successfully',
@@ -86,7 +86,7 @@ router.post('/login', authLimiter, validateAuthLogin, async (req, res) => {
     try {
         // Get stored password hash
         const auth = await new Promise((resolve, reject) => {
-            db.get('SELECT passwordHash FROM auth WHERE id = 1', [], (err, row) => {
+            db.get('SELECT passwordHash, tokenVersion FROM auth WHERE id = 1', [], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -104,8 +104,8 @@ router.post('/login', authLimiter, validateAuthLogin, async (req, res) => {
             return res.status(401).json({ error: 'Invalid password' });
         }
 
-        // Generate token
-        const token = generateToken({ userId: 1 });
+        // Generate token with current tokenVersion
+        const token = generateToken({ userId: 1, tokenVersion: auth.tokenVersion || 1 });
 
         res.json({
             message: 'Login successful',
@@ -134,7 +134,7 @@ router.post('/change-password', authLimiter, validateAuthChangePassword, async (
     try {
         // Get stored password hash
         const auth = await new Promise((resolve, reject) => {
-            db.get('SELECT passwordHash FROM auth WHERE id = 1', [], (err, row) => {
+            db.get('SELECT passwordHash, tokenVersion FROM auth WHERE id = 1', [], (err, row) => {
                 if (err) reject(err);
                 else resolve(row);
             });
@@ -156,11 +156,12 @@ router.post('/change-password', authLimiter, validateAuthChangePassword, async (
         const newHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
         const now = new Date().toISOString();
 
-        // Update in database
+        // Update password AND increment tokenVersion to invalidate old tokens
+        const newTokenVersion = (auth.tokenVersion || 1) + 1;
         await new Promise((resolve, reject) => {
             db.run(
-                'UPDATE auth SET passwordHash = ?, updatedAt = ? WHERE id = 1',
-                [newHash, now],
+                'UPDATE auth SET passwordHash = ?, tokenVersion = ?, updatedAt = ? WHERE id = 1',
+                [newHash, newTokenVersion, now],
                 (err) => {
                     if (err) reject(err);
                     else resolve();
@@ -168,8 +169,8 @@ router.post('/change-password', authLimiter, validateAuthChangePassword, async (
             );
         });
 
-        // Generate new token
-        const token = generateToken({ userId: 1 });
+        // Generate new token with new tokenVersion
+        const token = generateToken({ userId: 1, tokenVersion: newTokenVersion });
 
         res.json({
             message: 'Password changed successfully',

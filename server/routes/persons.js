@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
-const { validatePerson, validatePersonUpdate, validatePersonReorder } = require('../validation/schemas');
+const { validatePerson, validatePersonUpdate, validatePersonReorder, validateUuidParam } = require('../validation/schemas');
 
 // GET all persons
 router.get('/', (req, res) => {
@@ -53,7 +53,7 @@ router.put('/reorder', validatePersonReorder, (req, res) => {
 });
 
 // PUT update person (with validation)
-router.put('/:id', validatePersonUpdate, (req, res) => {
+router.put('/:id', validateUuidParam, validatePersonUpdate, (req, res) => {
     const { id } = req.params;
     const { name, displayOrder } = req.body;
 
@@ -78,7 +78,7 @@ router.put('/:id', validatePersonUpdate, (req, res) => {
 });
 
 // DELETE person (cascades to assets)
-router.delete('/:id', (req, res) => {
+router.delete('/:id', validateUuidParam, (req, res) => {
     const { id } = req.params;
 
     db.serialize(() => {
