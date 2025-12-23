@@ -50,9 +50,10 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {
+        const chart = chartRef.current;
         return () => {
-            if (chartRef.current) {
-                chartRef.current.destroy();
+            if (chart) {
+                chart.destroy();
             }
         };
     }, []);
@@ -60,16 +61,36 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
     // ... (logic remains same until options) ...
 
     // Aggregate all value histories into a combined timeline
+    // OPTIMIZED: Pre-process histories once, then iterate dates efficiently
     const aggregateHistory = () => {
         if (assets.length === 0) return [];
 
         const now = new Date();
         const nowStr = now.toISOString().split('T')[0];
 
-        // Ensure we always have today in the set of dates
+        // Pre-process: Sort each asset's history ONCE and compute running invested totals
+        const processedAssets = assets.map(asset => {
+            const history = asset.valueHistory || [];
+            const sortedHistory = [...history]
+                .map(e => ({
+                    ...e,
+                    dateStr: e.date.split('T')[0]
+                }))
+                .sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+
+            // Pre-compute running invested totals for binary search
+            let runningInvested = 0;
+            const withRunningTotals = sortedHistory.map(entry => {
+                runningInvested += entry.investmentChange || 0;
+                return { ...entry, runningInvested };
+            });
+
+            return { sortedHistory: withRunningTotals };
+        });
+
+        // Collect all unique dates
         const allDates = new Set<string>();
         allDates.add(nowStr);
-
         assets.forEach(asset => {
             (asset.valueHistory || []).forEach(entry => {
                 allDates.add(entry.date.split('T')[0]);
@@ -101,25 +122,34 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             return dateObj >= startDate && dateObj <= endDate;
         });
 
+        // Binary search helper: find largest index where entry.dateStr <= target
+        const findLatestEntryIndex = (history: { dateStr: string }[], targetDate: string): number => {
+            let left = 0, right = history.length - 1, result = -1;
+            while (left <= right) {
+                const mid = Math.floor((left + right) / 2);
+                if (history[mid].dateStr <= targetDate) {
+                    result = mid;
+                    left = mid + 1;
+                } else {
+                    right = mid - 1;
+                }
+            }
+            return result;
+        };
+
+        // Map dates efficiently using binary search
         return filteredDates.map(date => {
             let totalValue = 0;
             let totalInvested = 0;
-            assets.forEach(asset => {
-                // For Value: Find the latest entry on or before this date
-                const relevantValueEntries = asset.valueHistory
-                    .filter(e => e.date.split('T')[0] <= date)
-                    .sort((a, b) => b.date.localeCompare(a.date));
 
-                if (relevantValueEntries.length > 0) {
-                    totalValue += relevantValueEntries[0].value;
+            processedAssets.forEach(({ sortedHistory }) => {
+                const idx = findLatestEntryIndex(sortedHistory, date);
+                if (idx >= 0) {
+                    totalValue += sortedHistory[idx].value;
+                    totalInvested += sortedHistory[idx].runningInvested;
                 }
-
-                // For Invested: Sum all investmentChange on or before this date
-                const relevantInvestedEntries = asset.valueHistory
-                    .filter(e => e.date.split('T')[0] <= date);
-
-                totalInvested += relevantInvestedEntries.reduce((sum, entry) => sum + (entry.investmentChange || 0), 0);
             });
+
             return { date, value: totalValue, invested: totalInvested };
         });
     };
@@ -179,6 +209,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 label: 'Value',
                 data: isHidden ? normalizedValueData : history.map(h => h.value),
                 borderColor: isHighContrast ? '#00FFFF' : '#00D9A5', // Cyan in HC
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 backgroundColor: (context: any) => {
                     const ctx = context.chart.ctx;
                     const chartArea = context.chart.chartArea;
@@ -272,11 +303,13 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 cornerRadius: 8,
                 displayColors: false,
                 callbacks: {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     title: (tooltipItems: any) => {
                         if (!tooltipItems || !tooltipItems.length) return '';
                         const d = new Date(history[tooltipItems[0].dataIndex].date);
                         return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label: (context: any) => {
                         // Only show Value and Invested in labels
                         if (context.datasetIndex === 0) {
@@ -292,6 +325,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         }
                         return '';
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     labelTextColor: (context: any) => {
                         if (theme === 'light') {
                             if (context.datasetIndex === 0) return '#059669'; // Darker Green for Value
@@ -303,6 +337,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         }
                         return context.dataset.borderColor;
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     footer: (tooltipItems: any) => {
                         if (!tooltipItems || !tooltipItems.length) return '';
                         const index = tooltipItems[0].dataIndex;
@@ -320,6 +355,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         return `Gain/Loss: ${sign}${formatAmount(gainLoss)} (${sign}${gainLossPercent.toFixed(2)}%)`;
                     }
                 },
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 footerColor: (context: any) => {
                     if (!context.tooltipItems || !context.tooltipItems.length) return '#fff';
                     const index = context.tooltipItems[0].dataIndex;
@@ -333,7 +369,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     return isPositive ? '#10B981' : '#EF4444'; // Standard Green/Red
                 },
                 footerFont: {
-                    weight: 'bold' as any
+                    weight: 'bold' as const
                 }
             }
         },

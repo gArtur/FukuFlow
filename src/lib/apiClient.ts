@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export interface SnapshotData {
     value: number;
@@ -69,6 +69,7 @@ export const ApiClient = {
         return response.blob();
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async restoreBackup(backupData: any) {
         const response = await fetch(`${API_URL}/restore`, {
             method: 'POST',
@@ -123,6 +124,7 @@ export const ApiClient = {
         return response.json();
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async addAsset(asset: any) {
         const response = await fetch(`${API_URL}/assets`, {
             method: 'POST',
@@ -132,6 +134,7 @@ export const ApiClient = {
         return response.json();
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async updateAsset(id: string, updates: any) {
         const response = await fetch(`${API_URL}/assets/${id}`, {
             method: 'PUT',

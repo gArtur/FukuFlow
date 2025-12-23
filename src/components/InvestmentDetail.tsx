@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import type { Asset, Person, ValueEntry } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
@@ -48,7 +48,7 @@ export default function InvestmentDetail({
     );
 
     // Reset page when asset changes
-    useMemo(() => {
+    useEffect(() => {
         setCurrentPage(1);
     }, [asset.id]);
 

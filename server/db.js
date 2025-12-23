@@ -109,27 +109,32 @@ function seedSettings() {
 }
 
 /**
- * Sync asset values from history
+ * Sync asset values from history - Optimized: Single aggregation query instead of N+1
  */
 function syncAssets() {
-    db.all('SELECT id FROM assets', [], (err, assets) => {
-        if (err) return console.error('Error fetching assets for sync:', err);
+    // Single query: get latest value and total invested for all assets at once
+    db.all(`
+        SELECT 
+            a.id,
+            (SELECT h.value FROM asset_history h 
+             WHERE h.assetId = a.id 
+             ORDER BY h.date DESC LIMIT 1) as latestValue,
+            COALESCE(SUM(ah.investmentChange), 0) as totalInvested
+        FROM assets a
+        LEFT JOIN asset_history ah ON a.id = ah.assetId
+        GROUP BY a.id
+    `, [], (err, results) => {
+        if (err) return console.error('Error fetching sync data:', err);
 
-        assets.forEach(asset => {
-            db.all('SELECT value, investmentChange, date FROM asset_history WHERE assetId = ? ORDER BY date ASC', [asset.id], (err, history) => {
-                if (err) return console.error(`Error fetching history for asset ${asset.id}:`, err);
-                if (!history || history.length === 0) return;
-
-                const latestSnapshot = history[history.length - 1];
-                const totalInvested = history.reduce((sum, entry) => sum + (entry.investmentChange || 0), 0);
-
-                db.run('UPDATE assets SET currentValue = ?, purchaseAmount = ? WHERE id = ?',
-                    [latestSnapshot.value, totalInvested, asset.id],
-                    (err) => {
-                        if (err) console.error(`Error syncing asset ${asset.id}:`, err);
-                    }
-                );
-            });
+        // Batch update using prepared statement
+        const stmt = db.prepare('UPDATE assets SET currentValue = ?, purchaseAmount = ? WHERE id = ?');
+        results.forEach(r => {
+            if (r.latestValue !== null) {
+                stmt.run(r.latestValue, r.totalInvested, r.id);
+            }
+        });
+        stmt.finalize((err) => {
+            if (err) console.error('Error finalizing sync statement:', err);
         });
     });
 }

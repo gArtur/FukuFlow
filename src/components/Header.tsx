@@ -2,7 +2,7 @@ import { usePrivacy } from '../contexts/PrivacyContext';
 
 import { useNavigate } from 'react-router-dom';
 
-interface HeaderProps {
+export interface HeaderProps {
     onAddSnapshot: () => void;
 }
 

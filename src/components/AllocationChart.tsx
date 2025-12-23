@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
 import type { Chart } from 'chart.js';
@@ -7,10 +7,6 @@ import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
 
 ChartJS.register(ArcElement, Tooltip);
-
-interface AllocationChartProps {
-    stats: PortfolioStats;
-}
 
 interface AllocationChartProps {
     stats: PortfolioStats;
@@ -26,7 +22,7 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
     const [viewMode, setViewMode] = useState<ViewMode>('category');
 
     // Auto-generate colors for investments
-    const getInvestmentColor = (index: number) => {
+    const getInvestmentColor = useCallback((index: number) => {
         const isHighContrast = theme === 'high-contrast';
         if (isHighContrast) {
             const highContrastColors = [
@@ -48,7 +44,7 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
             '#84CC16', '#D946EF', '#EAB308', '#64748B', '#A855F7'
         ];
         return colors[index % colors.length];
-    };
+    }, [theme]);
 
     const chartData = useMemo(() => {
         if (viewMode === 'category') {
@@ -130,15 +126,16 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                 items
             };
         }
-    }, [viewMode, stats, assets, categoryConfig, persons]);
+    }, [viewMode, stats, assets, categoryConfig, persons, theme, getInvestmentColor]);
 
     const chartRef = useRef<Chart<'doughnut'>>(null);
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {
+        const chart = chartRef.current;
         return () => {
-            if (chartRef.current) {
-                chartRef.current.destroy();
+            if (chart) {
+                chart.destroy();
             }
         };
     }, []);
@@ -188,9 +185,9 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
             tooltip: {
                 backgroundColor: tooltipBg,
                 titleColor: tooltipTitleColor,
-                titleFont: { weight: theme === 'high-contrast' ? 'bold' : 'bold' } as any,
+                titleFont: { weight: 'bold' as const },
                 bodyColor: tooltipBodyColor,
-                bodyFont: { weight: theme === 'high-contrast' ? 'bold' : 'normal' } as any,
+                bodyFont: { weight: theme === 'high-contrast' ? 'bold' as const : 'normal' as const },
                 borderColor: tooltipBorderColor,
                 borderWidth: tooltipBorderWidth,
                 padding: 12,

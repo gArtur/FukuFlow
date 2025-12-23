@@ -44,6 +44,7 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
                 setTimeout(() => {
                     window.location.reload();
                 }, 1500);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 console.error('Restore failed:', error);
                 setResult({ success: false, error: error.message || 'Failed to restore backup' });

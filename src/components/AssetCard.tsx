@@ -47,6 +47,7 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
         datasets: [{
             data: (asset.valueHistory || []).map(h => h.value),
             borderColor: isPositive ? positiveColor : negativeColor,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             backgroundColor: (context: any) => {
                 const ctx = context.chart.ctx;
                 const chartArea = context.chart.chartArea;

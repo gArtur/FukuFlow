@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Asset, AssetCategory, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -17,21 +17,21 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
     const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
     const [ownerId, setOwnerId] = useState('');
 
+    const resetForm = useCallback(() => {
+        setName('');
+        setCategory(categories[0]?.key || 'stocks');
+        setOwnerId(persons.length > 0 ? persons[0].id : '');
+    }, [categories, persons]);
+
     useEffect(() => {
         if (editAsset) {
             setName(editAsset.name);
             setCategory(editAsset.category);
             setOwnerId(editAsset.ownerId);
-        } else {
+        } else if (isOpen) {
             resetForm();
         }
-    }, [editAsset, isOpen, persons]);
-
-    const resetForm = () => {
-        setName('');
-        setCategory(categories[0]?.key || 'stocks');
-        setOwnerId(persons.length > 0 ? persons[0].id : '');
-    };
+    }, [editAsset, isOpen, resetForm]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

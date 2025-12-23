@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const config = require('./config');
 const { initializeDb, seedCategories, seedSettings, syncAssets } = require('./db');
 
 // Import route modules
@@ -12,11 +13,10 @@ const backupRoutes = require('./routes/backup');
 
 // Express app setup
 const app = express();
-const PORT = 3001;
 
 // Middleware
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: config.corsOrigin,
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
@@ -50,6 +50,6 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(config.port, () => {
+    console.log(`Server running on http://localhost:${config.port}`);
 });

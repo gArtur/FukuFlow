@@ -39,7 +39,7 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
         if (!isNaN(date.getTime())) return date;
 
         // Try DD/MM/YYYY or DD-MM-YYYY
-        const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
         if (ddmmyyyyMatch) {
             const [, day, month, year] = ddmmyyyyMatch;
             date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
@@ -47,7 +47,7 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
         }
 
         // Try MM/DD/YYYY (US format)
-        const mmddyyyyMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        const mmddyyyyMatch = cleaned.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
         if (mmddyyyyMatch) {
             const [, month, day, year] = mmddyyyyMatch;
             date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
@@ -124,12 +124,13 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
 
             const importResult = await onImport(snapshots);
             setResult(importResult);
-        } catch (error) {
+        } catch {
             setResult({ success: 0, failed: 1, errors: ['Failed to process file'] });
         } finally {
             setIsProcessing(false);
         }
-    }, [onImport]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onImport, parseCSV]);
 
     const handleDrop = useCallback((e: React.DragEvent) => {
         e.preventDefault();

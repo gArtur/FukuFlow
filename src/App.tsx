@@ -4,10 +4,11 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from '
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
 import { usePersons } from './hooks/usePersons';
-import type { Asset, ValueEntry } from './types';
+import type { Asset, Person, ValueEntry } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import Header from './components/Header';
+import type { HeaderProps } from './components/Header';
 import FamilyFilter from './components/FamilyFilter';
 import TotalWorthChart from './components/TotalWorthChart';
 import AllocationChart from './components/AllocationChart';
@@ -133,7 +134,7 @@ function AppContent() {
       try {
         await ApiClient.addSnapshot(assetId, snapshot);
         success++;
-      } catch (error) {
+      } catch {
         failed++;
         errors.push(`Failed to import entry for ${snapshot.date}`);
       }
@@ -301,6 +302,29 @@ function AppContent() {
   );
 }
 
+interface AssetDetailViewProps {
+  allAssets: Asset[];
+  persons: Person[];
+  onAddSnapshot: (asset: Asset) => void;
+  onEdit: (asset: Asset) => void;
+  onDelete: (id: string) => void;
+  onEditSnapshot: (snapshot: ValueEntry & { id: number }) => void;
+  setShowImportModal: (show: boolean) => void;
+  showEditSnapshotModal: boolean;
+  setShowEditSnapshotModal: (show: boolean) => void;
+  editingSnapshot: (ValueEntry & { id: number }) | null;
+  handleUpdateSnapshot: (id: number, data: { value: number; date: string; investmentChange: number; notes: string }) => void;
+  handleDeleteSnapshot: (id: number) => void;
+  showImportModal: boolean;
+  onImport: (assetId: string, snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => Promise<{ success: number; failed: number; errors: string[] }>;
+  showAddModal: boolean;
+  onCloseAddModal: () => void;
+  onAddAsset: (asset: Omit<Asset, 'id' | 'valueHistory'>) => void;
+  onUpdateAsset: (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => void;
+  editAsset: Asset | null;
+  headerProps: HeaderProps;
+}
+
 /**
  * Component for the Investment Detail page
  */
@@ -325,7 +349,7 @@ function AssetDetailView({
   onUpdateAsset,
   editAsset,
   headerProps
-}: any) {
+}: AssetDetailViewProps) {
   const { id } = useParams<{ id: string }>();
   const asset = allAssets.find((a: Asset) => a.id === id);
 

@@ -3,21 +3,48 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 
-// GET all assets with history
+// GET all assets with history - Optimized: Single JOIN query instead of N+1
 router.get('/', (req, res) => {
-    db.all('SELECT * FROM assets', [], (err, rows) => {
+    db.all(`
+        SELECT a.id, a.name, a.category, a.ownerId, a.purchaseAmount, 
+               a.purchaseDate, a.currentValue, a.symbol,
+               h.id as historyId, h.date as historyDate, h.value as historyValue, 
+               h.investmentChange, h.notes
+        FROM assets a
+        LEFT JOIN asset_history h ON a.id = h.assetId
+        ORDER BY a.id, h.date ASC
+    `, [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
 
-        const assetsWithHistory = rows.map(asset => {
-            return new Promise((resolve) => {
-                db.all('SELECT id, date, value, investmentChange, notes FROM asset_history WHERE assetId = ? ORDER BY date ASC', [asset.id], (err, history) => {
-                    asset.valueHistory = history || [];
-                    resolve(asset);
+        // Group by asset ID in memory - O(n) single pass
+        const assetsMap = new Map();
+        rows.forEach(row => {
+            if (!assetsMap.has(row.id)) {
+                assetsMap.set(row.id, {
+                    id: row.id,
+                    name: row.name,
+                    category: row.category,
+                    ownerId: row.ownerId,
+                    purchaseAmount: row.purchaseAmount,
+                    purchaseDate: row.purchaseDate,
+                    currentValue: row.currentValue,
+                    symbol: row.symbol,
+                    valueHistory: []
                 });
-            });
+            }
+            // Add history entry if it exists (LEFT JOIN may have null history)
+            if (row.historyId) {
+                assetsMap.get(row.id).valueHistory.push({
+                    id: row.historyId,
+                    date: row.historyDate,
+                    value: row.historyValue,
+                    investmentChange: row.investmentChange,
+                    notes: row.notes
+                });
+            }
         });
 
-        Promise.all(assetsWithHistory).then(results => res.json(results));
+        res.json(Array.from(assetsMap.values()));
     });
 });
 

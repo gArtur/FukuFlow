@@ -37,20 +37,20 @@ export function useSnapshotHistory(valueHistory: ValueEntry[] | undefined): Enha
         // Build map of year start values and invested amounts for YTD calculations
         const yearStartData: Map<number, { value: number; invested: number }> = new Map();
         let tempInvested = 0;
-        for (const entry of sortedHistory) {
+        // OPTIMIZED: Use forEach with index instead of indexOf (O(1) vs O(n) per iteration)
+        sortedHistory.forEach((entry, idx) => {
             const year = new Date(entry.date).getFullYear();
             const investChange = entry.investmentChange || 0;
             tempInvested += investChange;
             if (!yearStartData.has(year)) {
                 // First entry of the year - use previous value as starting point
-                const idx = sortedHistory.indexOf(entry);
                 const prevEntry = idx > 0 ? sortedHistory[idx - 1] : null;
                 yearStartData.set(year, {
                     value: prevEntry ? prevEntry.value : 0,
                     invested: tempInvested - investChange
                 });
             }
-        }
+        });
 
         const enhanced = sortedHistory.map((entry, index) => {
             const prevEntry = index > 0 ? sortedHistory[index - 1] : null;

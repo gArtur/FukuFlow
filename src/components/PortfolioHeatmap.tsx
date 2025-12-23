@@ -217,6 +217,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             });
 
             // Always store the monthly flow for total portfolio calculation
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (cells[cells.length - 1] as any).monthlyFlow = assetExists ? monthlyInvest : 0;
 
             if (assetExists) {
@@ -227,6 +228,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
         // Calculate totals for the visible range based on summed monthly G/L
         const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const totalFlow = cells.reduce((sum, c) => sum + ((c as any).monthlyFlow || 0), 0);
 
         // ROI Basis: If asset started in the first visible month, startValue is 0 (flow is in totalFlow)
@@ -282,6 +284,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 if (cell) {
                     totalValue += cell.value;
                     totalPreviousValue += cell.previousValue;
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     totalFlow += (cell as any).monthlyFlow || 0;
                     totalChange += cell.change;
                     if (cell.hasData) hasAnyData = true;
@@ -318,6 +321,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                     initialPortfolioBasis += firstCell.previousValue;
                 }
                 row.cells.forEach(cell => {
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     totalFlowInRange += (cell as any).monthlyFlow || 0;
                 });
             }
@@ -463,6 +467,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         if (rangeStart === oneY.start && rangeEnd === oneY.end) return '1Y';
         if (rangeStart === fiveY.start && rangeEnd === fiveY.end) return '5Y';
         return null;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeStart, rangeEnd, minMonth, maxMonth]);
 
     // Toggle sort direction
