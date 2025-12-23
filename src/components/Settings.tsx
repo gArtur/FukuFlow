@@ -41,6 +41,8 @@ export default function Settings({
     const {
         currency,
         setCurrency,
+        theme,
+        setTheme,
         defaultFilter,
         setDefaultFilter,
         defaultDateRange,
@@ -106,6 +108,8 @@ export default function Settings({
                     <GeneralSettings
                         currency={currency}
                         setCurrency={setCurrency}
+                        theme={theme}
+                        setTheme={setTheme}
                         defaultFilter={defaultFilter}
                         setDefaultFilter={setDefaultFilter}
                         defaultDateRange={defaultDateRange}

@@ -1,0 +1,43 @@
+:root {
+    /* DEFAULT DARK THEME (Base) */
+    --bg-primary: #0A0A0C;
+    --bg-secondary: #111114;
+    --bg-card: #16161A;
+    --bg-card-hover: #1E1E24;
+    --bg-tertiary: #1C1C22;
+    /* Slightly lighter for inputs/icons */
+    --bg-header: rgba(10, 10, 12, 0.95);
+
+    --border-color: rgba(255, 255, 255, 0.06);
+    --border-color-light: rgba(255, 255, 255, 0.1);
+
+    /* Accent colors */
+    --accent-primary: #C9A227;
+    --accent-primary-glow: rgba(201, 162, 39, 0.2);
+    --accent-green: #00D9A5;
+    --accent-green-glow: rgba(0, 217, 165, 0.15);
+    --accent-red: #FF6B6B;
+    --accent-red-glow: rgba(255, 107, 107, 0.15);
+
+    /* Text colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, #C9A227 0%, #E8C547 100%);
+    --gradient-success: linear-gradient(135deg, #00D9A5 0%, #34D399 100%);
+
+    /* Button/Tab Variables */
+    --tab-active-bg: var(--accent-primary);
+    --tab-active-text: #000000;
+
+    --filter-active-bg: var(--bg-card);
+    --filter-active-text: var(--accent-primary);
+    --filter-active-border: var(--accent-primary);
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+}

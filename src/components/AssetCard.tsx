@@ -22,7 +22,7 @@ interface AssetCardProps {
 
 export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }: AssetCardProps) {
     const { formatAmount, isHidden } = usePrivacy();
-    const { categories } = useSettings();
+    const { categories, theme } = useSettings();
 
     const gain = asset.currentValue - asset.purchaseAmount;
     const gainPercent = asset.purchaseAmount > 0
@@ -34,26 +34,45 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
     const ownerName = owner?.name || 'Unknown';
     const categoryLabel = categories.find(c => c.key === asset.category)?.label || asset.category;
 
+    // Theme-based colors for sparklines to ensure visibility
+    const isLight = theme === 'light';
+    const isHighContrast = theme === 'high-contrast';
+
+    // In High Contrast, use Cyan for everything. In normal modes, use Green/Red.
+    const positiveColor = isHighContrast ? '#00FFFF' : (isLight ? '#10B981' : '#00D9A5');
+    const negativeColor = isHighContrast ? '#00FFFF' : (isLight ? '#EF4444' : '#FF6B6B');
+
     const sparklineData = {
         labels: (asset.valueHistory || []).map((_, i) => i.toString()),
         datasets: [{
             data: (asset.valueHistory || []).map(h => h.value),
-            borderColor: isPositive ? '#00D9A5' : '#FF6B6B',
+            borderColor: isPositive ? positiveColor : negativeColor,
             backgroundColor: (context: any) => {
                 const ctx = context.chart.ctx;
                 const chartArea = context.chart.chartArea;
                 if (!chartArea) return 'transparent';
                 const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                if (isPositive) {
-                    gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                    gradient.addColorStop(1, 'rgba(0, 217, 165, 0)');
+                const color = isPositive ? positiveColor : negativeColor;
+
+                // Convert hex to rgba for gradient
+                const hexToRgb = (hex: string) => {
+                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
+                };
+
+                const rgb = hexToRgb(color);
+
+                if (rgb) {
+                    gradient.addColorStop(0, `rgba(${rgb}, ${isHighContrast ? 0.6 : 0.3})`); // Stronger fill in HC
+                    gradient.addColorStop(1, `rgba(${rgb}, 0)`);
                 } else {
-                    gradient.addColorStop(0, 'rgba(255, 107, 107, 0.3)');
-                    gradient.addColorStop(1, 'rgba(255, 107, 107, 0)');
+                    gradient.addColorStop(0, isPositive ? 'rgba(0, 217, 165, 0.3)' : 'rgba(255, 107, 107, 0.3)');
+                    gradient.addColorStop(1, isPositive ? 'rgba(0, 217, 165, 0)' : 'rgba(255, 107, 107, 0)');
                 }
+
                 return gradient;
             },
-            borderWidth: 1.5,
+            borderWidth: isHighContrast ? 2.5 : 1.5,
             tension: 0.4,
             pointRadius: 0,
             fill: true

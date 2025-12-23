@@ -6,6 +6,7 @@ interface Settings {
     currency: string;
     defaultFilter: string;
     defaultDateRange: TimeRange;
+    theme: 'dark' | 'light' | 'high-contrast';
 }
 
 interface Category {
@@ -19,6 +20,8 @@ interface Category {
 interface SettingsContextType {
     currency: string;
     setCurrency: (currency: string) => Promise<void>;
+    theme: 'dark' | 'light' | 'high-contrast';
+    setTheme: (theme: 'dark' | 'light' | 'high-contrast') => Promise<void>;
     defaultFilter: string;
     setDefaultFilter: (filter: string) => Promise<void>;
     defaultDateRange: TimeRange;
@@ -34,7 +37,12 @@ interface SettingsContextType {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-    const [settings, setSettings] = useState<Settings>({ currency: 'USD', defaultFilter: 'all', defaultDateRange: '1Y' });
+    const [settings, setSettings] = useState<Settings>({
+        currency: 'USD',
+        defaultFilter: 'all',
+        defaultDateRange: '1Y',
+        theme: 'dark'
+    });
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -48,11 +56,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                 ]);
 
                 if (settingsData) {
+                    const theme = settingsData.theme || 'dark';
                     setSettings({
                         currency: settingsData.currency || 'USD',
                         defaultFilter: settingsData.defaultFilter || 'all',
-                        defaultDateRange: settingsData.defaultDateRange || '1Y'
+                        defaultDateRange: settingsData.defaultDateRange || '1Y',
+                        theme: theme
                     });
+
+                    // Apply theme to document
+                    document.documentElement.setAttribute('data-theme', theme);
                 }
 
                 if (categoriesData) {
@@ -74,6 +87,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             setSettings(prev => ({ ...prev, currency: newCurrency }));
         } catch (error) {
             console.error('Failed to update currency:', error);
+        }
+    };
+
+    const setTheme = async (newTheme: 'dark' | 'light' | 'high-contrast') => {
+        try {
+            await ApiClient.updateSetting('theme', newTheme);
+            setSettings(prev => ({ ...prev, theme: newTheme }));
+            document.documentElement.setAttribute('data-theme', newTheme);
+        } catch (error) {
+            console.error('Failed to update theme:', error);
         }
     };
 
@@ -144,6 +167,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         <SettingsContext.Provider value={{
             currency: settings.currency,
             setCurrency,
+            theme: settings.theme,
+            setTheme,
             defaultFilter: settings.defaultFilter,
             setDefaultFilter,
             defaultDateRange: settings.defaultDateRange,

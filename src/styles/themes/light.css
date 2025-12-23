@@ -1,0 +1,41 @@
+/* LIGHT THEME */
+[data-theme="light"] {
+    --bg-primary: #F3F4F6;
+    --bg-secondary: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #F9FAFB;
+    --bg-tertiary: #E5E7EB;
+    /* Gray 200 for icons/secondary elements */
+    --bg-header: rgba(255, 255, 255, 0.95);
+
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color-light: rgba(0, 0, 0, 0.12);
+
+    --accent-primary: #B8921B;
+    /* Slightly darker gold for contrast on white */
+    --accent-primary-glow: rgba(184, 146, 27, 0.15);
+
+    --accent-green: #059669;
+    /* Darker green for visibility on white */
+    --accent-green-glow: rgba(5, 150, 105, 0.15);
+
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    /* Was #4B5563 - Darkened for better contrast */
+    --text-muted: #6B7280;
+    /* Was #9CA3AF - Darkened for better contrast */
+
+    /* Button/Tab Variables Overrides */
+    /* Use a dark pill for active chart tabs in light mode */
+    --tab-active-bg: #111827;
+    --tab-active-text: #FFFFFF;
+
+    /* Use a dark pill for active filter tabs in light mode */
+    --filter-active-bg: #111827;
+    --filter-active-text: #FFFFFF;
+    --filter-active-border: #111827;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}

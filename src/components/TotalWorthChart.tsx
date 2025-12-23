@@ -30,12 +30,23 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }: TotalWorthChartProps) {
-    const { defaultDateRange } = useSettings();
+    const { defaultDateRange, theme } = useSettings();
     const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
     const { isHidden, formatAmount } = usePrivacy();
     const chartRef = useRef<Chart<'line'>>(null);
+
+    // Theme-based colors
+    // Theme-based colors
+    const isHighContrast = theme === 'high-contrast';
+    const textColor = theme === 'light' ? '#4B5563' : (isHighContrast ? '#ffff00' : '#9CA3AF');
+    const gridColor = theme === 'light' ? 'rgba(0,0,0,0.05)' : (isHighContrast ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)');
+
+    // Tooltip colors
+    const tooltipBg = theme === 'light' ? 'rgba(255, 255, 255, 0.95)' : (isHighContrast ? '#000000' : 'rgba(26, 26, 34, 0.95)');
+    const tooltipText = theme === 'light' ? '#111827' : (isHighContrast ? '#ffffff' : '#fff');
+    const tooltipBorder = theme === 'light' ? 'rgba(0,0,0,0.1)' : (isHighContrast ? '#ffffff' : 'rgba(255,255,255,0.1)');
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {
@@ -45,6 +56,8 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             }
         };
     }, []);
+
+    // ... (logic remains same until options) ...
 
     // Aggregate all value histories into a combined timeline
     const aggregateHistory = () => {
@@ -161,14 +174,17 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             });
         }),
         datasets: [
+
             {
                 label: 'Value',
                 data: isHidden ? normalizedValueData : history.map(h => h.value),
-                borderColor: '#00D9A5',
+                borderColor: isHighContrast ? '#00FFFF' : '#00D9A5', // Cyan in HC
                 backgroundColor: (context: any) => {
                     const ctx = context.chart.ctx;
                     const chartArea = context.chart.chartArea;
                     if (!chartArea) return 'transparent';
+
+                    if (isHighContrast) return 'transparent'; // No fill in HC for clarity
 
                     const { top, bottom } = chartArea;
                     const yAxis = context.chart.scales.y;
@@ -194,28 +210,32 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
 
                     return gradient;
                 },
-                fill: 'origin',
+                fill: !isHighContrast ? 'origin' : false,
                 tension: 0.4,
-                pointRadius: 0,
+                pointRadius: isHighContrast ? 4 : 0,
+                pointBackgroundColor: isHighContrast ? '#000' : undefined,
+                pointBorderWidth: isHighContrast ? 2 : 0,
                 pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#00D9A5',
+                pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : '#00D9A5',
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
-                borderWidth: 2
+                borderWidth: isHighContrast ? 3 : 2
             },
             {
                 label: 'Invested',
                 data: isHidden ? normalizedInvestedData : history.map(h => h.invested),
-                borderColor: '#3B82F6',
+                borderColor: isHighContrast ? '#FFFF00' : '#3B82F6', // Yellow in HC
                 backgroundColor: 'transparent',
                 fill: false,
                 tension: 0.4,
-                pointRadius: 0,
+                pointRadius: isHighContrast ? 4 : 0,
+                pointBackgroundColor: isHighContrast ? '#000' : undefined,
+                pointBorderWidth: isHighContrast ? 2 : 0,
                 pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#3B82F6',
+                pointHoverBackgroundColor: isHighContrast ? '#FFFF00' : '#3B82F6',
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
-                borderWidth: 2,
+                borderWidth: isHighContrast ? 3 : 2,
                 borderDash: [5, 5]
             }
         ]
@@ -234,7 +254,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 display: true,
                 position: 'bottom' as const,
                 labels: {
-                    color: '#6B7280',
+                    color: textColor,
                     font: { size: 11 },
                     padding: 20,
                     usePointStyle: true,
@@ -243,10 +263,10 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             },
             tooltip: {
                 enabled: true,
-                backgroundColor: 'rgba(26, 26, 34, 0.95)',
-                titleColor: '#fff',
+                backgroundColor: tooltipBg,
+                titleColor: tooltipText,
                 bodyColor: '#00D9A5',
-                borderColor: 'rgba(255,255,255,0.1)',
+                borderColor: tooltipBorder,
                 borderWidth: 1,
                 padding: 12,
                 cornerRadius: 8,
@@ -272,6 +292,17 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         }
                         return '';
                     },
+                    labelTextColor: (context: any) => {
+                        if (theme === 'light') {
+                            if (context.datasetIndex === 0) return '#059669'; // Darker Green for Value
+                            if (context.datasetIndex === 1) return '#2563EB'; // Darker Blue for Invested
+                        }
+                        if (isHighContrast) {
+                            if (context.datasetIndex === 0) return '#00FFFF'; // Cyan
+                            if (context.datasetIndex === 1) return '#FFFF00'; // Yellow
+                        }
+                        return context.dataset.borderColor;
+                    },
                     footer: (tooltipItems: any) => {
                         if (!tooltipItems || !tooltipItems.length) return '';
                         const index = tooltipItems[0].dataIndex;
@@ -294,7 +325,12 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     const index = context.tooltipItems[0].dataIndex;
                     const item = history[index];
                     if (!item) return '#fff';
-                    return item.value >= item.invested ? '#10B981' : '#EF4444'; // Green or Red
+
+                    const isPositive = item.value >= item.invested;
+                    if (isHighContrast) {
+                        return isPositive ? '#00FF00' : '#FF0000'; // Neon Green/Red
+                    }
+                    return isPositive ? '#10B981' : '#EF4444'; // Standard Green/Red
                 },
                 footerFont: {
                     weight: 'bold' as any
@@ -306,7 +342,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 display: true,
                 grid: { display: false },
                 ticks: {
-                    color: '#6B7280',
+                    color: textColor,
                     font: { size: 10 },
                     maxTicksLimit: 6
                 },
@@ -315,11 +351,11 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             y: {
                 display: true,
                 grid: {
-                    color: 'rgba(255,255,255,0.05)',
+                    color: gridColor,
                     drawBorder: false
                 },
                 ticks: {
-                    color: '#6B7280',
+                    color: textColor,
                     font: { size: 10 },
                     callback: (value: number | string) => {
                         const num = typeof value === 'string' ? parseFloat(value) : value;
