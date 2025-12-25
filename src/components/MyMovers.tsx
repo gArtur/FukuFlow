@@ -25,7 +25,13 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
                 <div className="empty-state">
                     <div className="empty-icon">💰</div>
                     <h3 className="empty-title">No assets yet</h3>
-                    <p className="empty-text">Tap the + button to add your first asset</p>
+                    {persons.length === 0 ? (
+                        <p className="empty-text">
+                            Before adding assets, you need to create at least one person in <strong>Settings → People</strong>
+                        </p>
+                    ) : (
+                        <p className="empty-text">Tap the + button to add your first asset</p>
+                    )}
                 </div>
             </section>
         );

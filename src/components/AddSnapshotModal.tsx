@@ -126,7 +126,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                 <form onSubmit={handleSubmit} className="modal-form">
                     {isGlobalMode && (
                         <div className="form-group">
-                            <label>Select Investment</label>
+                            <label>Select Asset</label>
                             <div className="combobox-container">
                                 <input
                                     type="text"
@@ -147,7 +147,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                                         setShowSuggestions(true);
                                         e.target.select();
                                     }}
-                                    placeholder="Type to search investments..."
+                                    placeholder="Type to search assets..."
                                     className="combobox-input"
                                     autoComplete="off"
                                 />

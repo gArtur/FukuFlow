@@ -18,7 +18,7 @@ import AddAssetModal from './components/AddAssetModal';
 import AddSnapshotModal from './components/AddSnapshotModal';
 import EditSnapshotModal from './components/EditSnapshotModal';
 import ImportCSVModal from './components/ImportCSVModal';
-import InvestmentDetail from './components/InvestmentDetail';
+import AssetDetail from './components/AssetDetail';
 import Settings from './components/Settings';
 import PortfolioHeatmap from './components/PortfolioHeatmap';
 import { ApiClient } from './lib/apiClient';
@@ -334,7 +334,7 @@ interface AssetDetailViewProps {
 }
 
 /**
- * Component for the Investment Detail page
+ * Component for the Asset Detail page
  */
 function AssetDetailView({
   allAssets,
@@ -370,7 +370,7 @@ function AssetDetailView({
     <div className="app">
       <Header {...headerProps} onAddSnapshot={() => onAddSnapshot(asset)} />
       <main className="main-content">
-        <InvestmentDetail
+        <AssetDetail
           asset={asset}
           persons={persons}
           onEdit={() => onEdit(asset)}
@@ -402,6 +402,7 @@ function AssetDetailView({
         isOpen={showImportModal}
         onClose={() => setShowImportModal(false)}
         assetName={asset.name}
+        ownerName={persons.find(p => p.id === asset.ownerId)?.name}
         onImport={(snapshots) => onImport(asset.id, snapshots)}
       />
 

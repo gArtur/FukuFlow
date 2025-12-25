@@ -16,13 +16,19 @@ export default function AssetList({ assets, persons, onUpdateValue, onDelete, on
         return (
             <section className="assets-section">
                 <div className="section-header">
-                    <h2 className="section-title">Investments</h2>
+                    <h2 className="section-title">Assets</h2>
                     <span className="section-count">0 assets</span>
                 </div>
                 <div className="empty-state">
                     <div className="empty-icon">💰</div>
-                    <h3 className="empty-title">No investments yet</h3>
-                    <p className="empty-text">Tap the + button to add your first investment</p>
+                    <h3 className="empty-title">No assets yet</h3>
+                    {persons.length === 0 ? (
+                        <p className="empty-text">
+                            Before adding assets, you need to create at least one person in <strong>Settings → People</strong>
+                        </p>
+                    ) : (
+                        <p className="empty-text">Tap the + button to add your first asset</p>
+                    )}
                 </div>
             </section>
         );
@@ -31,7 +37,7 @@ export default function AssetList({ assets, persons, onUpdateValue, onDelete, on
     return (
         <section className="assets-section">
             <div className="section-header">
-                <h2 className="section-title">Investments</h2>
+                <h2 className="section-title">Assets</h2>
                 <span className="section-count">{assets.length} assets</span>
             </div>
             <div className="assets-list">

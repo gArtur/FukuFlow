@@ -10,10 +10,11 @@ interface ImportCSVModalProps {
     isOpen: boolean;
     onClose: () => void;
     assetName: string;
+    ownerName?: string;
     onImport: (snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => Promise<ImportResult>;
 }
 
-export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }: ImportCSVModalProps) {
+export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, onImport }: ImportCSVModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<ImportResult | null>(null);
@@ -166,7 +167,10 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
                 </div>
 
                 <div className="modal-body">
-                    <p className="import-asset-name">Importing to: <strong>{assetName}</strong></p>
+                    <p className="import-asset-name">
+                        Importing to: <strong>{assetName}</strong>
+                        {ownerName && <span className="import-owner-badge"> ({ownerName})</span>}
+                    </p>
 
                     {!result ? (
                         <>
@@ -174,7 +178,7 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
                                 <h4>CSV File Format</h4>
                                 <p>Your CSV file should have the following columns:</p>
                                 <div className="csv-example">
-                                    <code>Date,Value,Investment Change,Notes</code>
+                                    <code>Date,Value,Invested,Notes</code>
                                     <code>2024-01-15,10000,5000,"Initial deposit"</code>
                                     <code>15/02/2024,10500,0,"Monthly update"</code>
                                     <code>2024-03-15,11000,1000,"Added funds"</code>
@@ -182,7 +186,7 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
                                 <ul className="import-tips">
                                     <li><strong>Date:</strong> YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY</li>
                                     <li><strong>Value:</strong> Current value at snapshot date (required)</li>
-                                    <li><strong>Investment Change:</strong> Positive = added, Negative = withdrawn</li>
+                                    <li><strong>Invested:</strong> Positive = added, Negative = withdrawn</li>
                                     <li><strong>Notes:</strong> Optional description</li>
                                 </ul>
                             </div>

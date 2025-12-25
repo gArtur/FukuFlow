@@ -49,7 +49,9 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
     const chartData = useMemo(() => {
         if (viewMode === 'category') {
             const categoryKeys = Object.keys(stats.byCategory) as AssetCategory[];
-            const nonZeroCategories = categoryKeys.filter(cat => stats.byCategory[cat] > 0);
+            const nonZeroCategories = categoryKeys
+                .filter(cat => stats.byCategory[cat] > 0)
+                .sort((a, b) => stats.byCategory[b] - stats.byCategory[a]);
 
             // Helpers to get label and color
             const getCategoryLabel = (key: string) => categoryConfig.find(c => c.key === key)?.label || key;

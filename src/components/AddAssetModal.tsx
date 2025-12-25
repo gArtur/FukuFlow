@@ -62,58 +62,76 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
 
     if (!isOpen) return null;
 
+    const hasNoPersons = persons.length === 0;
+
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2 className="modal-title">{editAsset ? 'Edit Investment' : 'Add Investment'}</h2>
+                    <h2 className="modal-title">{editAsset ? 'Edit Asset' : 'Add Asset'}</h2>
                     <button className="modal-close" onClick={onClose}>×</button>
                 </div>
-                <form className="modal-body" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label className="form-label">Investment Name</label>
-                        <input
-                            type="text"
-                            className="form-input"
-                            placeholder="e.g., Apple Stock, Bitcoin, Apartment"
-                            value={name}
-                            onChange={e => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-row">
-                        <div className="form-group">
-                            <label className="form-label">Category</label>
-                            <select
-                                className="form-select"
-                                value={category}
-                                onChange={e => setCategory(e.target.value as AssetCategory)}
-                            >
-                                {categories.map(cat => (
-                                    <option key={cat.key} value={cat.key}>{cat.label}</option>
-                                ))}
-                            </select>
+                {hasNoPersons && !editAsset ? (
+                    <div className="modal-body">
+                        <div className="empty-state" style={{ padding: 'var(--space-lg)' }}>
+                            <div className="empty-icon">👤</div>
+                            <h3 className="empty-title">No people configured</h3>
+                            <p className="empty-text">
+                                Before adding assets, you need to create at least one person.
+                                Go to <strong>Settings → People</strong> to add family members or owners.
+                            </p>
                         </div>
-                        <div className="form-group">
-                            <label className="form-label">Owner</label>
-                            <select
-                                className="form-select"
-                                value={ownerId}
-                                onChange={e => setOwnerId(e.target.value)}
-                            >
-                                {persons.map(person => (
-                                    <option key={person.id} value={person.id}>{person.name}</option>
-                                ))}
-                            </select>
-                        </div>
+                        <button type="button" className="form-submit" style={{ opacity: 0.5, cursor: 'not-allowed' }} disabled>
+                            Add Asset
+                        </button>
                     </div>
+                ) : (
+                    <form className="modal-body" onSubmit={handleSubmit}>
+                        <div className="form-group">
+                            <label className="form-label">Asset Name</label>
+                            <input
+                                type="text"
+                                className="form-input"
+                                placeholder="e.g., Apple Stock, Bitcoin, Apartment"
+                                value={name}
+                                onChange={e => setName(e.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="form-label">Category</label>
+                                <select
+                                    className="form-select"
+                                    value={category}
+                                    onChange={e => setCategory(e.target.value as AssetCategory)}
+                                >
+                                    {categories.map(cat => (
+                                        <option key={cat.key} value={cat.key}>{cat.label}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label className="form-label">Owner</label>
+                                <select
+                                    className="form-select"
+                                    value={ownerId}
+                                    onChange={e => setOwnerId(e.target.value)}
+                                >
+                                    {persons.map(person => (
+                                        <option key={person.id} value={person.id}>{person.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
 
 
-                    <button type="submit" className="form-submit">
-                        {editAsset ? 'Save Changes' : 'Add Investment'}
-                    </button>
-                </form>
+                        <button type="submit" className="form-submit">
+                            {editAsset ? 'Save Changes' : 'Add Asset'}
+                        </button>
+                    </form>
+                )}
             </div>
         </div>
     );
