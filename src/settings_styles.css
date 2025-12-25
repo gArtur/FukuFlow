@@ -1,3 +1,6 @@
+/* Import responsive module first - CSS @import must be at top */
+@import './styles/settings-responsive.css';
+
 /* Remove duplicate padding - main-content already provides page padding */
 .dashboard-container:has(.settings-layout) {
     padding: 0;
@@ -12,16 +15,10 @@
     align-items: flex-start;
 }
 
-/* Sidebar Navigation */
+/* Sidebar Navigation - Layout handled in settings-responsive.css (SRP) */
 .settings-sidebar {
-    width: 220px;
     display: flex;
-    flex-direction: column;
     gap: 4px;
-    flex-shrink: 0;
-    position: sticky;
-    top: 80px;
-    padding-top: var(--space-xs);
 }
 
 .settings-tab {
@@ -44,7 +41,8 @@
 .settings-tab.active {
     background: var(--bg-card);
     color: var(--text-primary);
-    font-weight: 500;
+    font-weight: 600;
+    /* Active indicator handled per-breakpoint in settings-responsive.css */
 }
 
 /* Main Content Area */
@@ -55,7 +53,8 @@
 
 .settings-section {
     scroll-margin-top: 60px;
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-md);
+    /* Reduced from space-xl */
 }
 
 /* Reset margin on .movers-title to match dashboard spacing.
@@ -67,7 +66,8 @@
 .section-divider {
     height: 1px;
     background: var(--border-color);
-    margin: var(--space-xl) 0;
+    margin: var(--space-md) 0;
+    /* Reduced from space-xl */
     opacity: 0.2;
 }
 
@@ -83,13 +83,7 @@
 .settings-row {
     display: flex;
     gap: var(--space-lg);
-    flex-wrap: nowrap;
-}
-
-@media (max-width: 900px) {
-    .settings-row {
-        flex-wrap: wrap;
-    }
+    /* Responsive wrapping handled in settings-responsive.css (SRP) */
 }
 
 .settings-group {
@@ -261,16 +255,7 @@
     border-color: var(--accent-primary);
 }
 
-.btn-add-purple {
-    background: var(--accent-primary);
-    color: #000;
-    border: none;
-    padding: 0 24px;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    height: 42px;
-}
+
 
 /* Custom Select */
 .custom-select-container {
@@ -351,6 +336,10 @@
     border: 1px solid var(--border-color);
     gap: 4px;
     width: 100%;
+    flex-wrap: wrap;
+    /* Allow wrapping if needed */
+    min-width: 0;
+    /* Allow shrinking */
 }
 
 .date-pill {
@@ -770,7 +759,7 @@
 }
 
 .btn-primary {
-    background: var(--accent-primary);
+    background: var(--gradient-primary);
     border: none;
     color: #000;
     padding: 10px 20px;

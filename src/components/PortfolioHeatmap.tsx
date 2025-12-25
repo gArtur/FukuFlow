@@ -310,16 +310,25 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
         const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
 
-        // Final Summary Basis: (Assets that existed before range start) + (Total flows during range)
+        // Final Summary Basis:
+        // Identify the "initial portfolio value" at the start of the visible range.
+        // This is the sum of (value at start of range) for all assets that existed then.
         let initialPortfolioBasis = 0;
+
+        // This is the sum of all inflows (investments) occurring DURING the visible range.
         let totalFlowInRange = 0;
 
         heatmapData.forEach(row => {
             if (row.cells.length > 0) {
                 const firstCell = row.cells[0];
-                if (!firstCell.isInception) {
+                // If asset existed at start of this view, its previousValue is part of the initial portfolio basis
+                // "isInception" means the asset was created IN this month, so it wasn't there before.
+                // So if !isInception, we add previousValue.
+                if (!firstCell.isInception && firstCell.exists) {
                     initialPortfolioBasis += firstCell.previousValue;
                 }
+
+                // Add up flows for all cells in range
                 row.cells.forEach(cell => {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     totalFlowInRange += (cell as any).monthlyFlow || 0;
@@ -329,7 +338,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
         const basis = initialPortfolioBasis + totalFlowInRange;
         const totalChangePercent = basis > 0 ? (totalChange / basis) * 100 : 0;
-        const startValue = cells.length > 0 ? cells[0].previousValue : 0;
+        const startValue = initialPortfolioBasis;
         const endValue = cells.length > 0 ? cells[cells.length - 1].value : 0;
 
         return {

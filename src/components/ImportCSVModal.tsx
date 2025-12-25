@@ -161,7 +161,7 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, onImport }:
         <div className="modal-overlay" onClick={handleClose}>
             <div className="modal import-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Import Snapshots</h2>
+                    <h2 className="modal-title">Import Snapshots</h2>
                     <button className="modal-close" onClick={handleClose}>×</button>
                 </div>
 

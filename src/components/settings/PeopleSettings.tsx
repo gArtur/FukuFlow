@@ -194,7 +194,7 @@ export default function PeopleSettings({
                                 }}
                             />
                         </div>
-                        <button onClick={handleAddPerson} className="btn-add-purple">
+                        <button onClick={handleAddPerson} className="btn-primary" style={{ flex: 'none' }}>
                             Add
                         </button>
                     </div>

@@ -119,7 +119,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Add Snapshot</h2>
+                    <h2 className="modal-title">Add Snapshot</h2>
                     <button className="modal-close" onClick={onClose}>×</button>
                 </div>
 

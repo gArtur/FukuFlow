@@ -45,28 +45,18 @@ A modern, elegant personal wealth management dashboard for tracking investments 
 - Docker
 - Docker Compose
 
-**1. Configuration**
+**1. Quick Setup**
 
-Copy the example environment file:
+Run the setup script to automatically configure your environment:
 ```bash
-cp .env.example .env
+node scripts/setup.cjs
 ```
 
-**2. Generate a Secure JWT Secret**
+This will:
+- Copy `.env.example` to `.env`
+- Generate a secure `JWT_SECRET` automatically
 
-You **must** set a secure `JWT_SECRET` in your `.env` file. Run this command to generate one:
-
-```bash
-# Generate a random 64-character hex string
-node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
-```
-
-Copy the output and paste it into your `.env` file:
-```env
-JWT_SECRET=your_generated_secret_here
-```
-
-**3. Run the Application**
+**2. Run the Application**
 
 Build and start the container:
 ```bash
@@ -124,6 +114,25 @@ npm run build
 ```
 
 The build output is in the `dist/` folder.
+
+### Generating Sample Data
+
+To populate the database with realistic sample data for testing:
+
+```bash
+node scripts/generate_sample_data.cjs
+```
+
+This will create 3 users (Alice, Bob, Charlie) with 6 years of randomized monthly history for various assets including Stocks, Crypto, Real Estate, and Bonds.
+
+### Clearing Sample Data
+
+To remove the generated sample users and their data:
+
+```bash
+node scripts/clear_sample_data.cjs
+```
+
 
 ## Project Structure
 

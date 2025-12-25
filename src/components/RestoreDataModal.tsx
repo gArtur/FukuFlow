@@ -88,7 +88,7 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
         <div className="modal-overlay" onClick={handleClose}>
             <div className="modal import-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Restore Data</h2>
+                    <h2 className="modal-title">Restore Data</h2>
                     <button className="modal-close" onClick={handleClose}>×</button>
                 </div>
 

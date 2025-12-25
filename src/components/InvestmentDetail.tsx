@@ -189,11 +189,11 @@ export default function InvestmentDetail({
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                            <span className={entry.periodGL >= 0 ? 'text-green' : 'text-red'}>
-                                                {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
+                                            <span className={entry.periodGL >= 0 ? 'text-green' : 'text-red'} style={{ fontWeight: 600, fontSize: '14px' }}>
+                                                {entry.periodGLPercent >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
                                             </span>
                                             <span style={{ fontSize: '11px', opacity: 0.8 }} className={entry.periodGL >= 0 ? 'text-green' : 'text-red'}>
-                                                {entry.periodGLPercent >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
+                                                {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
                                             </span>
                                         </div>
                                     </td>
@@ -274,38 +274,32 @@ export default function InvestmentDetail({
 
                             <div className="mobile-history-row">
                                 <span className="mobile-label">Period G/L</span>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div className={`mobile-value ${entry.periodGL >= 0 ? 'text-green' : 'text-red'}`}>
-                                        {entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)}
-                                    </div>
-                                    <div className={`mobile-sub-value ${entry.periodGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
-                                        {entry.periodGL >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
-                                    </div>
-                                </div>
+                                <span className={`mobile-value-inline ${entry.periodGL >= 0 ? 'text-green' : 'text-red'}`}>
+                                    {entry.periodGLPercent >= 0 ? '+' : ''}{entry.periodGLPercent.toFixed(2)}%
+                                    <span className="mobile-value-amount">
+                                        ({entry.periodGL >= 0 ? '+' : ''}{formatAmount(entry.periodGL)})
+                                    </span>
+                                </span>
                             </div>
 
                             <div className="mobile-history-row">
                                 <span className="mobile-label">YTD</span>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div className={`mobile-value ${entry.ytdROI >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
-                                        {entry.ytdROI >= 0 ? '+' : ''}{entry.ytdROI.toFixed(2)}%
-                                    </div>
-                                    <div className={`mobile-sub-value ${entry.ytdGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
-                                        {entry.ytdGL >= 0 ? '+' : ''}{formatAmount(entry.ytdGL)}
-                                    </div>
-                                </div>
+                                <span className={`mobile-value-inline ${entry.ytdROI >= 0 ? 'text-green' : 'text-red'}`}>
+                                    {entry.ytdROI >= 0 ? '+' : ''}{entry.ytdROI.toFixed(2)}%
+                                    <span className="mobile-value-amount">
+                                        ({entry.ytdGL >= 0 ? '+' : ''}{formatAmount(entry.ytdGL)})
+                                    </span>
+                                </span>
                             </div>
 
                             <div className="mobile-history-row">
                                 <span className="mobile-label">Cumulative</span>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div className={`mobile-value ${entry.roi >= 0 ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
-                                        {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
-                                    </div>
-                                    <div className={`mobile-sub-value ${entry.cumGL >= 0 ? 'text-green' : 'text-red'}`} style={{ opacity: 0.8 }}>
-                                        {entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)}
-                                    </div>
-                                </div>
+                                <span className={`mobile-value-inline ${entry.roi >= 0 ? 'text-green' : 'text-red'}`}>
+                                    {entry.roi >= 0 ? '+' : ''}{entry.roi.toFixed(2)}%
+                                    <span className="mobile-value-amount">
+                                        ({entry.cumGL >= 0 ? '+' : ''}{formatAmount(entry.cumGL)})
+                                    </span>
+                                </span>
                             </div>
 
                             {entry.notes && (

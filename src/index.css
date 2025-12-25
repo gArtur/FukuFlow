@@ -15,6 +15,7 @@
 @import './styles/variables.css';
 @import './styles/base.css';
 @import './styles/layout.css';
+@import './styles/responsive.css';
 
 /* Legacy styles below - gradually being migrated to modular files */
 
@@ -447,19 +448,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-md);
-  background: transparent;
-  border: 1px solid var(--accent-primary);
+  padding: 8px 16px;
+  background: var(--gradient-primary);
+  border: none;
   border-radius: var(--radius-md);
-  color: var(--accent-primary);
+  color: #000;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .add-asset-btn-inline:hover {
-  background: var(--accent-primary);
+  opacity: 0.9;
+  transform: translateY(-1px);
   color: #000;
 }
 
@@ -760,7 +762,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  /* Mobile: compact */
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 0;
@@ -769,13 +772,15 @@
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 16px;
+  /* Mobile: smaller */
   font-weight: 600;
 }
 
 .modal-close {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  /* Mobile: touch-friendly but compact */
+  height: 36px;
   border-radius: 50%;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
@@ -794,20 +799,58 @@
 }
 
 .modal-body {
-  padding: var(--space-lg);
+  padding: var(--space-sm) var(--space-md);
+  /* Mobile: compact */
 }
 
 /* ===== FORM ELEMENTS ===== */
 .form-group {
-  margin-bottom: var(--space-lg);
+  margin-bottom: var(--space-sm);
+  /* Mobile: compact */
 }
 
 .form-label {
   display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  margin-bottom: var(--space-sm);
+  font-size: 11px;
+  /* Mobile: compact uppercase labels */
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Desktop enhancements for modals and forms */
+@media (min-width: 768px) {
+  .modal-header {
+    padding: var(--space-lg);
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+  }
+
+  .modal-body {
+    padding: var(--space-lg);
+  }
+
+  .form-group {
+    margin-bottom: var(--space-lg);
+  }
+
+  .form-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+    text-transform: none;
+    letter-spacing: normal;
+  }
 }
 
 .form-input {
@@ -2035,6 +2078,12 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
+  margin-bottom: var(--space-md);
+  /* Add margin between cards */
+}
+
+.mobile-history-card:last-child {
+  margin-bottom: 0;
 }
 
 .mobile-history-header {
@@ -2068,6 +2117,7 @@
 .mobile-history-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
   font-size: 14px;
 }
@@ -2083,6 +2133,20 @@
 .mobile-value {
   font-weight: 500;
   color: var(--text-primary);
+}
+
+/* Inline value display - percentage and amount on one line */
+.mobile-value-inline {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mobile-value-amount {
+  font-weight: 400;
+  font-size: 12px;
+  opacity: 0.8;
 }
 
 .mobile-sub-value {

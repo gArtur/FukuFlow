@@ -23,7 +23,7 @@ export default function BackupSettings({ onShowRestoreModal }: BackupSettingsPro
     };
 
     return (
-        <section id="data" className="settings-section">
+        <section id="backup" className="settings-section">
             <div className="movers-header">
                 <div className="movers-header-left">
                     <h2 className="movers-title">Backup</h2>

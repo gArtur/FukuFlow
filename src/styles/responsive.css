@@ -1,0 +1,386 @@
+/**
+ * Responsive Styles
+ * 
+ * This file contains all responsive media queries for the main application.
+ * Breakpoints follow a mobile-first approach where possible.
+ * 
+ * Breakpoint Reference:
+ *   - xs: 360px  (small phones)
+ *   - sm: 480px  (large phones)
+ *   - md: 768px  (tablets)
+ *   - lg: 1024px (laptops)
+ *   - xl: 1280px (desktops)
+ *   - 2xl: 1440px (large monitors)
+ */
+
+/* ===== SMALL PHONES (360px and below) ===== */
+@media (max-width: 360px) {
+    .header-logo-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .header-title {
+        font-size: 16px;
+    }
+
+    .icon-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .chart-value {
+        font-size: 22px;
+    }
+
+    .detail-title {
+        font-size: 18px;
+    }
+
+    .stat-card-value {
+        font-size: 16px;
+    }
+
+    .mover-card {
+        padding: var(--space-sm);
+    }
+
+    .mover-value {
+        font-size: 16px;
+    }
+
+    .filter-tab {
+        padding: var(--space-xs) var(--space-sm);
+        font-size: 13px;
+    }
+}
+
+/* ===== LARGE PHONES (480px and below) ===== */
+@media (max-width: 480px) {
+
+    /* Header stacking */
+    .header-content {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+
+    .header-left {
+        flex: 1;
+        min-width: auto;
+    }
+
+    .header-actions {
+        gap: var(--space-sm);
+    }
+
+    /* Chart layout */
+    .chart-value {
+        font-size: 26px;
+    }
+
+    .chart-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chart-header-right {
+        flex-direction: row !important;
+        justify-content: space-between;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .time-range-tabs {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .time-tab {
+        padding: var(--space-xs) 8px;
+        font-size: 11px;
+    }
+
+    /* Date inputs */
+    .custom-date-range {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .date-input-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .date-input {
+        flex: 1;
+        min-height: 44px;
+    }
+
+    /* Investment detail - keep stats in row but compact */
+    .detail-stats {
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-sm);
+    }
+
+    .detail-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-sm);
+    }
+
+    .detail-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+    }
+
+    /* Stats row stacking */
+    .stats-row {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .stat-card {
+        width: 100%;
+    }
+
+    /* Allocation chart */
+    .doughnut-container {
+        height: 180px;
+    }
+
+    .doughnut-center-value {
+        font-size: 18px;
+    }
+
+    .allocation-legend-item {
+        grid-template-columns: 10px 1fr 40px 70px;
+        font-size: 12px;
+        gap: var(--space-xs);
+    }
+
+    /* Investment detail cards - compact on mobile */
+    .stat-card-detail {
+        padding: var(--space-sm);
+    }
+
+    .stat-label-detail {
+        font-size: 9px;
+        letter-spacing: 0.3px;
+    }
+
+    .stat-value-detail {
+        font-size: 16px;
+    }
+
+    .stat-sub-detail {
+        font-size: 10px;
+    }
+
+    .history-header-row {
+        padding: var(--space-sm) var(--space-md);
+    }
+
+    .history-title {
+        font-size: 14px;
+    }
+
+    /* Empty state */
+    .empty-state {
+        padding: var(--space-lg);
+    }
+
+    .empty-icon {
+        font-size: 36px;
+    }
+
+    .empty-title {
+        font-size: 16px;
+    }
+}
+
+/* ===== MOBILE HEATMAP (640px and below) ===== */
+@media (max-width: 640px) {
+    .heatmap-cell {
+        width: 48px;
+        min-width: 48px;
+        height: 40px;
+    }
+
+    .cell-change {
+        font-size: 9px;
+    }
+
+    .cell-value {
+        font-size: 7px;
+    }
+
+    .heatmap-month {
+        width: 52px;
+        min-width: 52px;
+        font-size: 9px;
+    }
+
+    .heatmap-asset-name {
+        width: 130px;
+        min-width: 130px;
+        padding: var(--space-xs) var(--space-sm);
+    }
+
+    .heatmap-asset-name-header {
+        width: 130px;
+        min-width: 130px;
+    }
+
+    .asset-name-text {
+        font-size: 11px;
+    }
+
+    .asset-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 10px;
+    }
+
+    .heatmap-cell-total,
+    .heatmap-total-header {
+        width: 80px;
+        min-width: 80px;
+        font-size: 10px;
+    }
+
+    .heatmap-legend {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        padding: var(--space-md) var(--space-sm);
+    }
+
+    .legend-cell {
+        width: 18px;
+        height: 12px;
+    }
+
+    .heatmap-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Larger slider thumbs for touch */
+    .range-slider::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    .range-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Stats summary */
+    .stat-card-label {
+        font-size: 11px;
+    }
+
+    .stat-card-value {
+        font-size: 18px;
+    }
+
+    /* Dashboard stats */
+    .stats-hero {
+        padding: var(--space-md);
+    }
+
+    .stats-value {
+        font-size: 28px;
+    }
+
+    .stats-change {
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+    }
+
+    /* Filter tabs scrollable */
+    .filter-tabs {
+        gap: var(--space-xs);
+        padding-bottom: var(--space-sm);
+        margin-bottom: var(--space-sm);
+    }
+
+    .filter-tab {
+        flex-shrink: 0;
+    }
+}
+
+/* ===== TABLETS AND PHONES: TOUCH-FRIENDLY (768px and below) ===== */
+@media (max-width: 768px) {
+
+    /* Form inputs - 16px prevents iOS zoom */
+    .form-input,
+    .form-select,
+    .combobox-input,
+    .input-dark {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    /* Modal mobile enhancements - base styles now mobile-first in index.css */
+    .modal {
+        max-height: 95vh;
+        margin-top: auto;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    /* Sticky action buttons at bottom - mobile enhancement */
+    .modal-actions {
+        flex-direction: column;
+        position: sticky;
+        bottom: 0;
+        background: var(--bg-secondary);
+        padding: var(--space-sm) var(--space-md);
+        border-top: 1px solid var(--border-color);
+        margin: 0 calc(-1 * var(--space-md));
+        width: calc(100% + 2 * var(--space-md));
+        gap: var(--space-sm);
+    }
+
+    /* Compact form input styling for mobile */
+    .form-input,
+    .combobox-input {
+        padding: 10px 12px;
+        font-size: 15px;
+    }
+
+    .modal-form {
+        gap: 0;
+    }
+
+    .form-hint {
+        font-size: 10px;
+        margin-top: 2px;
+    }
+
+    /* Touch-friendly buttons */
+    .btn-primary,
+    .btn-secondary,
+    .form-submit {
+        min-height: 48px;
+    }
+
+    /* Table scrolling */
+    .compact-table-container {
+        overflow-x: auto;
+    }
+
+    /* Always show action buttons on touch */
+    .table-action-btn {
+        opacity: 1;
+        padding: 8px 12px;
+        min-height: 36px;
+    }
+
+    .btn-small,
+    .btn-small-outline {
+        min-height: 36px;
+        padding: 8px 12px;
+    }
+}

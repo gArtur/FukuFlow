@@ -1,0 +1,301 @@
+/**
+ * Settings Page Responsive Styles
+ * 
+ * This file contains all responsive media queries specific to the Settings page.
+ * Separated from settings_styles.css to follow Single Responsibility Principle.
+ */
+
+/* ===== LARGE DESKTOPS (1280px and above): NO WRAP ===== */
+@media (min-width: 1281px) {
+    .settings-row {
+        flex-wrap: nowrap;
+    }
+}
+
+/* ===== DESKTOP (769px and above): STICKY SIDEBAR ===== */
+@media (min-width: 769px) {
+    .settings-sidebar {
+        width: 220px;
+        flex-direction: column;
+        flex-shrink: 0;
+        position: sticky;
+        top: 80px;
+        padding-top: var(--space-xs);
+    }
+
+    .settings-tab.active {
+        box-shadow: inset 4px 0 0 0 var(--accent-primary);
+        /* Gold indicator */
+    }
+}
+
+/* ===== LAPTOPS (900px - 1280px): 2-COLUMN WRAP ===== */
+@media (max-width: 1280px) and (min-width: 769px) {
+    .settings-row {
+        flex-wrap: wrap;
+    }
+
+    .settings-group {
+        flex: 1 1 calc(50% - var(--space-lg));
+        min-width: 200px;
+    }
+}
+
+/* ===== TABLETS AND BELOW (768px): STACKED LAYOUT ===== */
+@media (max-width: 768px) {
+    .settings-layout {
+        flex-direction: column;
+        gap: var(--space-sm);
+        /* Reduced from space-lg */
+        padding: 0;
+    }
+
+    /* Sidebar becomes horizontal scrollable tabs - centered */
+    .settings-sidebar {
+        width: 100%;
+        flex-direction: row;
+        justify-content: center;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        gap: var(--space-sm);
+        padding: var(--space-sm);
+        margin-bottom: var(--space-sm);
+        /* Reduced from space-md */
+        border-bottom: 1px solid var(--border-color);
+        position: static;
+        top: auto;
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+    }
+
+    .settings-tab {
+        white-space: nowrap;
+        flex-shrink: 0;
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        border-radius: var(--radius-md);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .settings-tab:hover {
+        background: var(--bg-card-hover);
+        border-color: var(--accent-primary);
+    }
+
+    .settings-tab.active {
+        background: var(--accent-primary);
+        color: #000;
+        border-color: var(--accent-primary);
+        font-weight: 600;
+        box-shadow: none;
+        /* Reset desktop sticky indicator */
+    }
+
+    /* Content fills width */
+    .settings-content {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+    }
+
+    /* Settings group card full-width */
+    .settings-group-card {
+        margin: 0;
+        border-radius: var(--radius-lg);
+    }
+
+    /* Stack rows vertically */
+    .settings-row {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .settings-group {
+        width: 100%;
+        min-width: 100%;
+    }
+
+    .data-row {
+        flex-direction: column;
+        gap: var(--space-lg);
+    }
+
+    .data-block {
+        width: 100%;
+    }
+
+    /* Single column grid for item cards */
+    .settings-items-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Always show actions on touch */
+    .item-card {
+        padding: var(--space-md);
+    }
+
+    .item-card-actions {
+        opacity: 1;
+    }
+
+    /* Date pills centered */
+    .date-range-pills {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .date-pill {
+        flex: 0 1 auto;
+        min-width: 60px;
+        padding: 10px 16px;
+    }
+
+    /* Password form */
+    .password-form-actions {
+        flex-direction: column;
+    }
+
+    /* Security settings */
+    .setting-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-md);
+    }
+
+    .setting-row button {
+        width: 100%;
+    }
+
+    /* Form inputs full width */
+    .input-group,
+    .custom-select-container {
+        width: 100%;
+    }
+}
+
+/* ===== LARGE PHONES (480px and below) ===== */
+@media (max-width: 480px) {
+    .settings-group-card {
+        padding: var(--space-md);
+    }
+
+    .settings-section {
+        margin-bottom: var(--space-lg);
+    }
+
+    /* Stack add person form */
+    .add-person-form-row {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    /* Stack edit inline */
+    .edit-person-inline {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--space-sm);
+    }
+
+    .edit-actions {
+        justify-content: flex-end;
+    }
+
+    /* Color swatches */
+    .color-swatches-row {
+        justify-content: flex-start;
+    }
+
+    /* Action buttons */
+    .action-buttons-row {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+
+    /* Custom select touch-friendly */
+    .custom-select-options {
+        max-height: 200px;
+    }
+
+    .custom-select-option {
+        padding: 14px 16px;
+        min-height: 48px;
+    }
+
+    /* Category items wrap */
+    .category-item-content {
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+    }
+}
+
+/* ===== SMALL PHONES (360px and below) ===== */
+@media (max-width: 360px) {
+    .settings-tab {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .item-name {
+        font-size: 0.9rem;
+    }
+
+    .person-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .action-icon-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .btn-icon-check,
+    .btn-icon-cross {
+        width: 36px;
+        height: 36px;
+    }
+
+    .input-dark {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .settings-label {
+        font-size: 0.7rem;
+    }
+}
+
+/* ===== TOUCH DEVICE IMPROVEMENTS ===== */
+@media (hover: none) and (pointer: coarse) {
+    .item-card-actions {
+        opacity: 1;
+    }
+
+    .action-icon-btn,
+    .btn-icon-check,
+    .btn-icon-cross {
+        width: 44px;
+        height: 44px;
+    }
+
+    .move-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .settings-tab {
+        min-height: 44px;
+    }
+
+    .custom-select-trigger {
+        min-height: 48px;
+    }
+
+    .input-dark,
+    .form-field input {
+        min-height: 48px;
+    }
+}

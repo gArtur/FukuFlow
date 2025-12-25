@@ -199,7 +199,7 @@ export default function CategoriesSettings({
                                 />
                             </div>
                         </div>
-                        <button onClick={handleAddCategory} className="btn-add-purple">
+                        <button onClick={handleAddCategory} className="btn-primary" style={{ flex: 'none' }}>
                             Add
                         </button>
                     </div>

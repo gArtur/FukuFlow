@@ -56,7 +56,7 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
             <div className="modal-overlay" onClick={onClose}>
                 <div className="modal" onClick={e => e.stopPropagation()}>
                     <div className="modal-header">
-                        <h2>Edit Snapshot</h2>
+                        <h2 className="modal-title">Edit Snapshot</h2>
                         <button className="modal-close" onClick={onClose}>×</button>
                     </div>
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import type { Person, Asset } from '../types';
 import '../settings_styles.css';
@@ -66,10 +66,41 @@ export default function Settings({
     // Restore Modal State
     const [showRestoreModal, setShowRestoreModal] = useState(false);
 
+    // Active Section State
+    const [activeSection, setActiveSection] = useState<string>('general');
+
+    // Scroll Spy Effect
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setActiveSection(entry.target.id);
+                    }
+                });
+            },
+            {
+                root: null,
+                rootMargin: '-20% 0px -60% 0px', // Trigger when section is near top
+                threshold: 0
+            }
+        );
+
+        const sections = document.querySelectorAll('.settings-section');
+        sections.forEach((section) => observer.observe(section));
+
+        return () => {
+            sections.forEach((section) => observer.unobserve(section));
+        };
+    }, []);
+
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+            // Offset for sticky header if needed, though scrollIntoView usually handles it
+            const y = element.getBoundingClientRect().top + window.pageYOffset - 100;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            setActiveSection(id);
         }
     };
 
@@ -90,19 +121,34 @@ export default function Settings({
             <div className="settings-layout">
                 {/* Sidebar Navigation */}
                 <nav className="settings-sidebar">
-                    <button className="settings-tab" onClick={() => scrollToSection('general')}>
+                    <button
+                        className={`settings-tab ${activeSection === 'general' ? 'active' : ''}`}
+                        onClick={() => scrollToSection('general')}
+                    >
                         General
                     </button>
-                    <button className="settings-tab" onClick={() => scrollToSection('people')}>
+                    <button
+                        className={`settings-tab ${activeSection === 'people' ? 'active' : ''}`}
+                        onClick={() => scrollToSection('people')}
+                    >
                         People
                     </button>
-                    <button className="settings-tab" onClick={() => scrollToSection('categories')}>
+                    <button
+                        className={`settings-tab ${activeSection === 'categories' ? 'active' : ''}`}
+                        onClick={() => scrollToSection('categories')}
+                    >
                         Categories
                     </button>
-                    <button className="settings-tab" onClick={() => scrollToSection('data')}>
+                    <button
+                        className={`settings-tab ${activeSection === 'backup' ? 'active' : ''}`}
+                        onClick={() => scrollToSection('backup')}
+                    >
                         Backup
                     </button>
-                    <button className="settings-tab" onClick={() => scrollToSection('security')}>
+                    <button
+                        className={`settings-tab ${activeSection === 'security' ? 'active' : ''}`}
+                        onClick={() => scrollToSection('security')}
+                    >
                         Security
                     </button>
                 </nav>
