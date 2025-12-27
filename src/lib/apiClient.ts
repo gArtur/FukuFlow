@@ -164,7 +164,7 @@ export const ApiClient = {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async restoreBackup(backupData: any) {
-        const response = await authFetch(`${API_URL}/restore`, {
+        const response = await authFetch(`${API_URL}/backup/restore`, {
             method: 'POST',
             body: JSON.stringify(backupData)
         });

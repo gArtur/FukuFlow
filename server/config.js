@@ -22,6 +22,7 @@ if (isProduction) {
 
 module.exports = {
     port: parseInt(process.env.PORT, 10) || 3001,
+    host: process.env.HOST || '0.0.0.0',
     corsOrigin,
     databasePath: process.env.DATABASE_PATH
         ? path.resolve(__dirname, process.env.DATABASE_PATH)

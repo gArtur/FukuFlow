@@ -1,4 +1,4 @@
-# WealthFlow - Personal Wealth Management
+# FukuFlow - Personal Wealth Management
 
 A modern, elegant personal wealth management dashboard for tracking investments across multiple asset categories and family members.
 

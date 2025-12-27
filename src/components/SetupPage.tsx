@@ -44,13 +44,9 @@ export default function SetupPage() {
         <div className="auth-container">
             <div className="auth-card setup-card">
                 <div className="auth-logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                        <path d="M2 17l10 5 10-5" />
-                        <path d="M2 12l10 5 10-5" />
-                    </svg>
+                    <img src="/logo.svg" alt="FukuFlow" />
                 </div>
-                <h1 className="auth-title">Welcome to WealthFlow</h1>
+                <h1 className="auth-title">Welcome to FukuFlow</h1>
                 <p className="auth-subtitle">Create a password to secure your data</p>
 
                 <form onSubmit={handleSubmit} className="auth-form">

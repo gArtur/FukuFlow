@@ -2,7 +2,7 @@ import type { ValueEntry } from '../types';
 
 interface ProcessedHistoryEntry extends ValueEntry {
     cumInvested: number;
-    investmentChange: number;
+    investmentChange?: number;
     periodGL: number;
     periodGLPercent: number;
     ytdGL: number;

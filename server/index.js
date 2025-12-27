@@ -34,10 +34,10 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"], // Required for inline styles
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Required for inline styles and fonts
             imgSrc: ["'self'", "data:", "blob:"],
             connectSrc: ["'self'"],
-            fontSrc: ["'self'"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
             objectSrc: ["'none'"],
             frameAncestors: ["'none'"],
         }
@@ -129,8 +129,8 @@ app.use(errorHandler);
 // SERVER START
 // ============================================
 
-const server = app.listen(config.port, () => {
-    console.log(`Server running on http://localhost:${config.port}`);
+const server = app.listen(config.port, config.host, () => {
+    console.log(`Server running on http://${config.host}:${config.port}`);
 });
 
 // Graceful shutdown

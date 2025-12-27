@@ -1,5 +1,5 @@
 /**
- * Setup Script for WealthFlow
+ * Setup Script for FukuFlow
  * ----------------------------
  * This script automates the initial setup by:
  * 1. Copying .env.example to .env (if .env doesn't exist)
@@ -16,7 +16,7 @@ const ROOT_DIR = path.join(__dirname, '..');
 const ENV_EXAMPLE = path.join(ROOT_DIR, '.env.example');
 const ENV_FILE = path.join(ROOT_DIR, '.env');
 
-console.log('🚀 WealthFlow Setup\n');
+console.log('🚀 FukuFlow Setup\n');
 
 // Step 1: Check if .env already exists
 if (fs.existsSync(ENV_FILE)) {

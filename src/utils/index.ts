@@ -1,5 +1,5 @@
 /**
- * Shared utility functions for the WealthFlow application
+ * Shared utility functions for the FukuFlow application
  */
 
 /**

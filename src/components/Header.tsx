@@ -15,8 +15,8 @@ export default function Header({ onAddSnapshot }: HeaderProps) {
             <div className="header-content">
                 <div className="header-left">
                     <div className="header-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-                        <div className="header-logo-icon">W</div>
-                        <span className="header-title">WealthFlow</span>
+                        <img src="/logo.svg" alt="FukuFlow" className="header-logo-icon" />
+                        <span className="header-title">FukuFlow</span>
                     </div>
                 </div>
                 <div className="header-actions">
