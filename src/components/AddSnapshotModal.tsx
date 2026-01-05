@@ -15,7 +15,7 @@ interface AddSnapshotModalProps {
 // Use settings-aware currency formatting
 function useFormatCurrency() {
     const { currency } = useSettings();
-    return (amount: number) => formatCurrencyUtil(amount, currency);
+    return (amount: number, decimals: number = 0) => formatCurrencyUtil(amount, currency, decimals);
 }
 
 export default function AddSnapshotModal({ isOpen, onClose, asset, assets, persons, onSubmit }: AddSnapshotModalProps) {
@@ -53,7 +53,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                 setSearchQuery('');
                 setValue('');
             }
-            setInvestmentChange('0');
+            setInvestmentChange('');
             setNotes('');
             setDate(new Date().toISOString().split('T')[0]);
             setShowSuggestions(false);
@@ -97,8 +97,19 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     };
 
     const currentValueNum = parseValue(value);
-    const changeAmount = currentValueNum - lastValue;
-    const changePercent = lastValue > 0 ? ((changeAmount / lastValue) * 100) : 0;
+    const investmentChangeNum = parseValue(investmentChange);
+
+    // Market Gain = (Current Value - Last Value) - Net Investment Change
+    // e.g. Start 1000, Add 500, End 1600.
+    // Total diff = 600. Market Gain = 600 - 500 = 100.
+    // Fix floating point precision issues (e.g. -0.0000001 becoming -0)
+    let marketGain = (currentValueNum - lastValue) - investmentChangeNum;
+    if (Math.abs(marketGain) < 0.0001) marketGain = 0;
+
+    // Adjusted start value (basis) for percentage calculation
+    const adjustedStartValue = lastValue + investmentChangeNum;
+
+    const marketGainPercent = adjustedStartValue > 0 ? ((marketGain / adjustedStartValue) * 100) : 0;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -204,9 +215,14 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                             required
                         />
                         {value && (
-                            <div className={`value-change-indicator ${changeAmount >= 0 ? 'positive' : 'negative'}`}>
-                                {changeAmount >= 0 ? '+' : ''}{formatCurrency(changeAmount)}
-                                ({changePercent >= 0 ? '+' : ''}{changePercent.toFixed(2)}%)
+                            <div className={`value-change-indicator ${marketGain > 0 ? 'positive' : marketGain < 0 ? 'negative' : 'neutral'}`}>
+                                {marketGain === 0 ? 'No Change' : (
+                                    <>
+                                        {marketGain > 0 ? 'Gain: +' : 'Loss: '}
+                                        {formatCurrency(marketGain, 2)}
+                                        {` (${marketGainPercent >= 0 ? '+' : ''}${marketGainPercent.toFixed(2)}%)`}
+                                    </>
+                                )}
                             </div>
                         )}
                     </div>

@@ -39,18 +39,20 @@ export function handleNumberInput(
  * @param currency - Currency code (default: 'USD')
  * @returns Formatted currency string
  */
-export function formatCurrency(value: number, currency: string = 'USD'): string {
+export function formatCurrency(value: number, currency: string = 'USD', decimals: number = 0): string {
     if (currency === 'PLN') {
         return new Intl.NumberFormat('en-US', {
             style: 'decimal',
-            maximumFractionDigits: 0
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
         }).format(value) + ' zł';
     }
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency,
-        maximumFractionDigits: 0
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
     }).format(value);
 }
 
