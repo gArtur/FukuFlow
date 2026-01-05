@@ -108,12 +108,37 @@ npm run dev
 The app opens at `http://localhost:5173`
 
 ### Building for Production
-
+#### Web Build
 ```bash
 npm run build
 ```
-
 The build output is in the `dist/` folder.
+
+#### Standalone Executable (.exe)
+To package the application as a single portable executable file (server + frontend bundled):
+
+```bash
+npm run build:full
+```
+This command will:
+1. Generate the tray icon (`server/logo.ico`)
+2. Build the React frontend (`dist/`)
+3. Package the Node.js server and dependencies using `pkg`
+4. Patch the executable to run without a console window
+
+The output is `fukuflow.exe` in the `dist-exe/` folder.
+
+**Running the Executable:**
+- Double-click `fukuflow.exe` to start the server
+- The application runs in the background with a **System Tray icon** (gold "F")
+- Right-click the tray icon to:
+  - **Open FukuFlow** - Launch in browser
+  - **Run at Startup** - Toggle Windows auto-start
+  - **Exit** - Stop the server
+- Data is stored in `%APPDATA%\FukuFlow\wealth.db`
+
+**Note on Windows:** This process automatically handles downloading the correct SQLite3 native bindings for the bundled Node.js runtime.
+
 
 ### Generating Sample Data
 

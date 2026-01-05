@@ -20,6 +20,10 @@ const assetsRoutes = require('./routes/assets');
 const snapshotsRoutes = require('./routes/snapshots');
 const backupRoutes = require('./routes/backup');
 
+// Detect if we are running in a packaged environment (pkg)
+const isPkg = typeof process.pkg !== 'undefined';
+const isProduction = config.isProduction || isPkg;
+
 // Express app setup
 const app = express();
 
@@ -28,13 +32,12 @@ const app = express();
 // ============================================
 
 // Security headers
-// Security headers
 app.use(helmet({
-    contentSecurityPolicy: config.isProduction ? {
+    contentSecurityPolicy: isProduction ? {
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"], // Required for inline styles and fonts
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
             imgSrc: ["'self'", "data:", "blob:"],
             connectSrc: ["'self'"],
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -56,16 +59,16 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 
 // Rate limiting (applies to all /api routes)
-// Rate limiting (applies to all /api routes)
 app.use('/api', apiLimiter);
 
 // ============================================
 // STATIC ASSETS (Production Only)
 // ============================================
 
-if (config.isProduction) {
+if (isProduction) {
     // Serve static files from the React frontend app
-    // This must be BEFORE auth middleware
+    // When in pkg, __dirname points to the virtual filesystem inside the exe
+    // We assume 'dist' is adjacent to 'server' in the build or packaged correctly
     app.use(express.static(path.join(__dirname, '../dist')));
 }
 
@@ -92,9 +95,7 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Authentication middleware for protected routes
 // Authentication middleware for protected api routes
-// Only apply to routes starting with /api that are defined after this
 app.use('/api', authMiddleware);
 
 // Protected routes
@@ -105,15 +106,12 @@ app.use('/api/assets', assetsRoutes);
 app.use('/api/snapshots', snapshotsRoutes);
 app.use('/api/backup', backupRoutes);
 
-app.use('/api/backup', backupRoutes);
-
 // ============================================
 // SPA CATCH-ALL (Production Only)
 // ============================================
 
-if (config.isProduction) {
+if (isProduction) {
     // Anything that doesn't match the above routes, send back index.html
-    // This allows client-side routing to work
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, '../dist/index.html'));
     });
@@ -129,8 +127,58 @@ app.use(errorHandler);
 // SERVER START
 // ============================================
 
-const server = app.listen(config.port, config.host, () => {
+const server = app.listen(config.port, config.host, async () => {
+    // Always use localhost for opening the browser, even if binding to 0.0.0.0
+    const url = `http://localhost:${config.port}`;
     console.log(`Server running on http://${config.host}:${config.port}`);
+
+    // Initialize System Tray
+    try {
+        const TrayManager = require('./tray');
+        const tray = new TrayManager(config.port);
+        await tray.initialize();
+    } catch (err) {
+        console.error('Failed to initialize system tray:', err);
+    }
+
+    if (isPkg) {
+        try {
+            // Use native Windows command to open default browser if tray fails or as backup
+            // But tray handles opening, so maybe we only do auto-open if configured?
+            // For now, let's keep the auto-open on launch behavior
+            const { exec } = require('child_process');
+            exec(`start ${url}`, (err) => {
+                if (err) {
+                    // console.error('Failed to open browser:', err);
+                }
+            });
+        } catch (err) {
+            console.error('Failed to open browser:', err);
+        }
+    }
+});
+
+// Handle EADDRINUSE (Address already in use)
+server.on('error', (e) => {
+    if (e.code === 'EADDRINUSE') {
+        console.log('Address in use, retrying...');
+        const url = `http://localhost:${config.port}`;
+        // If server is already running, just open the browser
+        if (isPkg) {
+            console.log('Server is already running. Opening browser...');
+            const { exec } = require('child_process');
+            exec(`start ${url}`, (err) => {
+                if (err) console.error('Failed to open browser:', err);
+                // Exit successfully after opening browser
+                process.exit(0);
+            });
+        } else {
+            console.error(`Port ${config.port} is already in use.`);
+            process.exit(1);
+        }
+    } else {
+        console.error('Server error:', e);
+    }
 });
 
 // Graceful shutdown

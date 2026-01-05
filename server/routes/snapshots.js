@@ -18,7 +18,7 @@ router.delete('/:id', validateIntegerIdParam, (req, res) => {
                 db.run('DELETE FROM asset_history WHERE id = ?', [snapshotId], (err) => {
                     if (err) return res.status(500).json({ error: 'Failed to delete snapshot' });
 
-                    db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC LIMIT 1',
+                    db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1',
                         [snapshot.assetId], (err, latest) => {
                             if (latest) {
                                 db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [latest.value, snapshot.assetId]);
@@ -49,7 +49,7 @@ router.put('/:id', validateIntegerIdParam, validateSnapshotUpdate, (req, res) =>
                     [investmentDiff, oldSnapshot.assetId], (err) => {
                         if (err) return res.status(500).json({ error: 'Failed to update snapshot' });
 
-                        db.get('SELECT id, value FROM asset_history WHERE assetId = ? ORDER BY date DESC LIMIT 1',
+                        db.get('SELECT id, value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1',
                             [oldSnapshot.assetId], (err, latest) => {
                                 if (latest && latest.id == snapshotId) {
                                     db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, oldSnapshot.assetId]);

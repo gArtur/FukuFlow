@@ -109,7 +109,7 @@ export default function SetupPage() {
                 </form>
 
                 <p className="auth-note">
-                    This password will be required each time you access WealthFlow.
+                    This password will be required each time you access FukuFlow.
                     Make sure to remember it!
                 </p>
             </div>

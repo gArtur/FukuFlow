@@ -51,7 +51,12 @@ async function clearData() {
         console.log('Cleanup complete!');
 
     } catch (err) {
-        console.error('Error clearing data:', err);
+        if (err.code === 'SQLITE_ERROR' && err.message.includes('no such table')) {
+            console.log('⚠️  Database tables not found. The database appears to be empty or uninitialized.');
+            console.log('   Nothing to clear.');
+        } else {
+            console.error('Error clearing data:', err);
+        }
     } finally {
         db.close();
     }

@@ -1,9 +1,25 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
-// Database setup
-const dbPath = path.resolve(__dirname, 'db', 'wealth.db');
+// Determine database path based on environment
+let dbPath;
+const appName = 'FukuFlow';
+
+if (process.env.APPDATA) {
+    // Windows
+    const appDataDir = path.join(process.env.APPDATA, appName);
+    if (!fs.existsSync(appDataDir)) {
+        fs.mkdirSync(appDataDir, { recursive: true });
+    }
+    dbPath = path.join(appDataDir, 'wealth.db');
+} else {
+    // Fallback for dev or non-Windows (though the request is Windows specific)
+    dbPath = path.resolve(__dirname, 'db', 'wealth.db');
+}
+
+console.log('Database path:', dbPath);
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
@@ -131,7 +147,7 @@ function syncAssets() {
             a.id,
             (SELECT h.value FROM asset_history h 
              WHERE h.assetId = a.id 
-             ORDER BY h.date DESC LIMIT 1) as latestValue,
+             ORDER BY h.date DESC, h.id DESC LIMIT 1) as latestValue,
             COALESCE(SUM(ah.investmentChange), 0) as totalInvested
         FROM assets a
         LEFT JOIN asset_history ah ON a.id = ah.assetId

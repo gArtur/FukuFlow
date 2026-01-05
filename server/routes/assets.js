@@ -13,7 +13,7 @@ router.get('/', (req, res) => {
                h.investmentChange, h.notes
         FROM assets a
         LEFT JOIN asset_history h ON a.id = h.assetId
-        ORDER BY a.id, h.date ASC
+        ORDER BY a.id, h.date ASC, h.id ASC
     `, [], (err, rows) => {
         if (err) return res.status(500).json({ error: 'Failed to fetch assets' });
 
@@ -124,7 +124,7 @@ router.post('/:id/snapshot', validateUuidParam, validateSnapshot, (req, res) => 
                     [id, date, value, investmentChange, notes], function (err) {
                         if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
-                        db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC LIMIT 1', [id], (err, latestSnapshot) => {
+                        db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1', [id], (err, latestSnapshot) => {
                             if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
 
                             if (latestSnapshot) {
