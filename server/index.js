@@ -132,13 +132,15 @@ const server = app.listen(config.port, config.host, async () => {
     const url = `http://localhost:${config.port}`;
     console.log(`Server running on http://${config.host}:${config.port}`);
 
-    // Initialize System Tray
-    try {
-        const TrayManager = require('./tray');
-        const tray = new TrayManager(config.port);
-        await tray.initialize();
-    } catch (err) {
-        console.error('Failed to initialize system tray:', err);
+    // Initialize System Tray (only for packaged exe, not Docker)
+    if (isPkg) {
+        try {
+            const TrayManager = require('./tray');
+            const tray = new TrayManager(config.port);
+            await tray.initialize();
+        } catch (err) {
+            console.error('Failed to initialize system tray:', err);
+        }
     }
 
     if (isPkg) {

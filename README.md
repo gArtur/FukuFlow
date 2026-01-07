@@ -7,28 +7,48 @@ A modern, elegant personal wealth management dashboard for tracking investments 
 
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-7-purple) ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 
+## Screenshots
+Dashboard
+![Dashboard](assets/FukuFlow-Dashboard.png)
+
+Private Mode
+![Private Mode](assets/FukuFlow-PrivateMode.png)
+
+Heatmap
+![Heatmap](assets/FukuFlow-HeatMap.png)
+
+Dark | Light | High Contrast Themes
+![Themes](assets/FukuFlow-Themes.png)
+
 ## Features
 
 ### Dashboard & Visualization
-- 📊 **Premium Dashboard** - Visualize total worth and performance with high-performance interactive charts.
-- 📈 **Interactive Sparklines** - Real-time gradient-filled performance graphs on every investment card for instant trend analysis.
-- 🗺️ **Portfolio Heatmap** - Month-by-month performance heatmap with Red-White-Green gradient, showing percentage changes across all assets with interactive tooltips.
-- 🍰 **Dual-Mode Allocation** - Flip between Category grouping and Individual Investment views in a stunning doughnut visualization.
+- 📊 **Dashboard** - Visualize total worth and performance with interactive charts.
+- 📈 **Sparklines** - Performance graphs on investment cards for trend analysis.
+- 🗺️ **Portfolio Heatmap** - Monthly performance heatmap showing percentage changes across assets.
+- 🍰 **Asset Allocation** - View allocation by Category or Individual Investment.
 
 ### Asset Management
-- 👨‍👩‍👧‍👦 **Multi-Person Management** - Dynamic person management with drag-and-drop reordering and per-owner tracking.
-- 🕒 **Advanced Snapshot System** - Detailed history for every asset with date-specific values, cumulative G/L tracking, and performance notes.
-- 🔍 **Synced Filters** - Filter settings sync across Dashboard and Heatmap views, with persistent default filter preferences.
+- 👨‍👩‍👧‍👦 **Multi-Person Management** - Manage portfolios for multiple family members.
+- 🕒 **Snapshot System** - Track asset value history, cumulative gains/losses, and notes.
+- 🔍 **Synced Filters** - Filter settings sync across Dashboard and Heatmap views.
 
 ### Data & Privacy
-- 📁 **Smart CSV Import** - Bulk import snapshot history with support for multiple date formats and drag-and-drop interface.
-- 💾 **Backup & Restore** - Full database backup export and restore functionality with data overwrite warnings.
-- 🔒 **Privacy Mode** - Securely hide sensitive financial data while preserving trend visibility via percentage-based visualization.
+- 📁 **CSV Import** - Bulk import snapshot history with support for multiple date formats.
+- 💾 **Backup & Restore** - Full database backup export and restore functionality.
+- 🔒 **Privacy Mode** - Hide financial values while maintaining trend visibility.
 
 ### User Experience
-- ⚙️ **Redesigned Settings** - Single-page scrollable settings with sticky sidebar navigation for General, People, Categories, and Backup sections.
-- 🎨 **Modern Dark UI** - State-of-the-art glassmorphism design with a curated color palette and micro-animations.
-- 📱 **Responsive Design** - Mobile-optimized header and layouts that adapt to any screen size.
+- ⚙️ **Settings** - Centralized management for General, People, Categories, and Backups.
+- 🎨 **User Interface** - Dark theme with responsive design for mobile and desktop.
+
+## Why "FukuFlow"?
+
+The name combines two concepts:
+*   **Fuku (福)**: Japanese for "good fortune", "wealth", or "luck".
+*   **Flow**: Represents the steady movement and management of assets.
+
+Together, it symbolizes the continuous flow of good fortune and wealth management.
 
 ## Tech Stack
 
@@ -232,15 +252,7 @@ Wealth-Management/
 | GET | `/api/backup` | Export database backup |
 | POST | `/api/backup/restore` | Restore from backup |
 
-## Screenshots
 
-The application features a dark, premium design with:
-- Total Worth chart with time range filters
-- Portfolio Heatmap with monthly performance tracking
-- Asset allocation doughnut chart (by category or individual asset)
-- Investment cards with quick snapshot actions and sparklines
-- Detailed investment history view with cumulative G/L
-- Redesigned settings panel with sidebar navigation
 
 ## License
 
