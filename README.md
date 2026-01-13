@@ -60,7 +60,22 @@ Together, it symbolizes the continuous flow of good fortune and wealth managemen
 | Database | SQLite3 |
 
 ### Deployment & CI/CD
-**Docker (Recommended)**
+
+#### Option 1: Quick Start (Pre-built Image)
+Use this if you just want to run the application without building it from source.
+
+Run the following command in your terminal:
+```bash
+docker run -d \
+  -p 3001:3001 \
+  -v fukuflow-data:/app/server/db \
+  --name fukuflow-app \
+  ghcr.io/gartur/fukuflow:latest
+```
+The application will be available at `http://localhost:3001`.
+
+#### Option 2: Build from Source (Docker Compose)
+Use this if you want to develop or customize the build.
 
 The application is fully containerized. You can run it locally or deploy it using the provided `docker-compose.yml`.
 

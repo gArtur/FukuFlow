@@ -5,6 +5,9 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
+# Upgrade npm to fixed version
+RUN npm install -g npm@11.7.0
+
 # Copy root package files and install dependencies
 # We use 'npm ci' for a clean, deterministic install
 COPY package*.json ./
@@ -25,6 +28,9 @@ RUN npm run build
 FROM node:20-alpine AS backend-builder
 
 WORKDIR /server
+
+# Upgrade npm to fixed version
+RUN npm install -g npm@11.7.0
 
 # Copy server package files specifically
 COPY server/package*.json ./
