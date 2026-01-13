@@ -43,6 +43,11 @@ RUN npm ci --only=production
 # ==========================================
 FROM node:20-alpine AS production
 
+# Link image to GitHub Repository
+LABEL org.opencontainers.image.source=https://github.com/gArtur/FukuFlow
+LABEL org.opencontainers.image.description="FukuFlow - Personal Wealth Management Dashboard"
+LABEL org.opencontainers.image.licenses=MIT
+
 WORKDIR /app
 
 # Install simple tool for healthchecks
