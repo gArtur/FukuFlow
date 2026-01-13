@@ -1,5 +1,5 @@
 {
-  "name": "wealth-management-server",
+  "name": "fukuflow-server",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

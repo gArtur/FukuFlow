@@ -39,13 +39,16 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
+# Install simple tool for healthchecks
+RUN apk add --no-cache wget
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV HOST=0.0.0.0
 
-# Create a non-root user for security (good practice, though we use the 'node' user below)
-# Note: 'node' user already exists in alpine images
+# Create a non-root user for security
+# The 'node' user already exists in alpine images, but we ensure permissions
 
 # Copy backend dependencies from stage 2
 COPY --from=backend-builder /server/node_modules ./server/node_modules

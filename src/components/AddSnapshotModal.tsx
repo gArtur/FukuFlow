@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Asset, Person } from '../types';
 import { parseValue, handleNumberInput, formatCurrency as formatCurrencyUtil } from '../utils';
 import { useSettings } from '../contexts/SettingsContext';
@@ -20,16 +20,50 @@ function useFormatCurrency() {
 
 export default function AddSnapshotModal({ isOpen, onClose, asset, assets, persons, onSubmit }: AddSnapshotModalProps) {
     const formatCurrency = useFormatCurrency();
-    const [selectedAssetId, setSelectedAssetId] = useState<string>('');
-    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [selectedAssetId, setSelectedAssetId] = useState<string>(asset?.id || '');
+    // Initial search query based on incoming asset or empty
+    const [searchQuery, setSearchQuery] = useState<string>(asset?.name || '');
     const [showSuggestions, setShowSuggestions] = useState(false);
+
     const [value, setValue] = useState('');
     const [investmentChange, setInvestmentChange] = useState('');
     const [notes, setNotes] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
 
     // Determine the active asset (either passed directly or selected from dropdown)
-    const activeAsset = asset || (assets?.find(a => a.id === selectedAssetId) ?? null);
+    // We name this variable distinct from the state update logic to avoid confusion
+    const activeAssetProvidedByState = assets?.find(a => a.id === selectedAssetId) ?? null;
+
+    // Track previous asset to detect prop changes
+    const [prevAssetId, setPrevAssetId] = useState(asset?.id);
+
+    const [wasOpen, setWasOpen] = useState(isOpen);
+
+    if (isOpen && !wasOpen) {
+        // Modal just opened: Reset form
+        setWasOpen(true);
+        // If we have a fixed asset, ensure it's selected
+        if (asset) {
+            if (selectedAssetId !== asset.id) setSelectedAssetId(asset.id);
+            setSearchQuery(asset.name);
+        } else {
+            // Global mode reset
+            if (activeAssetProvidedByState && activeAssetProvidedByState.id !== selectedAssetId) {
+                // If we want to persist selection, do nothing. If we want to clear:
+                setSelectedAssetId('');
+                setSearchQuery('');
+            }
+        }
+        setValue('');
+        setInvestmentChange('');
+        setNotes('');
+        setDate(new Date().toISOString().split('T')[0]);
+        setShowSuggestions(false);
+    } else if (!isOpen && wasOpen) {
+        setWasOpen(false);
+    }
+
+    const activeAsset = asset || activeAssetProvidedByState;
     const lastValue = activeAsset?.currentValue || 0;
 
     const getOwnerName = (ownerId: string) => {
@@ -42,30 +76,20 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
         return `${a.name} (${ownerName}) - ${formattedValue}`;
     };
 
-    useEffect(() => {
-        if (isOpen) {
-            if (asset) {
-                setSelectedAssetId(asset.id);
-                setSearchQuery(asset.name);
-                setValue('');
-            } else if (assets && assets.length > 0) {
-                setSelectedAssetId('');
-                setSearchQuery('');
-                setValue('');
-            }
-            setInvestmentChange('');
-            setNotes('');
-            setDate(new Date().toISOString().split('T')[0]);
-            setShowSuggestions(false);
-        }
-    }, [isOpen, asset, assets]);
+    // Detect asset prop change while open
+    if (asset && asset.id !== prevAssetId) {
+        setPrevAssetId(asset.id);
+        setSelectedAssetId(asset.id);
+        setSearchQuery(asset.name);
+        setValue('');
+    }
 
-    // Update value when selected asset changes
-    useEffect(() => {
-        if (activeAsset && !asset) {
-            setValue('');
-        }
-    }, [activeAsset, asset]);
+    // Auto-clear value if the selected asset changes in global mode (activeAsset changes)
+    const [prevActiveAssetId, setPrevActiveAssetId] = useState(activeAsset?.id);
+    if (activeAsset?.id !== prevActiveAssetId) {
+        setPrevActiveAssetId(activeAsset?.id);
+        setValue('');
+    }
 
     if (!isOpen) return null;
 

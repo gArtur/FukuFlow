@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import type { Asset, Person, ValueEntry } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
@@ -34,6 +34,15 @@ export default function AssetDetail({
 
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
+    const [prevAssetId, setPrevAssetId] = useState(asset.id);
+
+    // Reset page when asset changes
+    if (asset.id !== prevAssetId) {
+        setPrevAssetId(asset.id);
+        setCurrentPage(1);
+    }
+
+    // Independent variables
     const ITEMS_PER_PAGE = 10;
 
     const owner = persons.find(p => p.id === asset.ownerId);
@@ -49,11 +58,6 @@ export default function AssetDetail({
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
-
-    // Reset page when asset changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [asset.id]);
 
     const handleDelete = () => {
         onDelete();

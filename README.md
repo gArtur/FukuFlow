@@ -59,31 +59,39 @@ Together, it symbolizes the continuous flow of good fortune and wealth managemen
 | Backend | Node.js, Express |
 | Database | SQLite3 |
 
-### Docker Deployment (Recommended)
+### Deployment & CI/CD
+**Docker (Recommended)**
 
-**Prerequisites:**
-- Docker
-- Docker Compose
+The application is fully containerized. You can run it locally or deploy it using the provided `docker-compose.yml`.
 
-**1. Quick Setup**
-
-Run the setup script to automatically configure your environment:
+**1. Configuration**
+Copy the example environment file:
 ```bash
-node scripts/setup.cjs
+cp .env.example .env
 ```
+Edit `.env` to set your preferences (ports, secrets, etc.).
 
-This will:
-- Copy `.env.example` to `.env`
-- Generate a secure `JWT_SECRET` automatically
-
-**2. Run the Application**
-
-Build and start the container:
+**2. Local Run**
 ```bash
 docker-compose up -d --build
 ```
+The app will be available at `http://localhost:3001`.
 
-The application will be available at `http://localhost:3001`.
+**3. Updating the Application**
+To update to the latest version:
+```bash
+# 1. Get the latest code
+git pull
+
+# 2. Rebuild and restart the container
+docker-compose up -d --build
+```
+
+**Continuous Integration (CI)**
+This project uses GitHub Actions for CI/CD:
+- **Triggers**: Pushes to `main`.
+- **Checks**: Linting (ESLint), Formatting (Prettier), Type Checking (TypeScript).
+- **Artifacts**: Automatically builds and pushes a Docker image to **GitHub Container Registry (GHCR)**: `ghcr.io/<owner>/fukuflow:latest`.
 
 ### Local Development (Manual)
 
@@ -98,7 +106,7 @@ The application will be available at `http://localhost:3001`.
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd Wealth-Management
+cd FukuFlow
 
 # Install frontend dependencies
 npm install
@@ -182,7 +190,7 @@ node scripts/clear_sample_data.cjs
 ## Project Structure
 
 ```
-Wealth-Management/
+FukuFlow/
 ├── server/
 │   ├── index.js          # Express server entry point
 │   ├── db.js             # Database initialization

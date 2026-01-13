@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import type { Asset, AssetCategory, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 
@@ -13,25 +13,27 @@ interface AddAssetModalProps {
 
 export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
     const { categories } = useSettings();
-    const [name, setName] = useState('');
-    const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
-    const [ownerId, setOwnerId] = useState('');
+    const [prevEditAssetId, setPrevEditAssetId] = useState(editAsset?.id);
 
-    const resetForm = useCallback(() => {
-        setName('');
-        setCategory(categories[0]?.key || 'stocks');
-        setOwnerId(persons.length > 0 ? persons[0].id : '');
-    }, [categories, persons]);
+    // Initialize state (logic handled in useState or prop change check)
+    const [name, setName] = useState(editAsset?.name || '');
+    const [category, setCategory] = useState<AssetCategory>(editAsset?.category || categories[0]?.key || 'stocks');
+    const [ownerId, setOwnerId] = useState(editAsset?.ownerId || (persons.length > 0 ? persons[0].id : ''));
 
-    useEffect(() => {
+    // Detect changes in editAsset prop (e.g. switching assets or switching between Add/Edit mode)
+    if (editAsset?.id !== prevEditAssetId) {
+        setPrevEditAssetId(editAsset?.id);
         if (editAsset) {
             setName(editAsset.name);
             setCategory(editAsset.category);
             setOwnerId(editAsset.ownerId);
-        } else if (isOpen) {
-            resetForm();
+        } else {
+            // Reset for Add mode
+            setName('');
+            setCategory(categories[0]?.key || 'stocks');
+            setOwnerId(persons.length > 0 ? persons[0].id : '');
         }
-    }, [editAsset, isOpen, resetForm]);
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,7 +58,6 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
             onSubmit(assetData);
         }
 
-        resetForm();
         onClose();
     };
 

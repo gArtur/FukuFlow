@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Asset } from '../types';
 import { useFormatting } from '../hooks/useFormatting';
 
@@ -11,13 +11,14 @@ interface UpdateValueModalProps {
 
 export default function UpdateValueModal({ isOpen, onClose, asset, onSubmit }: UpdateValueModalProps) {
     const { formatCurrency } = useFormatting();
-    const [newValue, setNewValue] = useState('');
+    // State derived from props pattern to avoid useEffect state updates
+    const [newValue, setNewValue] = useState(asset?.currentValue.toString() || '');
+    const [prevAssetId, setPrevAssetId] = useState(asset?.id);
 
-    useEffect(() => {
-        if (asset) {
-            setNewValue(asset.currentValue.toString());
-        }
-    }, [asset]);
+    if (asset && asset.id !== prevAssetId) {
+        setPrevAssetId(asset.id);
+        setNewValue(asset.currentValue.toString());
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import { parseValue, handleNumberInput } from '../utils';
 
@@ -23,15 +23,20 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
     const [notes, setNotes] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    useEffect(() => {
-        if (isOpen && snapshot) {
-            setDate(snapshot.date.split('T')[0]);
-            setValue(snapshot.value.toString());
-            setInvestmentChange((snapshot.investmentChange || 0).toString());
-            setNotes(snapshot.notes || '');
-            setShowDeleteConfirm(false);
-        }
-    }, [isOpen, snapshot]);
+    // Track previous snapshot ID to update state when it changes
+    // This assumes the modal remounts or snapshot prop changes when opening a different one.
+    // Since we also check isOpen in the parent, we can rely on ID changes.
+    const [prevSnapshotId, setPrevSnapshotId] = useState<number | null>(null);
+
+    // If we have a snapshot and it's different from the one we have initialized, update state
+    if (snapshot && snapshot.id !== prevSnapshotId) {
+        setPrevSnapshotId(snapshot.id);
+        setDate(snapshot.date.split('T')[0]);
+        setValue(snapshot.value.toString());
+        setInvestmentChange((snapshot.investmentChange || 0).toString());
+        setNotes(snapshot.notes || '');
+        setShowDeleteConfirm(false);
+    }
 
     if (!isOpen || !snapshot) return null;
 

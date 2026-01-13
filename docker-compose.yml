@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: wealth-management-app
+    container_name: fukuflow-app
     build:
       context: .
       dockerfile: Dockerfile

@@ -21,12 +21,15 @@ export function useMediaQuery(query: string): boolean {
         const mediaQuery = window.matchMedia(query);
         const handler = (event: MediaQueryListEvent) => setMatches(event.matches);
 
-        // Set initial value
-        setMatches(mediaQuery.matches);
+        // Set initial value (only if different, though this shouldn't happen often)
+        if (matches !== mediaQuery.matches) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setMatches(mediaQuery.matches);
+        }
 
         mediaQuery.addEventListener('change', handler);
         return () => mediaQuery.removeEventListener('change', handler);
-    }, [query]);
+    }, [query, matches]);
 
     return matches;
 }
