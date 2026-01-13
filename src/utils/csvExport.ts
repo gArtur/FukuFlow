@@ -9,7 +9,7 @@ function sanitizeFilename(str: string): string {
 
 /**
  * Export snapshots to a CSV file and trigger download.
- * 
+ *
  * @param snapshots - Enhanced snapshot data to export
  * @param assetName - Name of the asset (for filename)
  * @param ownerName - Name of the owner (for filename)
@@ -28,7 +28,7 @@ export function exportSnapshotsToCsv(
         new Date(snapshot.date).toISOString().split('T')[0],
         snapshot.value.toString(),
         (snapshot.investmentChange || 0).toString(),
-        `"${(snapshot.notes || '').replace(/"/g, '""')}"`
+        `"${(snapshot.notes || '').replace(/"/g, '""')}"`,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');

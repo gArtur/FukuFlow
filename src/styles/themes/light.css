@@ -1,17 +1,17 @@
 /* LIGHT THEME */
-[data-theme="light"] {
-    --bg-primary: #F3F4F6;
-    --bg-secondary: #FFFFFF;
-    --bg-card: #FFFFFF;
-    --bg-card-hover: #F9FAFB;
-    --bg-tertiary: #E5E7EB;
+[data-theme='light'] {
+    --bg-primary: #f3f4f6;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f9fafb;
+    --bg-tertiary: #e5e7eb;
     /* Gray 200 for icons/secondary elements */
     --bg-header: rgba(255, 255, 255, 0.95);
 
     --border-color: rgba(0, 0, 0, 0.08);
     --border-color-light: rgba(0, 0, 0, 0.12);
 
-    --accent-primary: #B8921B;
+    --accent-primary: #b8921b;
     /* Slightly darker gold for contrast on white */
     --accent-primary-glow: rgba(184, 146, 27, 0.15);
 
@@ -22,21 +22,21 @@
     --text-primary: #111827;
     --text-secondary: #374151;
     /* Was #4B5563 - Darkened for better contrast */
-    --text-muted: #6B7280;
+    --text-muted: #6b7280;
     /* Was #9CA3AF - Darkened for better contrast */
 
     /* Input fields - lighter background for light theme */
-    --input-bg: #FFFFFF;
+    --input-bg: #ffffff;
     --input-border: rgba(0, 0, 0, 0.15);
 
     /* Button/Tab Variables Overrides */
     /* Use a dark pill for active chart tabs in light mode */
     --tab-active-bg: #111827;
-    --tab-active-text: #FFFFFF;
+    --tab-active-text: #ffffff;
 
     /* Use a dark pill for active filter tabs in light mode */
     --filter-active-bg: #111827;
-    --filter-active-text: #FFFFFF;
+    --filter-active-text: #ffffff;
     --filter-active-border: #111827;
 
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -45,39 +45,42 @@
 }
 
 /* Light theme input field overrides */
-[data-theme="light"] .input-dark {
+[data-theme='light'] .input-dark {
     background: var(--input-bg);
     border-color: var(--input-border);
     color: var(--text-primary);
 }
 
-[data-theme="light"] .input-dark:focus {
+[data-theme='light'] .input-dark:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 2px var(--accent-primary-glow);
 }
 
-[data-theme="light"] .input-dark::placeholder {
+[data-theme='light'] .input-dark::placeholder {
     color: var(--text-muted);
 }
 
 /* Light theme select and other form elements */
-[data-theme="light"] .custom-select-trigger {
+[data-theme='light'] .custom-select-trigger {
     background: var(--input-bg);
     border-color: var(--input-border);
 }
 
-[data-theme="light"] .date-range-pills {
+[data-theme='light'] .date-range-pills {
     background: var(--input-bg);
     border-color: var(--input-border);
 }
 
-[data-theme="light"] .date-pill.active {
-    background: var(--gradient-primary, #C9A227);
+[data-theme='light'] .date-pill.active {
+    background: var(--gradient-primary, #c9a227);
     color: #000;
 }
 
 /* Modal and form buttons - consistent gold */
-[data-theme="light"] .modal-actions .btn-primary,
-[data-theme="light"] .btn-data-action {
-    background: var(--gradient-primary, linear-gradient(135deg, #D4AF37 0%, #C9A227 50%, #B8921B 100%));
+[data-theme='light'] .modal-actions .btn-primary,
+[data-theme='light'] .btn-data-action {
+    background: var(
+        --gradient-primary,
+        linear-gradient(135deg, #d4af37 0%, #c9a227 50%, #b8921b 100%)
+    );
 }

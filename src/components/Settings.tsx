@@ -9,13 +9,16 @@ import {
     PeopleSettings,
     CategoriesSettings,
     BackupSettings,
-    SecuritySettings
+    SecuritySettings,
 } from './settings/index';
 
 interface SettingsProps {
     persons: Person[];
     onAddPerson: (name: string) => Promise<unknown>;
-    onUpdatePerson: (id: string, data: { name?: string, displayOrder?: number }) => Promise<unknown>;
+    onUpdatePerson: (
+        id: string,
+        data: { name?: string; displayOrder?: number }
+    ) => Promise<unknown>;
     onReorderPersons: (ids: string[]) => Promise<unknown>;
     onDeletePerson: (id: string) => Promise<unknown>;
     assets: Asset[];
@@ -37,7 +40,7 @@ export default function Settings({
     onReorderPersons,
     onDeletePerson,
     assets,
-    onRefreshAssets
+    onRefreshAssets,
 }: SettingsProps) {
     const {
         currency,
@@ -51,7 +54,7 @@ export default function Settings({
         categories,
         addCategory,
         updateCategory,
-        deleteCategory
+        deleteCategory,
     } = useSettings();
 
     // Confirmation Modal State
@@ -59,8 +62,8 @@ export default function Settings({
         isOpen: false,
         title: '',
         message: null,
-        onConfirm: () => { },
-        isDangerous: false
+        onConfirm: () => {},
+        isDangerous: false,
     });
 
     // Restore Modal State
@@ -72,8 +75,8 @@ export default function Settings({
     // Scroll Spy Effect
     useEffect(() => {
         const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
+            entries => {
+                entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         setActiveSection(entry.target.id);
                     }
@@ -82,15 +85,15 @@ export default function Settings({
             {
                 root: null,
                 rootMargin: '-20% 0px -60% 0px', // Trigger when section is near top
-                threshold: 0
+                threshold: 0,
             }
         );
 
         const sections = document.querySelectorAll('.settings-section');
-        sections.forEach((section) => observer.observe(section));
+        sections.forEach(section => observer.observe(section));
 
         return () => {
-            sections.forEach((section) => observer.unobserve(section));
+            sections.forEach(section => observer.unobserve(section));
         };
     }, []);
 
@@ -112,7 +115,7 @@ export default function Settings({
     }) => {
         setConfirmConfig({
             isOpen: true,
-            ...config
+            ...config,
         });
     };
 
@@ -194,9 +197,7 @@ export default function Settings({
 
                     <div className="section-divider"></div>
 
-                    <BackupSettings
-                        onShowRestoreModal={() => setShowRestoreModal(true)}
-                    />
+                    <BackupSettings onShowRestoreModal={() => setShowRestoreModal(true)} />
 
                     <div className="section-divider"></div>
 

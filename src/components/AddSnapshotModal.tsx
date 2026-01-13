@@ -9,7 +9,10 @@ interface AddSnapshotModalProps {
     asset: Asset | null;
     assets?: Asset[]; // For global mode with investment selection
     persons?: Person[]; // For showing owner names
-    onSubmit: (assetId: string, snapshot: { value: number; date: string; investmentChange: number; notes: string }) => void;
+    onSubmit: (
+        assetId: string,
+        snapshot: { value: number; date: string; investmentChange: number; notes: string }
+    ) => void;
 }
 
 // Use settings-aware currency formatting
@@ -18,7 +21,14 @@ function useFormatCurrency() {
     return (amount: number, decimals: number = 0) => formatCurrencyUtil(amount, currency, decimals);
 }
 
-export default function AddSnapshotModal({ isOpen, onClose, asset, assets, persons, onSubmit }: AddSnapshotModalProps) {
+export default function AddSnapshotModal({
+    isOpen,
+    onClose,
+    asset,
+    assets,
+    persons,
+    onSubmit,
+}: AddSnapshotModalProps) {
     const formatCurrency = useFormatCurrency();
     const [selectedAssetId, setSelectedAssetId] = useState<string>(asset?.id || '');
     // Initial search query based on incoming asset or empty
@@ -102,16 +112,20 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     // so they can switch, without needing to clear manually.
     const isExactMatch = activeAsset && searchQuery === getAssetDisplayName(activeAsset);
 
-    const filteredAssets = isGlobalMode && assets
-        ? (isExactMatch ? assets : assets.filter(a => {
-            const ownerName = persons?.find(p => p.id === a.ownerId)?.name || '';
-            const searchLower = searchQuery.toLowerCase();
-            return a.name.toLowerCase().includes(searchLower) ||
-                ownerName.toLowerCase().includes(searchLower);
-        })).sort((a, b) => a.name.localeCompare(b.name))
-        : [];
-
-
+    const filteredAssets =
+        isGlobalMode && assets
+            ? (isExactMatch
+                  ? assets
+                  : assets.filter(a => {
+                        const ownerName = persons?.find(p => p.id === a.ownerId)?.name || '';
+                        const searchLower = searchQuery.toLowerCase();
+                        return (
+                            a.name.toLowerCase().includes(searchLower) ||
+                            ownerName.toLowerCase().includes(searchLower)
+                        );
+                    })
+              ).sort((a, b) => a.name.localeCompare(b.name))
+            : [];
 
     const handleAssetSelect = (selectedAsset: Asset) => {
         setSelectedAssetId(selectedAsset.id);
@@ -127,13 +141,13 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
     // e.g. Start 1000, Add 500, End 1600.
     // Total diff = 600. Market Gain = 600 - 500 = 100.
     // Fix floating point precision issues (e.g. -0.0000001 becoming -0)
-    let marketGain = (currentValueNum - lastValue) - investmentChangeNum;
+    let marketGain = currentValueNum - lastValue - investmentChangeNum;
     if (Math.abs(marketGain) < 0.0001) marketGain = 0;
 
     // Adjusted start value (basis) for percentage calculation
     const adjustedStartValue = lastValue + investmentChangeNum;
 
-    const marketGainPercent = adjustedStartValue > 0 ? ((marketGain / adjustedStartValue) * 100) : 0;
+    const marketGainPercent = adjustedStartValue > 0 ? (marketGain / adjustedStartValue) * 100 : 0;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -143,19 +157,19 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
             value: currentValueNum,
             date: new Date(date).toISOString(),
             investmentChange: parseValue(investmentChange),
-            notes: notes.trim()
+            notes: notes.trim(),
         });
         onClose();
     };
-
-
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">Add Snapshot</h2>
-                    <button className="modal-close" onClick={onClose}>×</button>
+                    <button className="modal-close" onClick={onClose}>
+                        ×
+                    </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="modal-form">
@@ -166,7 +180,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                                 <input
                                     type="text"
                                     value={searchQuery}
-                                    onChange={(e) => {
+                                    onChange={e => {
                                         setSearchQuery(e.target.value);
                                         setShowSuggestions(true);
                                         // Clear selection if user is typing something new
@@ -178,7 +192,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                                             setSelectedAssetId('');
                                         }
                                     }}
-                                    onFocus={(e) => {
+                                    onFocus={e => {
                                         setShowSuggestions(true);
                                         e.target.select();
                                     }}
@@ -194,9 +208,15 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                                                 className={`combobox-option ${a.id === selectedAssetId ? 'selected' : ''}`}
                                                 onClick={() => handleAssetSelect(a)}
                                             >
-                                                <span className="combobox-option-name">{a.name}</span>
-                                                <span className="combobox-option-owner">({getOwnerName(a.ownerId)})</span>
-                                                <span className="combobox-option-value">- {formatCurrency(a.currentValue)}</span>
+                                                <span className="combobox-option-name">
+                                                    {a.name}
+                                                </span>
+                                                <span className="combobox-option-owner">
+                                                    ({getOwnerName(a.ownerId)})
+                                                </span>
+                                                <span className="combobox-option-value">
+                                                    - {formatCurrency(a.currentValue)}
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -223,7 +243,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                         <input
                             type="date"
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={e => setDate(e.target.value)}
                             required
                         />
                     </div>
@@ -234,13 +254,17 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                             type="text"
                             inputMode="decimal"
                             value={value}
-                            onChange={(e) => handleNumberInput(e.target.value, setValue)}
+                            onChange={e => handleNumberInput(e.target.value, setValue)}
                             placeholder="Enter new value"
                             required
                         />
                         {value && (
-                            <div className={`value-change-indicator ${marketGain > 0 ? 'positive' : marketGain < 0 ? 'negative' : 'neutral'}`}>
-                                {marketGain === 0 ? 'No Change' : (
+                            <div
+                                className={`value-change-indicator ${marketGain > 0 ? 'positive' : marketGain < 0 ? 'negative' : 'neutral'}`}
+                            >
+                                {marketGain === 0 ? (
+                                    'No Change'
+                                ) : (
                                     <>
                                         {marketGain > 0 ? 'Gain: +' : 'Loss: '}
                                         {formatCurrency(marketGain, 2)}
@@ -257,16 +281,24 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                             type="text"
                             inputMode="decimal"
                             value={investmentChange}
-                            onChange={(e) => {
+                            onChange={e => {
                                 // Allow negative sign at start for investment change
                                 const val = e.target.value;
-                                if (val === '' || val === '-' || /^-?[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                if (
+                                    val === '' ||
+                                    val === '-' ||
+                                    /^-?[0-9]*[.,]?[0-9]*$/.test(val)
+                                ) {
                                     setInvestmentChange(val);
                                 }
                             }}
                             onBlur={() => {
                                 // Clean up trailing delimiter or standalone minus
-                                if (investmentChange === '-' || investmentChange.endsWith('.') || investmentChange.endsWith(',')) {
+                                if (
+                                    investmentChange === '-' ||
+                                    investmentChange.endsWith('.') ||
+                                    investmentChange.endsWith(',')
+                                ) {
                                     setInvestmentChange(prev => prev.replace(/[-.,]+$/, ''));
                                 }
                             }}
@@ -281,7 +313,7 @@ export default function AddSnapshotModal({ isOpen, onClose, asset, assets, perso
                         <label>Notes (optional)</label>
                         <textarea
                             value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
+                            onChange={e => setNotes(e.target.value)}
                             placeholder="e.g., Bonus at work, Monthly contribution..."
                             rows={3}
                         />

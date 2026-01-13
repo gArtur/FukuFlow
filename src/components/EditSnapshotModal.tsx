@@ -12,11 +12,20 @@ interface EditSnapshotModalProps {
         investmentChange?: number;
         notes?: string;
     } | null;
-    onSubmit: (id: number, data: { date: string; value: number; investmentChange: number; notes: string }) => void;
+    onSubmit: (
+        id: number,
+        data: { date: string; value: number; investmentChange: number; notes: string }
+    ) => void;
     onDelete: (id: number) => void;
 }
 
-export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit, onDelete }: EditSnapshotModalProps) {
+export default function EditSnapshotModal({
+    isOpen,
+    onClose,
+    snapshot,
+    onSubmit,
+    onDelete,
+}: EditSnapshotModalProps) {
     const [date, setDate] = useState('');
     const [value, setValue] = useState('');
     const [investmentChange, setInvestmentChange] = useState('');
@@ -46,7 +55,7 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
             date: new Date(date).toISOString(),
             value: parseValue(value),
             investmentChange: parseValue(investmentChange),
-            notes: notes.trim()
+            notes: notes.trim(),
         });
         onClose();
     };
@@ -62,7 +71,9 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                 <div className="modal" onClick={e => e.stopPropagation()}>
                     <div className="modal-header">
                         <h2 className="modal-title">Edit Snapshot</h2>
-                        <button className="modal-close" onClick={onClose}>×</button>
+                        <button className="modal-close" onClick={onClose}>
+                            ×
+                        </button>
                     </div>
 
                     <form onSubmit={handleSubmit} className="modal-form">
@@ -71,7 +82,7 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                             <input
                                 type="date"
                                 value={date}
-                                onChange={(e) => setDate(e.target.value)}
+                                onChange={e => setDate(e.target.value)}
                                 required
                             />
                         </div>
@@ -82,8 +93,8 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                                 type="text"
                                 inputMode="decimal"
                                 value={value}
-                                onChange={(e) => handleNumberInput(e.target.value, setValue)}
-                                onFocus={(e) => e.target.select()}
+                                onChange={e => handleNumberInput(e.target.value, setValue)}
+                                onFocus={e => e.target.select()}
                                 required
                             />
                         </div>
@@ -94,20 +105,28 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                                 type="text"
                                 inputMode="decimal"
                                 value={investmentChange}
-                                onChange={(e) => {
+                                onChange={e => {
                                     // Allow negative sign at start for investment change
                                     const val = e.target.value;
-                                    if (val === '' || val === '-' || /^-?[0-9]*[.,]?[0-9]*$/.test(val)) {
+                                    if (
+                                        val === '' ||
+                                        val === '-' ||
+                                        /^-?[0-9]*[.,]?[0-9]*$/.test(val)
+                                    ) {
                                         setInvestmentChange(val);
                                     }
                                 }}
                                 onBlur={() => {
                                     // Clean up trailing delimiter or standalone minus
-                                    if (investmentChange === '-' || investmentChange.endsWith('.') || investmentChange.endsWith(',')) {
+                                    if (
+                                        investmentChange === '-' ||
+                                        investmentChange.endsWith('.') ||
+                                        investmentChange.endsWith(',')
+                                    ) {
                                         setInvestmentChange(prev => prev.replace(/[-.,]+$/, ''));
                                     }
                                 }}
-                                onFocus={(e) => e.target.select()}
+                                onFocus={e => e.target.select()}
                             />
                             <small className="form-hint">
                                 Positive = money added, Negative = money withdrawn
@@ -118,13 +137,17 @@ export default function EditSnapshotModal({ isOpen, onClose, snapshot, onSubmit,
                             <label>Notes</label>
                             <textarea
                                 value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
+                                onChange={e => setNotes(e.target.value)}
                                 rows={2}
                             />
                         </div>
 
                         <div className="modal-actions">
-                            <button type="button" className="btn-secondary" onClick={() => setShowDeleteConfirm(true)}>
+                            <button
+                                type="button"
+                                className="btn-secondary"
+                                onClick={() => setShowDeleteConfirm(true)}
+                            >
                                 Delete
                             </button>
                             <button type="submit" className="btn-primary">

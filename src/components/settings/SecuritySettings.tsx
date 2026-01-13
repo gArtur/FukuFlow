@@ -73,10 +73,7 @@ export function SecuritySettings() {
                                 <h3>Sign Out</h3>
                                 <p>End your current session</p>
                             </div>
-                            <button
-                                className="btn-logout"
-                                onClick={handleLogout}
-                            >
+                            <button className="btn-logout" onClick={handleLogout}>
                                 Logout
                                 <span className="icon-right">→</span>
                             </button>
@@ -90,38 +87,44 @@ export function SecuritySettings() {
                         </div>
 
                         <div className="input-group">
-                            <label className="input-label-sm" htmlFor="currentPassword">CURRENT PASSWORD</label>
+                            <label className="input-label-sm" htmlFor="currentPassword">
+                                CURRENT PASSWORD
+                            </label>
                             <input
                                 type="password"
                                 id="currentPassword"
                                 className="input-dark"
                                 value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                onChange={e => setCurrentPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
                             />
                         </div>
                         <div className="input-group">
-                            <label className="input-label-sm" htmlFor="newPassword">NEW PASSWORD</label>
+                            <label className="input-label-sm" htmlFor="newPassword">
+                                NEW PASSWORD
+                            </label>
                             <input
                                 type="password"
                                 id="newPassword"
                                 className="input-dark"
                                 value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
+                                onChange={e => setNewPassword(e.target.value)}
                                 required
                                 minLength={4}
                                 disabled={isLoading}
                             />
                         </div>
                         <div className="input-group">
-                            <label className="input-label-sm" htmlFor="confirmPassword">CONFIRM NEW PASSWORD</label>
+                            <label className="input-label-sm" htmlFor="confirmPassword">
+                                CONFIRM NEW PASSWORD
+                            </label>
                             <input
                                 type="password"
                                 id="confirmPassword"
                                 className="input-dark"
                                 value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                onChange={e => setConfirmPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
                             />
@@ -148,7 +151,12 @@ export function SecuritySettings() {
                             <button
                                 type="submit"
                                 className="btn-data-action btn-save"
-                                disabled={isLoading || !currentPassword || !newPassword || !confirmPassword}
+                                disabled={
+                                    isLoading ||
+                                    !currentPassword ||
+                                    !newPassword ||
+                                    !confirmPassword
+                                }
                             >
                                 {isLoading ? 'Saving...' : 'Save Password'}
                             </button>

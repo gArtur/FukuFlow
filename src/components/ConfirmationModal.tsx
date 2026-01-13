@@ -21,7 +21,7 @@ export default function ConfirmationModal({
     message,
     confirmLabel = 'Confirm',
     cancelLabel = 'Cancel',
-    isDangerous = false
+    isDangerous = false,
 }: ConfirmationModalProps) {
     return (
         <ModalBase isOpen={isOpen} onClose={onClose} title={title}>

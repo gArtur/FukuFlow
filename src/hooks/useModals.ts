@@ -18,7 +18,7 @@ const initialState: ModalState = {
     showImportModal: false,
     editAsset: null,
     snapshotAsset: null,
-    editingSnapshot: null
+    editingSnapshot: null,
 };
 
 export interface ModalActions {
@@ -40,7 +40,7 @@ export interface ModalActions {
     closeImportModal: () => void;
 }
 
-export interface UseModalsReturn extends ModalState, ModalActions { }
+export interface UseModalsReturn extends ModalState, ModalActions {}
 
 /**
  * Hook to manage all modal states in the application.
@@ -67,7 +67,7 @@ export function useModals(): UseModalsReturn {
         setState(prev => ({
             ...prev,
             showSnapshotModal: true,
-            snapshotAsset: asset || null
+            snapshotAsset: asset || null,
         }));
     }, []);
 
@@ -103,6 +103,6 @@ export function useModals(): UseModalsReturn {
         openEditSnapshotModal,
         closeEditSnapshotModal,
         openImportModal,
-        closeImportModal
+        closeImportModal,
     };
 }

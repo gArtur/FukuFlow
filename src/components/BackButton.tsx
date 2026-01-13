@@ -24,7 +24,7 @@ export default function BackButton({ label = 'Back to Dashboard' }: BackButtonPr
                 background: 'var(--bg-card)',
                 color: 'var(--text-primary)',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
             }}
             title={label}
             aria-label={label}

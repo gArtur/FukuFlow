@@ -8,7 +8,7 @@ import {
     formatMonthLabel,
     formatFullMonthYear,
     getPreviousMonth,
-    generateMonthRange
+    generateMonthRange,
 } from '../utils/dateUtils';
 
 interface PortfolioHeatmapProps {
@@ -17,14 +17,14 @@ interface PortfolioHeatmapProps {
 }
 
 interface HeatmapCell {
-    month: string;           // "2024-01", "2024-02", etc.
-    value: number;           // Current value
-    previousValue: number;   // Previous month value
-    change: number;          // Change in PLN
-    changePercent: number;   // Change percentage
-    hasData: boolean;        // Whether this month had actual data
-    exists: boolean;         // Whether the asset existed in this month
-    isInception: boolean;    // Whether this is the first month of data
+    month: string; // "2024-01", "2024-02", etc.
+    value: number; // Current value
+    previousValue: number; // Previous month value
+    change: number; // Change in PLN
+    changePercent: number; // Change percentage
+    hasData: boolean; // Whether this month had actual data
+    exists: boolean; // Whether the asset existed in this month
+    isInception: boolean; // Whether this is the first month of data
 }
 
 interface HeatmapRow {
@@ -84,7 +84,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     // Sync with default filter from settings
     useEffect(() => {
         if (!settingsLoading) {
-            setSelectedPersonId((defaultFilter && defaultFilter !== 'all') ? defaultFilter : null);
+            setSelectedPersonId(defaultFilter && defaultFilter !== 'all' ? defaultFilter : null);
         }
     }, [defaultFilter, settingsLoading]);
 
@@ -134,124 +134,132 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const allMonths = useMemo(() => generateMonthRange(minMonth, maxMonth), [minMonth, maxMonth]);
 
     // Generate months in current view range
-    const visibleMonths = useMemo(() => generateMonthRange(rangeStart, rangeEnd), [rangeStart, rangeEnd]);
+    const visibleMonths = useMemo(
+        () => generateMonthRange(rangeStart, rangeEnd),
+        [rangeStart, rangeEnd]
+    );
 
     // Get person name by ID
-    const getPersonName = useCallback((ownerId: string): string => {
-        const person = persons.find(p => p.id === ownerId);
-        return person?.name || 'Unknown';
-    }, [persons]);
+    const getPersonName = useCallback(
+        (ownerId: string): string => {
+            const person = persons.find(p => p.id === ownerId);
+            return person?.name || 'Unknown';
+        },
+        [persons]
+    );
 
     // Helper function to process a single asset's data into heatmap rows
-    const processAssetData = useCallback((asset: Asset): HeatmapRow => {
-        // Create a map of month -> value and investment changes from valueHistory
-        const monthlyValues = new Map<string, number>();
-        const monthlyInvestmentChanges = new Map<string, number>();
+    const processAssetData = useCallback(
+        (asset: Asset): HeatmapRow => {
+            // Create a map of month -> value and investment changes from valueHistory
+            const monthlyValues = new Map<string, number>();
+            const monthlyInvestmentChanges = new Map<string, number>();
 
-        // Sort value history by date
-        const sorted = [...asset.valueHistory].sort((a, b) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
-        );
+            // Sort value history by date
+            const sorted = [...asset.valueHistory].sort(
+                (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+            );
 
-        // Find the first month when this asset had any data (inception month)
-        const firstDataMonth = sorted.length > 0
-            ? sorted[0].date.substring(0, 7)
-            : null;
+            // Find the first month when this asset had any data (inception month)
+            const firstDataMonth = sorted.length > 0 ? sorted[0].date.substring(0, 7) : null;
 
-        // Use last value of each month and sum investment changes
-        sorted.forEach(entry => {
-            const month = entry.date.substring(0, 7);
-            monthlyValues.set(month, entry.value);
-            const currentInvest = monthlyInvestmentChanges.get(month) || 0;
-            monthlyInvestmentChanges.set(month, currentInvest + (entry.investmentChange || 0));
-        });
-
-        // Forward-fill: for each visible month, use actual value or carry forward
-        const cells: HeatmapCell[] = [];
-        let lastKnownValue = 0; // Start at 0 to correctly capture initial investment as flow/gain
-        let assetExists = false; // Track whether we've reached the asset's first data
-
-        // First, find the value just before our range starts (for proper first month calculation)
-        const monthsBeforeRange = generateMonthRange(minMonth, getPreviousMonth(rangeStart));
-        monthsBeforeRange.forEach(month => {
-            if (monthlyValues.has(month)) {
-                lastKnownValue = monthlyValues.get(month)!;
-                assetExists = true;
-            }
-            // Check if we've reached or passed the inception month
-            if (firstDataMonth && month >= firstDataMonth) {
-                assetExists = true;
-            }
-        });
-
-        let previousValue = lastKnownValue;
-
-        visibleMonths.forEach(month => {
-            // Check if we've reached the inception month
-            const isInception = month === firstDataMonth;
-            if (firstDataMonth && month >= firstDataMonth) {
-                assetExists = true;
-            }
-            const hasData = monthlyValues.has(month);
-            const value = hasData ? monthlyValues.get(month)! : lastKnownValue;
-            const monthlyInvest = monthlyInvestmentChanges.get(month) || 0;
-
-            // For inception month, the previousValue is effectively 0 for G/L calculation
-            // but any monthlyInvest in that month acts as the capital basis.
-            const prevValueForCalc = isInception ? 0 : previousValue;
-            const change = assetExists ? (value - prevValueForCalc - monthlyInvest) : 0;
-
-            // Basis for percentage is the capital at risk: previous value + new investment
-            const basis = prevValueForCalc + monthlyInvest;
-            const changePercent = assetExists && basis !== 0 ? (change / basis) * 100 : 0;
-
-            cells.push({
-                month,
-                value: assetExists ? value : 0,
-                previousValue: assetExists ? (isInception ? monthlyInvest : previousValue) : 0,
-                change,
-                changePercent,
-                hasData,
-                exists: assetExists,
-                isInception
+            // Use last value of each month and sum investment changes
+            sorted.forEach(entry => {
+                const month = entry.date.substring(0, 7);
+                monthlyValues.set(month, entry.value);
+                const currentInvest = monthlyInvestmentChanges.get(month) || 0;
+                monthlyInvestmentChanges.set(month, currentInvest + (entry.investmentChange || 0));
             });
 
-            // Always store the monthly flow for total portfolio calculation
+            // Forward-fill: for each visible month, use actual value or carry forward
+            const cells: HeatmapCell[] = [];
+            let lastKnownValue = 0; // Start at 0 to correctly capture initial investment as flow/gain
+            let assetExists = false; // Track whether we've reached the asset's first data
+
+            // First, find the value just before our range starts (for proper first month calculation)
+            const monthsBeforeRange = generateMonthRange(minMonth, getPreviousMonth(rangeStart));
+            monthsBeforeRange.forEach(month => {
+                if (monthlyValues.has(month)) {
+                    lastKnownValue = monthlyValues.get(month)!;
+                    assetExists = true;
+                }
+                // Check if we've reached or passed the inception month
+                if (firstDataMonth && month >= firstDataMonth) {
+                    assetExists = true;
+                }
+            });
+
+            let previousValue = lastKnownValue;
+
+            visibleMonths.forEach(month => {
+                // Check if we've reached the inception month
+                const isInception = month === firstDataMonth;
+                if (firstDataMonth && month >= firstDataMonth) {
+                    assetExists = true;
+                }
+                const hasData = monthlyValues.has(month);
+                const value = hasData ? monthlyValues.get(month)! : lastKnownValue;
+                const monthlyInvest = monthlyInvestmentChanges.get(month) || 0;
+
+                // For inception month, the previousValue is effectively 0 for G/L calculation
+                // but any monthlyInvest in that month acts as the capital basis.
+                const prevValueForCalc = isInception ? 0 : previousValue;
+                const change = assetExists ? value - prevValueForCalc - monthlyInvest : 0;
+
+                // Basis for percentage is the capital at risk: previous value + new investment
+                const basis = prevValueForCalc + monthlyInvest;
+                const changePercent = assetExists && basis !== 0 ? (change / basis) * 100 : 0;
+
+                cells.push({
+                    month,
+                    value: assetExists ? value : 0,
+                    previousValue: assetExists ? (isInception ? monthlyInvest : previousValue) : 0,
+                    change,
+                    changePercent,
+                    hasData,
+                    exists: assetExists,
+                    isInception,
+                });
+
+                // Always store the monthly flow for total portfolio calculation
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (cells[cells.length - 1] as any).monthlyFlow = assetExists ? monthlyInvest : 0;
+
+                if (assetExists) {
+                    previousValue = value;
+                    lastKnownValue = value;
+                }
+            });
+
+            // Calculate totals for the visible range based on summed monthly G/L
+            const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (cells[cells.length - 1] as any).monthlyFlow = assetExists ? monthlyInvest : 0;
+            const totalFlow = cells.reduce((sum, c) => sum + ((c as any).monthlyFlow || 0), 0);
 
-            if (assetExists) {
-                previousValue = value;
-                lastKnownValue = value;
-            }
-        });
+            // ROI Basis: If asset started in the first visible month, startValue is 0 (flow is in totalFlow)
+            // If asset existed before, startValue is its carry-over value.
+            const startValueBasis =
+                cells.length > 0 && !cells[0].isInception ? cells[0].previousValue : 0;
+            const basis = startValueBasis + totalFlow;
+            const totalChangePercent = basis > 0 ? (totalChange / basis) * 100 : 0;
+            const startValue = cells.length > 0 ? cells[0].previousValue : 0;
 
-        // Calculate totals for the visible range based on summed monthly G/L
-        const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const totalFlow = cells.reduce((sum, c) => sum + ((c as any).monthlyFlow || 0), 0);
+            const endValue = cells.length > 0 ? cells[cells.length - 1].value : asset.currentValue;
 
-        // ROI Basis: If asset started in the first visible month, startValue is 0 (flow is in totalFlow)
-        // If asset existed before, startValue is its carry-over value.
-        const startValueBasis = (cells.length > 0 && !cells[0].isInception) ? cells[0].previousValue : 0;
-        const basis = startValueBasis + totalFlow;
-        const totalChangePercent = basis > 0 ? (totalChange / basis) * 100 : 0;
-        const startValue = cells.length > 0 ? cells[0].previousValue : 0;
-
-        const endValue = cells.length > 0 ? cells[cells.length - 1].value : asset.currentValue;
-
-        return {
-            id: asset.id,
-            name: asset.name,
-            category: asset.category,
-            ownerName: getPersonName(asset.ownerId),
-            cells,
-            totalChange,
-            totalChangePercent,
-            startValue,
-            endValue
-        };
-    }, [visibleMonths, rangeStart, minMonth, getPersonName]);
+            return {
+                id: asset.id,
+                name: asset.name,
+                category: asset.category,
+                ownerName: getPersonName(asset.ownerId),
+                cells,
+                totalChange,
+                totalChangePercent,
+                startValue,
+                endValue,
+            };
+        },
+        [visibleMonths, rangeStart, minMonth, getPersonName]
+    );
 
     // Generate Heatmap Data
     const heatmapData = useMemo(() => {
@@ -267,8 +275,6 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         // Default: alphabetical sort
         return rows.sort((a, b) => a.name.localeCompare(b.name));
     }, [filteredAssets, processAssetData, sortDirection]);
-
-
 
     // Calculate portfolio totals row
     const portfolioRow = useMemo((): HeatmapRow => {
@@ -304,7 +310,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 changePercent,
                 hasData: hasAnyData,
                 exists: true,
-                isInception: false // Portfolio as a whole doesn't have an inception month
+                isInception: false, // Portfolio as a whole doesn't have an inception month
             };
         });
 
@@ -350,16 +356,12 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             totalChange,
             totalChangePercent,
             startValue,
-            endValue
+            endValue,
         };
     }, [heatmapData, visibleMonths]);
 
     // Handle cell hover
-    const handleCellHover = (
-        event: React.MouseEvent,
-        row: HeatmapRow,
-        cell: HeatmapCell
-    ) => {
+    const handleCellHover = (event: React.MouseEvent, row: HeatmapRow, cell: HeatmapCell) => {
         const rect = event.currentTarget.getBoundingClientRect();
         setTooltip({
             x: rect.left + rect.width / 2,
@@ -371,7 +373,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             changePercent: cell.changePercent,
             category: row.category,
             owner: row.ownerName,
-            previousValue: cell.previousValue
+            previousValue: cell.previousValue,
         });
     };
 
@@ -399,9 +401,10 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         // Format the change display
         let changeDisplay: string;
         if (viewMode === 'percent') {
-            changeDisplay = cell.changePercent > 0
-                ? `+${cell.changePercent.toFixed(1)}%`
-                : `${cell.changePercent.toFixed(1)}%`;
+            changeDisplay =
+                cell.changePercent > 0
+                    ? `+${cell.changePercent.toFixed(1)}%`
+                    : `${cell.changePercent.toFixed(1)}%`;
         } else {
             if (isHidden) {
                 changeDisplay = '*****';
@@ -424,7 +427,9 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const endIndex = allMonths.indexOf(rangeEnd);
 
     // Quick filter helpers
-    const getQuickFilterRange = (filter: 'YTD' | '1Y' | '5Y' | 'MAX'): { start: string; end: string } => {
+    const getQuickFilterRange = (
+        filter: 'YTD' | '1Y' | '5Y' | 'MAX'
+    ): { start: string; end: string } => {
         const now = new Date();
         const currentYear = now.getFullYear();
 
@@ -432,7 +437,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             case 'YTD':
                 return {
                     start: `${currentYear}-01`,
-                    end: maxMonth
+                    end: maxMonth,
                 };
             case '1Y': {
                 const oneYearAgo = new Date(now);
@@ -440,7 +445,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 const startMonth = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}`;
                 return {
                     start: startMonth < minMonth ? minMonth : startMonth,
-                    end: maxMonth
+                    end: maxMonth,
                 };
             }
             case '5Y': {
@@ -449,7 +454,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 const startMonth = `${fiveYearsAgo.getFullYear()}-${String(fiveYearsAgo.getMonth() + 1).padStart(2, '0')}`;
                 return {
                     start: startMonth < minMonth ? minMonth : startMonth,
-                    end: maxMonth
+                    end: maxMonth,
                 };
             }
             case 'MAX':
@@ -566,7 +571,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             min={0}
                             max={allMonths.length - 1}
                             value={startIndex}
-                            onChange={(e) => {
+                            onChange={e => {
                                 const newStart = allMonths[parseInt(e.target.value)];
                                 if (newStart <= rangeEnd) setRangeStart(newStart);
                             }}
@@ -577,7 +582,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             min={0}
                             max={allMonths.length - 1}
                             value={endIndex}
-                            onChange={(e) => {
+                            onChange={e => {
                                 const newEnd = allMonths[parseInt(e.target.value)];
                                 if (newEnd >= rangeStart) setRangeEnd(newEnd);
                             }}
@@ -587,7 +592,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             className="range-slider-track"
                             style={{
                                 left: `${(startIndex / (allMonths.length - 1)) * 100}%`,
-                                width: `${((endIndex - startIndex) / (allMonths.length - 1)) * 100}%`
+                                width: `${((endIndex - startIndex) / (allMonths.length - 1)) * 100}%`,
                             }}
                         />
                     </div>
@@ -606,7 +611,9 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                     )}
                                     <div className="heatmap-month">
                                         {isFirstMonthOfYear(month, index) && (
-                                            <span className="year-label">{month.substring(0, 4)}</span>
+                                            <span className="year-label">
+                                                {month.substring(0, 4)}
+                                            </span>
                                         )}
                                         {formatMonthLabel(month)}
                                     </div>
@@ -639,18 +646,21 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                     )}
                                     <div
                                         className={`heatmap-cell ${getColorClass(cell.changePercent)}`}
-                                        onMouseEnter={(e) => handleCellHover(e, portfolioRow, cell)}
+                                        onMouseEnter={e => handleCellHover(e, portfolioRow, cell)}
                                         onMouseLeave={handleCellLeave}
                                     >
                                         {renderCellContent(cell)}
                                     </div>
                                 </Fragment>
                             ))}
-                            <div className={`heatmap-cell-total ${portfolioRow.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                            <div
+                                className={`heatmap-cell-total ${portfolioRow.totalChangePercent >= 0 ? 'positive' : 'negative'}`}
+                            >
                                 {viewMode === 'percent'
                                     ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
-                                    : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(portfolioRow.totalChange))
-                                }
+                                    : isHidden
+                                      ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                      : formatAmount(portfolioRow.totalChange)}
                             </div>
                         </div>
 
@@ -662,7 +672,9 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                     onClick={() => navigate(`/asset/${row.id}`)}
                                     title={`View ${row.name} details`}
                                 >
-                                    <span className="asset-icon">{row.category.charAt(0).toUpperCase()}</span>
+                                    <span className="asset-icon">
+                                        {row.category.charAt(0).toUpperCase()}
+                                    </span>
                                     <div className="asset-name-details">
                                         <span className="asset-name-text">{row.name}</span>
                                         <span className="asset-owner-badge">{row.ownerName}</span>
@@ -675,18 +687,25 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                         )}
                                         <div
                                             className={`heatmap-cell ${cell.exists ? (cell.isInception ? 'inception' : getColorClass(cell.changePercent)) : 'not-exists'} ${cell.exists && !cell.hasData ? 'no-data' : ''}`}
-                                            onMouseEnter={cell.exists ? (e) => handleCellHover(e, row, cell) : undefined}
+                                            onMouseEnter={
+                                                cell.exists
+                                                    ? e => handleCellHover(e, row, cell)
+                                                    : undefined
+                                            }
                                             onMouseLeave={cell.exists ? handleCellLeave : undefined}
                                         >
                                             {renderCellContent(cell)}
                                         </div>
                                     </Fragment>
                                 ))}
-                                <div className={`heatmap-cell-total ${row.totalChangePercent >= 0 ? 'positive' : 'negative'}`}>
+                                <div
+                                    className={`heatmap-cell-total ${row.totalChangePercent >= 0 ? 'positive' : 'negative'}`}
+                                >
                                     {viewMode === 'percent'
                                         ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
-                                        : (isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(row.totalChange))
-                                    }
+                                        : isHidden
+                                          ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                          : formatAmount(row.totalChange)}
                                 </div>
                             </div>
                         ))}
@@ -720,8 +739,12 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
                     let volatility = 0;
                     if (monthlyReturns.length > 0) {
-                        const mean = monthlyReturns.reduce((sum, val) => sum + val, 0) / monthlyReturns.length;
-                        const variance = monthlyReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / monthlyReturns.length;
+                        const mean =
+                            monthlyReturns.reduce((sum, val) => sum + val, 0) /
+                            monthlyReturns.length;
+                        const variance =
+                            monthlyReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+                            monthlyReturns.length;
                         volatility = Math.sqrt(variance);
                     }
 
@@ -733,8 +756,17 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                         <>
                             <div className="stat-card">
                                 <div className="stat-card-label">Total Return</div>
-                                <div className="stat-card-value" style={{ color: portfolioRow.totalChange >= 0 ? 'var(--accent-green)' : 'var(--accent-red)' }}>
-                                    {portfolioRow.totalChangePercent >= 0 ? '+' : ''}{portfolioRow.totalChangePercent.toFixed(1)}%
+                                <div
+                                    className="stat-card-value"
+                                    style={{
+                                        color:
+                                            portfolioRow.totalChange >= 0
+                                                ? 'var(--accent-green)'
+                                                : 'var(--accent-red)',
+                                    }}
+                                >
+                                    {portfolioRow.totalChangePercent >= 0 ? '+' : ''}
+                                    {portfolioRow.totalChangePercent.toFixed(1)}%
                                 </div>
                             </div>
                             <div className="stat-card">
@@ -743,14 +775,22 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             </div>
                             <div className="stat-card">
                                 <div className="stat-card-label">Best Month</div>
-                                <div className="stat-card-value" style={{ color: 'var(--accent-green)' }}>
-                                    {bestMonth >= 0 ? '+' : ''}{bestMonth.toFixed(1)}%
+                                <div
+                                    className="stat-card-value"
+                                    style={{ color: 'var(--accent-green)' }}
+                                >
+                                    {bestMonth >= 0 ? '+' : ''}
+                                    {bestMonth.toFixed(1)}%
                                 </div>
                             </div>
                             <div className="stat-card">
                                 <div className="stat-card-label">Worst Month</div>
-                                <div className="stat-card-value" style={{ color: 'var(--accent-red)' }}>
-                                    {worstMonth >= 0 ? '+' : ''}{worstMonth.toFixed(1)}%
+                                <div
+                                    className="stat-card-value"
+                                    style={{ color: 'var(--accent-red)' }}
+                                >
+                                    {worstMonth >= 0 ? '+' : ''}
+                                    {worstMonth.toFixed(1)}%
                                 </div>
                             </div>
                         </>
@@ -759,52 +799,66 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             </div>
 
             {/* Tooltip */}
-            {tooltip && createPortal(
-                <div
-                    className="heatmap-tooltip"
-                    style={{
-                        left: tooltip.x,
-                        top: tooltip.y,
-                        transform: 'translate(-50%, -100%)'
-                    }}
-                >
-                    <div className="tooltip-header">
-                        <strong>{tooltip.assetName}</strong>
-                        {tooltip.category && <span className="tooltip-category">{tooltip.category}</span>}
-                    </div>
-                    <div className="tooltip-month">{formatFullMonthYear(tooltip.month)}</div>
-                    <div className="tooltip-stats">
-                        <div className="tooltip-row">
-                            <span>Start Value:</span>
-                            <span>{isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.previousValue)}</span>
+            {tooltip &&
+                createPortal(
+                    <div
+                        className="heatmap-tooltip"
+                        style={{
+                            left: tooltip.x,
+                            top: tooltip.y,
+                            transform: 'translate(-50%, -100%)',
+                        }}
+                    >
+                        <div className="tooltip-header">
+                            <strong>{tooltip.assetName}</strong>
+                            {tooltip.category && (
+                                <span className="tooltip-category">{tooltip.category}</span>
+                            )}
                         </div>
-                        <div className="tooltip-row">
-                            <span>End Value:</span>
-                            <span>{isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.value)}</span>
-                        </div>
-                        <div className="tooltip-row">
-                            <span>Result:</span>
-                            <span className={tooltip.change >= 0 ? 'gain-text' : 'loss-text'}>
-                                {isHidden ? `***** ${currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency)}` : formatAmount(tooltip.change)}
-                            </span>
-                        </div>
-                        <div className="tooltip-row grand-total">
-                            <span>Change:</span>
-                            <span className={getColorClass(tooltip.changePercent)}>
-                                {/* Percent ALWAYS visible */}
-                                {tooltip.changePercent > 0 ? '+' : ''}{tooltip.changePercent.toFixed(2)}%
-                            </span>
-                        </div>
-                        {tooltip.owner && (
+                        <div className="tooltip-month">{formatFullMonthYear(tooltip.month)}</div>
+                        <div className="tooltip-stats">
                             <div className="tooltip-row">
-                                <span>Owner:</span>
-                                <span>{tooltip.owner}</span>
+                                <span>Start Value:</span>
+                                <span>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.previousValue)}
+                                </span>
                             </div>
-                        )}
-                    </div>
-                </div>,
-                document.body
-            )}
+                            <div className="tooltip-row">
+                                <span>End Value:</span>
+                                <span>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.value)}
+                                </span>
+                            </div>
+                            <div className="tooltip-row">
+                                <span>Result:</span>
+                                <span className={tooltip.change >= 0 ? 'gain-text' : 'loss-text'}>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.change)}
+                                </span>
+                            </div>
+                            <div className="tooltip-row grand-total">
+                                <span>Change:</span>
+                                <span className={getColorClass(tooltip.changePercent)}>
+                                    {/* Percent ALWAYS visible */}
+                                    {tooltip.changePercent > 0 ? '+' : ''}
+                                    {tooltip.changePercent.toFixed(2)}%
+                                </span>
+                            </div>
+                            {tooltip.owner && (
+                                <div className="tooltip-row">
+                                    <span>Owner:</span>
+                                    <span>{tooltip.owner}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>,
+                    document.body
+                )}
         </>
     );
 }

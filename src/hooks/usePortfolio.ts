@@ -26,9 +26,8 @@ export function usePortfolio() {
         fetchAssets();
     }, [fetchAssets]);
 
-    const filteredAssets = selectedOwner === 'all'
-        ? assets
-        : assets.filter(a => a.ownerId === selectedOwner);
+    const filteredAssets =
+        selectedOwner === 'all' ? assets : assets.filter(a => a.ownerId === selectedOwner);
 
     const calculateStats = useCallback((assetList: Asset[]): PortfolioStats => {
         const stats: PortfolioStats = {
@@ -37,7 +36,7 @@ export function usePortfolio() {
             totalGain: 0,
             gainPercentage: 0,
             byCategory: {},
-            byOwner: {}
+            byOwner: {},
         };
 
         assetList.forEach(asset => {
@@ -57,9 +56,8 @@ export function usePortfolio() {
         });
 
         stats.totalGain = stats.totalValue - stats.totalInvested;
-        stats.gainPercentage = stats.totalInvested > 0
-            ? (stats.totalGain / stats.totalInvested) * 100
-            : 0;
+        stats.gainPercentage =
+            stats.totalInvested > 0 ? (stats.totalGain / stats.totalInvested) * 100 : 0;
 
         return stats;
     }, []);
@@ -76,15 +74,20 @@ export function usePortfolio() {
     const updateAssetValue = useCallback(async (id: string, newValue: number) => {
         try {
             await ApiClient.updateAssetValue(id, newValue);
-            setAssets(prev => prev.map(asset => {
-                if (asset.id !== id) return asset;
-                const newEntry: ValueEntry = { date: new Date().toISOString(), value: newValue };
-                return {
-                    ...asset,
-                    currentValue: newValue,
-                    valueHistory: [...asset.valueHistory, newEntry]
-                };
-            }));
+            setAssets(prev =>
+                prev.map(asset => {
+                    if (asset.id !== id) return asset;
+                    const newEntry: ValueEntry = {
+                        date: new Date().toISOString(),
+                        value: newValue,
+                    };
+                    return {
+                        ...asset,
+                        currentValue: newValue,
+                        valueHistory: [...asset.valueHistory, newEntry],
+                    };
+                })
+            );
         } catch (error) {
             console.error('Failed to update asset value:', error);
         }
@@ -99,17 +102,22 @@ export function usePortfolio() {
         }
     }, []);
 
-    const updateAsset = useCallback(async (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => {
-        try {
-            await ApiClient.updateAsset(id, updates);
-            setAssets(prev => prev.map(asset => {
-                if (asset.id !== id) return asset;
-                return { ...asset, ...updates };
-            }));
-        } catch (error) {
-            console.error('Failed to update asset:', error);
-        }
-    }, []);
+    const updateAsset = useCallback(
+        async (id: string, updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>) => {
+            try {
+                await ApiClient.updateAsset(id, updates);
+                setAssets(prev =>
+                    prev.map(asset => {
+                        if (asset.id !== id) return asset;
+                        return { ...asset, ...updates };
+                    })
+                );
+            } catch (error) {
+                console.error('Failed to update asset:', error);
+            }
+        },
+        []
+    );
 
     return {
         allAssets: assets,
@@ -124,6 +132,6 @@ export function usePortfolio() {
         updateAsset,
         isLoading,
         error,
-        refreshAssets: fetchAssets
+        refreshAssets: fetchAssets,
     };
 }

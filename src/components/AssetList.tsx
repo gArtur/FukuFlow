@@ -10,7 +10,13 @@ interface AssetListProps {
     onEdit: (asset: Asset) => void;
 }
 
-export default function AssetList({ assets, persons, onUpdateValue, onDelete, onEdit }: AssetListProps) {
+export default function AssetList({
+    assets,
+    persons,
+    onUpdateValue,
+    onDelete,
+    onEdit,
+}: AssetListProps) {
     const { formatCurrency } = useFormatting();
     if (assets.length === 0) {
         return (
@@ -24,7 +30,8 @@ export default function AssetList({ assets, persons, onUpdateValue, onDelete, on
                     <h3 className="empty-title">No assets yet</h3>
                     {persons.length === 0 ? (
                         <p className="empty-text">
-                            Before adding assets, you need to create at least one person in <strong>Settings → People</strong>
+                            Before adding assets, you need to create at least one person in{' '}
+                            <strong>Settings → People</strong>
                         </p>
                     ) : (
                         <p className="empty-text">Tap the + button to add your first asset</p>
@@ -43,9 +50,10 @@ export default function AssetList({ assets, persons, onUpdateValue, onDelete, on
             <div className="assets-list">
                 {assets.map(asset => {
                     const gain = asset.currentValue - asset.purchaseAmount;
-                    const gainPercent = asset.purchaseAmount > 0
-                        ? ((gain / asset.purchaseAmount) * 100).toFixed(1)
-                        : '0';
+                    const gainPercent =
+                        asset.purchaseAmount > 0
+                            ? ((gain / asset.purchaseAmount) * 100).toFixed(1)
+                            : '0';
                     const isPositive = gain >= 0;
                     const owner = persons.find(p => p.id === asset.ownerId);
                     const ownerName = owner?.name || 'Unknown';
@@ -56,14 +64,22 @@ export default function AssetList({ assets, persons, onUpdateValue, onDelete, on
                                 <div className="asset-info">
                                     <div className="asset-name">{asset.name}</div>
                                     <div className="asset-meta">
-                                        <span className="asset-category">{CATEGORY_LABELS[asset.category]}</span>
+                                        <span className="asset-category">
+                                            {CATEGORY_LABELS[asset.category]}
+                                        </span>
                                         <span className="asset-owner-badge">{ownerName}</span>
                                     </div>
                                 </div>
                                 <div className="asset-value">
-                                    <div className="asset-current">{formatCurrency(asset.currentValue)}</div>
-                                    <div className={`asset-gain ${isPositive ? 'positive' : 'negative'}`}>
-                                        {isPositive ? '+' : ''}{formatCurrency(gain)} ({isPositive ? '+' : ''}{gainPercent}%)
+                                    <div className="asset-current">
+                                        {formatCurrency(asset.currentValue)}
+                                    </div>
+                                    <div
+                                        className={`asset-gain ${isPositive ? 'positive' : 'negative'}`}
+                                    >
+                                        {isPositive ? '+' : ''}
+                                        {formatCurrency(gain)} ({isPositive ? '+' : ''}
+                                        {gainPercent}%)
                                     </div>
                                 </div>
                             </div>

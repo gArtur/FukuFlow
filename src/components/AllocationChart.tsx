@@ -16,35 +16,54 @@ interface AllocationChartProps {
 
 type ViewMode = 'category' | 'investment';
 
-export default function AllocationChart({ stats, assets = [], persons = [] }: AllocationChartProps) {
+export default function AllocationChart({
+    stats,
+    assets = [],
+    persons = [],
+}: AllocationChartProps) {
     const { isHidden, formatAmount } = usePrivacy();
     const { categories: categoryConfig, theme } = useSettings();
     const [viewMode, setViewMode] = useState<ViewMode>('category');
 
     // Auto-generate colors for investments
-    const getInvestmentColor = useCallback((index: number) => {
-        const isHighContrast = theme === 'high-contrast';
-        if (isHighContrast) {
-            const highContrastColors = [
-                '#00FFFF', // Cyan
-                '#FF00FF', // Magenta
-                '#FFFF00', // Yellow
-                '#00FF00', // Lime
-                '#FF0000', // Red
-                '#0000FF', // Blue
-                '#FFFFFF', // White
-                '#FFA500'  // Orange
-            ];
-            return highContrastColors[index % highContrastColors.length];
-        }
+    const getInvestmentColor = useCallback(
+        (index: number) => {
+            const isHighContrast = theme === 'high-contrast';
+            if (isHighContrast) {
+                const highContrastColors = [
+                    '#00FFFF', // Cyan
+                    '#FF00FF', // Magenta
+                    '#FFFF00', // Yellow
+                    '#00FF00', // Lime
+                    '#FF0000', // Red
+                    '#0000FF', // Blue
+                    '#FFFFFF', // White
+                    '#FFA500', // Orange
+                ];
+                return highContrastColors[index % highContrastColors.length];
+            }
 
-        const colors = [
-            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-            '#EC4899', '#6366F1', '#14B8A6', '#F97316', '#06B6D4',
-            '#84CC16', '#D946EF', '#EAB308', '#64748B', '#A855F7'
-        ];
-        return colors[index % colors.length];
-    }, [theme]);
+            const colors = [
+                '#3B82F6',
+                '#10B981',
+                '#F59E0B',
+                '#EF4444',
+                '#8B5CF6',
+                '#EC4899',
+                '#6366F1',
+                '#14B8A6',
+                '#F97316',
+                '#06B6D4',
+                '#84CC16',
+                '#D946EF',
+                '#EAB308',
+                '#64748B',
+                '#A855F7',
+            ];
+            return colors[index % colors.length];
+        },
+        [theme]
+    );
 
     const chartData = useMemo(() => {
         if (viewMode === 'category') {
@@ -54,18 +73,26 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                 .sort((a, b) => stats.byCategory[b] - stats.byCategory[a]);
 
             // Helpers to get label and color
-            const getCategoryLabel = (key: string) => categoryConfig.find(c => c.key === key)?.label || key;
+            const getCategoryLabel = (key: string) =>
+                categoryConfig.find(c => c.key === key)?.label || key;
             const getCategoryColor = (key: string) => {
                 if (theme === 'high-contrast') {
                     // Map common categories to high contrast colors
                     switch (key) {
-                        case 'stocks': return '#00FFFF'; // Cyan
-                        case 'etf': return '#FFFF00'; // Yellow
-                        case 'crypto': return '#FF00FF'; // Magenta
-                        case 'cash': return '#00FF00'; // Lime
-                        case 'realExp': return '#FF0000'; // Red
-                        case 'bonds': return '#0000FF'; // Blue
-                        default: return '#FFFFFF'; // White
+                        case 'stocks':
+                            return '#00FFFF'; // Cyan
+                        case 'etf':
+                            return '#FFFF00'; // Yellow
+                        case 'crypto':
+                            return '#FF00FF'; // Magenta
+                        case 'cash':
+                            return '#00FF00'; // Lime
+                        case 'realExp':
+                            return '#FF0000'; // Red
+                        case 'bonds':
+                            return '#0000FF'; // Blue
+                        default:
+                            return '#FFFFFF'; // White
                     }
                 }
                 return categoryConfig.find(c => c.key === key)?.color || '#999';
@@ -83,8 +110,8 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                     label: getCategoryLabel(cat),
                     value: stats.byCategory[cat],
                     color: getCategoryColor(cat),
-                    percentage: ((stats.byCategory[cat] / total) * 100).toFixed(1)
-                }))
+                    percentage: ((stats.byCategory[cat] / total) * 100).toFixed(1),
+                })),
             };
         } else {
             // Investment mode
@@ -94,7 +121,8 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                 .filter(asset => asset.currentValue > 0)
                 .sort((a, b) => b.currentValue - a.currentValue)
                 .map((asset, i) => {
-                    const isNameDuplicated = assets.filter(a => a.name === asset.name && a.currentValue > 0).length > 1;
+                    const isNameDuplicated =
+                        assets.filter(a => a.name === asset.name && a.currentValue > 0).length > 1;
                     let label = asset.name;
 
                     if (isNameDuplicated) {
@@ -109,7 +137,7 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                         label,
                         value: asset.currentValue,
                         color: getInvestmentColor(i),
-                        percentage: '' // calculated later
+                        percentage: '', // calculated later
                     };
                 });
 
@@ -125,7 +153,7 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                 data: items.map(item => item.value),
                 colors: items.map(item => item.color),
                 total,
-                items
+                items,
             };
         }
     }, [viewMode, stats, assets, categoryConfig, persons, theme, getInvestmentColor]);
@@ -157,24 +185,39 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
     }
 
     // specific border colors matching card backgrounds
-    const borderColor = theme === 'light' ? '#FFFFFF' : (theme === 'high-contrast' ? '#000000' : '#16161A');
+    const borderColor =
+        theme === 'light' ? '#FFFFFF' : theme === 'high-contrast' ? '#000000' : '#16161A';
 
     // Theme-based tooltip styles
-    const tooltipBg = theme === 'light' ? 'rgba(255, 255, 255, 0.95)' : (theme === 'high-contrast' ? '#000000' : 'rgba(26, 26, 34, 0.95)');
-    const tooltipTitleColor = theme === 'light' ? '#111827' : (theme === 'high-contrast' ? '#FFFFFF' : '#fff');
-    const tooltipBodyColor = theme === 'light' ? '#4B5563' : (theme === 'high-contrast' ? '#FFFFFF' : '#9CA3AF');
-    const tooltipBorderColor = theme === 'light' ? 'rgba(0,0,0,0.1)' : (theme === 'high-contrast' ? '#FFFFFF' : 'rgba(255,255,255,0.1)');
+    const tooltipBg =
+        theme === 'light'
+            ? 'rgba(255, 255, 255, 0.95)'
+            : theme === 'high-contrast'
+              ? '#000000'
+              : 'rgba(26, 26, 34, 0.95)';
+    const tooltipTitleColor =
+        theme === 'light' ? '#111827' : theme === 'high-contrast' ? '#FFFFFF' : '#fff';
+    const tooltipBodyColor =
+        theme === 'light' ? '#4B5563' : theme === 'high-contrast' ? '#FFFFFF' : '#9CA3AF';
+    const tooltipBorderColor =
+        theme === 'light'
+            ? 'rgba(0,0,0,0.1)'
+            : theme === 'high-contrast'
+              ? '#FFFFFF'
+              : 'rgba(255,255,255,0.1)';
     const tooltipBorderWidth = theme === 'high-contrast' ? 2 : 1;
 
     const data = {
         labels: chartData.labels,
-        datasets: [{
-            data: chartData.data,
-            backgroundColor: chartData.colors,
-            borderColor: borderColor,
-            borderWidth: 3,
-            hoverOffset: 8
-        }]
+        datasets: [
+            {
+                data: chartData.data,
+                backgroundColor: chartData.colors,
+                borderColor: borderColor,
+                borderWidth: 3,
+                hoverOffset: 8,
+            },
+        ],
     };
 
     const options = {
@@ -189,7 +232,9 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                 titleColor: tooltipTitleColor,
                 titleFont: { weight: 'bold' as const },
                 bodyColor: tooltipBodyColor,
-                bodyFont: { weight: theme === 'high-contrast' ? 'bold' as const : 'normal' as const },
+                bodyFont: {
+                    weight: theme === 'high-contrast' ? ('bold' as const) : ('normal' as const),
+                },
                 borderColor: tooltipBorderColor,
                 borderWidth: tooltipBorderWidth,
                 padding: 12,
@@ -204,15 +249,18 @@ export default function AllocationChart({ stats, assets = [], persons = [] }: Al
                             return `${percentage}%`;
                         }
                         return `${formatAmount(value)} (${percentage}%)`;
-                    }
-                }
-            }
-        }
+                    },
+                },
+            },
+        },
     };
 
     return (
         <div className="chart-card allocation-card">
-            <div className="chart-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div
+                className="chart-header"
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
                 <h3 className="chart-title">Allocation</h3>
                 <div className="time-range-tabs">
                     <button

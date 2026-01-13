@@ -37,7 +37,7 @@ export default function MigrationTool({ onComplete }: MigrationToolProps) {
             }
 
             setStatus('Migration complete! Cleaning up local data...');
-            // Optional: localStorage.clear(); 
+            // Optional: localStorage.clear();
             // Better to keep it for safety but rename keys
             localStorage.setItem('wealth-persons-backup', storedPersons || '');
             localStorage.setItem('wealth-portfolio-backup', storedAssets || '');
@@ -55,22 +55,23 @@ export default function MigrationTool({ onComplete }: MigrationToolProps) {
     };
 
     return (
-        <div style={{
-            padding: '20px',
-            background: 'var(--card-bg)',
-            borderRadius: '12px',
-            border: '1px solid var(--border-color)',
-            marginTop: '20px',
-            textAlign: 'center'
-        }}>
+        <div
+            style={{
+                padding: '20px',
+                background: 'var(--card-bg)',
+                borderRadius: '12px',
+                border: '1px solid var(--border-color)',
+                marginTop: '20px',
+                textAlign: 'center',
+            }}
+        >
             <h3>Migrate Data to Database</h3>
-            <p>We found existing data in your browser. Would you like to migrate it to the new central database?</p>
+            <p>
+                We found existing data in your browser. Would you like to migrate it to the new
+                central database?
+            </p>
             {status && <p style={{ color: 'var(--accent-color)' }}>{status}</p>}
-            <button
-                onClick={handleMigration}
-                disabled={isMigrating}
-                className="btn-primary"
-            >
+            <button onClick={handleMigration} disabled={isMigrating} className="btn-primary">
                 {isMigrating ? 'Migrating...' : 'Start Migration'}
             </button>
         </div>

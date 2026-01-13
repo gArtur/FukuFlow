@@ -13,7 +13,7 @@ export function parseValue(val: string): number {
 /**
  * Handle numeric input validation for form fields.
  * Only allows valid numeric characters (including European comma format).
- * 
+ *
  * @param inputValue - The input value to validate
  * @param setter - State setter function
  * @param allowNegative - Whether to allow negative numbers (default: false)
@@ -23,9 +23,7 @@ export function handleNumberInput(
     setter: (val: string) => void,
     allowNegative: boolean = false
 ): void {
-    const pattern = allowNegative
-        ? /^-?[0-9]*[.,]?[0-9]*$/
-        : /^[0-9]*[.,]?[0-9]*$/;
+    const pattern = allowNegative ? /^-?[0-9]*[.,]?[0-9]*$/ : /^[0-9]*[.,]?[0-9]*$/;
 
     if (inputValue === '' || (allowNegative && inputValue === '-') || pattern.test(inputValue)) {
         setter(inputValue);
@@ -34,31 +32,37 @@ export function handleNumberInput(
 
 /**
  * Format a number as currency.
- * 
+ *
  * @param value - The numeric value to format
  * @param currency - Currency code (default: 'USD')
  * @returns Formatted currency string
  */
-export function formatCurrency(value: number, currency: string = 'USD', decimals: number = 0): string {
+export function formatCurrency(
+    value: number,
+    currency: string = 'USD',
+    decimals: number = 0
+): string {
     if (currency === 'PLN') {
-        return new Intl.NumberFormat('en-US', {
-            style: 'decimal',
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals
-        }).format(value) + ' zł';
+        return (
+            new Intl.NumberFormat('en-US', {
+                style: 'decimal',
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals,
+            }).format(value) + ' zł'
+        );
     }
 
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency,
         minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
+        maximumFractionDigits: decimals,
     }).format(value);
 }
 
 /**
  * Format a percentage with sign.
- * 
+ *
  * @param value - The percentage value
  * @param decimals - Number of decimal places (default: 2)
  * @returns Formatted percentage string with + or - prefix
@@ -82,7 +86,7 @@ export function hashCode(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+        hash = (hash << 5) - hash + char;
         hash = hash & hash; // Convert to 32bit integer
     }
     return Math.abs(hash);

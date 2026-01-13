@@ -38,7 +38,7 @@ export default function LoginPage() {
                         <input
                             type={showPassword ? 'text' : 'password'}
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value)}
                             placeholder="Password"
                             className="auth-input"
                             autoFocus
@@ -54,17 +54,9 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    {error && (
-                        <div className="auth-error">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="auth-error">{error}</div>}
 
-                    <button
-                        type="submit"
-                        className="auth-button"
-                        disabled={isLoading || !password}
-                    >
+                    <button type="submit" className="auth-button" disabled={isLoading || !password}>
                         {isLoading ? 'Unlocking...' : 'Unlock'}
                     </button>
                 </form>

@@ -21,8 +21,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2024-03-01', value: 58900 },
             { date: '2024-06-01', value: 57200 },
             { date: '2024-09-01', value: 60100 },
-            { date: '2024-12-01', value: 62230 }
-        ]
+            { date: '2024-12-01', value: 62230 },
+        ],
     },
     {
         id: 'sample-2',
@@ -42,8 +42,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2023-09-01', value: 15800 },
             { date: '2023-12-01', value: 19200 },
             { date: '2024-06-01', value: 17500 },
-            { date: '2024-12-01', value: 18230 }
-        ]
+            { date: '2024-12-01', value: 18230 },
+        ],
     },
     {
         id: 'sample-3',
@@ -60,8 +60,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2022-01-01', value: 495000 },
             { date: '2023-01-01', value: 520000 },
             { date: '2024-01-01', value: 530000 },
-            { date: '2024-12-01', value: 535800 }
-        ]
+            { date: '2024-12-01', value: 535800 },
+        ],
     },
     {
         id: 'sample-4',
@@ -79,8 +79,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2024-02-01', value: 9800 },
             { date: '2024-05-01', value: 10100 },
             { date: '2024-08-01', value: 9900 },
-            { date: '2024-12-01', value: 10530 }
-        ]
+            { date: '2024-12-01', value: 10530 },
+        ],
     },
     {
         id: 'sample-5',
@@ -96,8 +96,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2022-01-01', value: 22000 },
             { date: '2023-01-01', value: 24000 },
             { date: '2024-01-01', value: 25000 },
-            { date: '2024-12-01', value: 25000 }
-        ]
+            { date: '2024-12-01', value: 25000 },
+        ],
     },
     {
         id: 'sample-6',
@@ -114,8 +114,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2023-09-01', value: 31800 },
             { date: '2024-03-01', value: 32700 },
             { date: '2024-09-01', value: 33200 },
-            { date: '2024-12-01', value: 33450 }
-        ]
+            { date: '2024-12-01', value: 33450 },
+        ],
     },
     {
         id: 'sample-7',
@@ -133,8 +133,8 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2022-06-01', value: 9500 },
             { date: '2023-06-01', value: 11000 },
             { date: '2024-06-01', value: 12000 },
-            { date: '2024-12-01', value: 12500 }
-        ]
+            { date: '2024-12-01', value: 12500 },
+        ],
     },
     {
         id: 'sample-8',
@@ -150,7 +150,7 @@ export const SAMPLE_ASSETS: Asset[] = [
             { date: '2024-03-01', value: 2800 },
             { date: '2024-06-01', value: 2400 },
             { date: '2024-09-01', value: 2200 },
-            { date: '2024-12-01', value: 2580 }
-        ]
-    }
+            { date: '2024-12-01', value: 2580 },
+        ],
+    },
 ];

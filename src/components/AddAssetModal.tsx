@@ -11,14 +11,25 @@ interface AddAssetModalProps {
     persons: Person[];
 }
 
-export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, onUpdate, persons }: AddAssetModalProps) {
+export default function AddAssetModal({
+    isOpen,
+    onClose,
+    onSubmit,
+    editAsset,
+    onUpdate,
+    persons,
+}: AddAssetModalProps) {
     const { categories } = useSettings();
     const [prevEditAssetId, setPrevEditAssetId] = useState(editAsset?.id);
 
     // Initialize state (logic handled in useState or prop change check)
     const [name, setName] = useState(editAsset?.name || '');
-    const [category, setCategory] = useState<AssetCategory>(editAsset?.category || categories[0]?.key || 'stocks');
-    const [ownerId, setOwnerId] = useState(editAsset?.ownerId || (persons.length > 0 ? persons[0].id : ''));
+    const [category, setCategory] = useState<AssetCategory>(
+        editAsset?.category || categories[0]?.key || 'stocks'
+    );
+    const [ownerId, setOwnerId] = useState(
+        editAsset?.ownerId || (persons.length > 0 ? persons[0].id : '')
+    );
 
     // Detect changes in editAsset prop (e.g. switching assets or switching between Add/Edit mode)
     if (editAsset?.id !== prevEditAssetId) {
@@ -70,7 +81,9 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">{editAsset ? 'Edit Asset' : 'Add Asset'}</h2>
-                    <button className="modal-close" onClick={onClose}>×</button>
+                    <button className="modal-close" onClick={onClose}>
+                        ×
+                    </button>
                 </div>
                 {hasNoPersons && !editAsset ? (
                     <div className="modal-body">
@@ -78,11 +91,16 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                             <div className="empty-icon">👤</div>
                             <h3 className="empty-title">No people configured</h3>
                             <p className="empty-text">
-                                Before adding assets, you need to create at least one person.
-                                Go to <strong>Settings → People</strong> to add family members or owners.
+                                Before adding assets, you need to create at least one person. Go to{' '}
+                                <strong>Settings → People</strong> to add family members or owners.
                             </p>
                         </div>
-                        <button type="button" className="form-submit" style={{ opacity: 0.5, cursor: 'not-allowed' }} disabled>
+                        <button
+                            type="button"
+                            className="form-submit"
+                            style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                            disabled
+                        >
                             Add Asset
                         </button>
                     </div>
@@ -109,7 +127,9 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                                     onChange={e => setCategory(e.target.value as AssetCategory)}
                                 >
                                     {categories.map(cat => (
-                                        <option key={cat.key} value={cat.key}>{cat.label}</option>
+                                        <option key={cat.key} value={cat.key}>
+                                            {cat.label}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -121,12 +141,13 @@ export default function AddAssetModal({ isOpen, onClose, onSubmit, editAsset, on
                                     onChange={e => setOwnerId(e.target.value)}
                                 >
                                     {persons.map(person => (
-                                        <option key={person.id} value={person.id}>{person.name}</option>
+                                        <option key={person.id} value={person.id}>
+                                            {person.name}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
                         </div>
-
 
                         <button type="submit" className="form-submit">
                             {editAsset ? 'Save Changes' : 'Add Asset'}

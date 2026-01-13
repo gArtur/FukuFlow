@@ -9,7 +9,13 @@ interface MyMoversProps {
     onAddAsset: () => void;
 }
 
-export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, onAddAsset }: MyMoversProps) {
+export default function MyMovers({
+    assets,
+    persons,
+    onCardClick,
+    onAddSnapshot,
+    onAddAsset,
+}: MyMoversProps) {
     if (assets.length === 0) {
         return (
             <section className="movers-section">
@@ -27,7 +33,8 @@ export default function MyMovers({ assets, persons, onCardClick, onAddSnapshot, 
                     <h3 className="empty-title">No assets yet</h3>
                     {persons.length === 0 ? (
                         <p className="empty-text">
-                            Before adding assets, you need to create at least one person in <strong>Settings → People</strong>
+                            Before adding assets, you need to create at least one person in{' '}
+                            <strong>Settings → People</strong>
                         </p>
                     ) : (
                         <p className="empty-text">Tap the + button to add your first asset</p>

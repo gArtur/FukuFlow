@@ -53,7 +53,7 @@ export const getQuickFilterRange = (
         case 'YTD':
             return {
                 start: `${currentYear}-01`,
-                end: maxMonth
+                end: maxMonth,
             };
         case '1Y': {
             const oneYearAgo = new Date(now);
@@ -61,7 +61,7 @@ export const getQuickFilterRange = (
             const startMonth = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}`;
             return {
                 start: startMonth < minMonth ? minMonth : startMonth,
-                end: maxMonth
+                end: maxMonth,
             };
         }
         case '5Y': {
@@ -70,7 +70,7 @@ export const getQuickFilterRange = (
             const startMonth = `${fiveYearsAgo.getFullYear()}-${String(fiveYearsAgo.getMonth() + 1).padStart(2, '0')}`;
             return {
                 start: startMonth < minMonth ? minMonth : startMonth,
-                end: maxMonth
+                end: maxMonth,
             };
         }
         case 'MAX':
@@ -85,6 +85,8 @@ export const getQuickFilterRange = (
 export const calculateVolatility = (monthlyReturns: number[]): number => {
     if (monthlyReturns.length === 0) return 0;
     const mean = monthlyReturns.reduce((sum, val) => sum + val, 0) / monthlyReturns.length;
-    const variance = monthlyReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / monthlyReturns.length;
+    const variance =
+        monthlyReturns.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
+        monthlyReturns.length;
     return Math.sqrt(variance);
 };

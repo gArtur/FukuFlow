@@ -255,8 +255,6 @@
     border-color: var(--accent-primary);
 }
 
-
-
 /* Custom Select */
 .custom-select-container {
     position: relative;
@@ -643,7 +641,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: color 0.2s, background 0.2s;
+    transition:
+        color 0.2s,
+        background 0.2s;
 }
 
 .drag-handle:hover {

@@ -14,9 +14,9 @@ export default function HeatmapTooltip({
     tooltip,
     isHidden,
     currency,
-    formatAmount
+    formatAmount,
 }: HeatmapTooltipProps) {
-    const currencySymbol = currency === 'PLN' ? 'zł' : (currency === 'USD' ? '$' : currency);
+    const currencySymbol = currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency;
     const hiddenValue = `***** ${currencySymbol}`;
 
     return createPortal(
@@ -25,7 +25,7 @@ export default function HeatmapTooltip({
             style={{
                 left: tooltip.x,
                 top: tooltip.y,
-                transform: 'translate(-50%, -100%)'
+                transform: 'translate(-50%, -100%)',
             }}
         >
             <div className="tooltip-header">
@@ -51,7 +51,8 @@ export default function HeatmapTooltip({
                 <div className="tooltip-row grand-total">
                     <span>Change:</span>
                     <span className={getColorClass(tooltip.changePercent)}>
-                        {tooltip.changePercent > 0 ? '+' : ''}{tooltip.changePercent.toFixed(2)}%
+                        {tooltip.changePercent > 0 ? '+' : ''}
+                        {tooltip.changePercent.toFixed(2)}%
                     </span>
                 </div>
                 {tooltip.owner && (

@@ -17,7 +17,7 @@ interface ModalBaseProps {
 
 /**
  * Base modal component providing consistent overlay, container, and header structure.
- * 
+ *
  * @example
  * ```tsx
  * <ModalBase isOpen={isOpen} onClose={onClose} title="Add Item">
@@ -33,16 +33,13 @@ export default function ModalBase({
     title,
     children,
     className = '',
-    isForm = false
+    isForm = false,
 }: ModalBaseProps) {
     if (!isOpen) return null;
 
     return (
         <div className="modal-overlay" onClick={onClose}>
-            <div
-                className={`modal ${className}`.trim()}
-                onClick={e => e.stopPropagation()}
-            >
+            <div className={`modal ${className}`.trim()} onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">{title}</h2>
                     <button
@@ -54,13 +51,7 @@ export default function ModalBase({
                         ×
                     </button>
                 </div>
-                {isForm ? (
-                    <div className="modal-form">
-                        {children}
-                    </div>
-                ) : (
-                    children
-                )}
+                {isForm ? <div className="modal-form">{children}</div> : children}
             </div>
         </div>
     );

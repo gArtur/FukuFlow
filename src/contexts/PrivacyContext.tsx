@@ -31,16 +31,18 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
         }
 
         if (currency === 'PLN') {
-            return new Intl.NumberFormat('en-US', {
-                style: 'decimal',
-                maximumFractionDigits: 0
-            }).format(value) + ' zł';
+            return (
+                new Intl.NumberFormat('en-US', {
+                    style: 'decimal',
+                    maximumFractionDigits: 0,
+                }).format(value) + ' zł'
+            );
         }
 
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: currency,
-            maximumFractionDigits: 0
+            maximumFractionDigits: 0,
         }).format(value);
     };
 

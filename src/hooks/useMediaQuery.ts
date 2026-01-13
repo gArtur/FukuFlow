@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
  * Custom hook for responsive breakpoint detection
  * @param query - CSS media query string
  * @returns boolean indicating if the query matches
- * 
+ *
  * @example
  * const isMobile = useMediaQuery('(max-width: 640px)');
  * const prefersDark = useMediaQuery('(prefers-color-scheme: dark)');

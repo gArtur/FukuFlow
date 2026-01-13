@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 /**
  * Generic modal state management hook.
  * Provides open/close functionality with optional data payload.
- * 
+ *
  * @template T - Type of data associated with the modal
  */
 export function useModal<T = undefined>() {
@@ -31,7 +31,7 @@ export function useModal<T = undefined>() {
         open,
         close,
         toggle,
-        setData
+        setData,
     };
 }
 

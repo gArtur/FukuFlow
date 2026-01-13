@@ -13,7 +13,7 @@ export interface SnapshotData {
 function getAuthHeaders(): Record<string, string> {
     const token = localStorage.getItem('auth_token');
     const headers: Record<string, string> = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
     };
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
@@ -27,7 +27,7 @@ function getAuthHeaders(): Record<string, string> {
 async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
     const headers = {
         ...getAuthHeaders(),
-        ...(options.headers || {})
+        ...(options.headers || {}),
     };
 
     const response = await fetch(url, { ...options, headers });
@@ -55,7 +55,7 @@ export const ApiClient = {
         const response = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
+            body: JSON.stringify({ password }),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -68,7 +68,7 @@ export const ApiClient = {
         const response = await fetch(`${API_URL}/auth/setup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password })
+            body: JSON.stringify({ password }),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -85,7 +85,7 @@ export const ApiClient = {
     async changePassword(currentPassword: string, newPassword: string) {
         const response = await authFetch(`${API_URL}/auth/change-password`, {
             method: 'POST',
-            body: JSON.stringify({ currentPassword, newPassword })
+            body: JSON.stringify({ currentPassword, newPassword }),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -110,7 +110,7 @@ export const ApiClient = {
     async updateSetting(key: string, value: string) {
         const response = await authFetch(`${API_URL}/settings`, {
             method: 'POST',
-            body: JSON.stringify({ key, value })
+            body: JSON.stringify({ key, value }),
         });
         if (!response.ok) throw new Error(`Failed to update setting: ${response.statusText}`);
         return response.json();
@@ -132,7 +132,7 @@ export const ApiClient = {
     async addCategory(label: string, color: string) {
         const response = await authFetch(`${API_URL}/categories`, {
             method: 'POST',
-            body: JSON.stringify({ label, color })
+            body: JSON.stringify({ label, color }),
         });
         return response.json();
     },
@@ -140,7 +140,7 @@ export const ApiClient = {
     async updateCategory(id: string, label: string, color: string) {
         const response = await authFetch(`${API_URL}/categories/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ label, color })
+            body: JSON.stringify({ label, color }),
         });
         return response.json();
     },
@@ -166,7 +166,7 @@ export const ApiClient = {
     async restoreBackup(backupData: any) {
         const response = await authFetch(`${API_URL}/backup/restore`, {
             method: 'POST',
-            body: JSON.stringify(backupData)
+            body: JSON.stringify(backupData),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -190,7 +190,7 @@ export const ApiClient = {
     async addPerson(name: string) {
         const response = await authFetch(`${API_URL}/persons`, {
             method: 'POST',
-            body: JSON.stringify({ name })
+            body: JSON.stringify({ name }),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -199,10 +199,10 @@ export const ApiClient = {
         return response.json();
     },
 
-    async updatePerson(id: string, data: { name?: string, displayOrder?: number }) {
+    async updatePerson(id: string, data: { name?: string; displayOrder?: number }) {
         const response = await authFetch(`${API_URL}/persons/${id}`, {
             method: 'PUT',
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         return response.json();
     },
@@ -210,7 +210,7 @@ export const ApiClient = {
     async reorderPersons(ids: string[]) {
         const response = await authFetch(`${API_URL}/persons/reorder`, {
             method: 'PUT',
-            body: JSON.stringify({ ids })
+            body: JSON.stringify({ ids }),
         });
         return response.json();
     },
@@ -235,7 +235,7 @@ export const ApiClient = {
     async addAsset(asset: any) {
         const response = await authFetch(`${API_URL}/assets`, {
             method: 'POST',
-            body: JSON.stringify(asset)
+            body: JSON.stringify(asset),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -248,7 +248,7 @@ export const ApiClient = {
     async updateAsset(id: string, updates: any) {
         const response = await authFetch(`${API_URL}/assets/${id}`, {
             method: 'PUT',
-            body: JSON.stringify(updates)
+            body: JSON.stringify(updates),
         });
         return response.json();
     },
@@ -256,7 +256,7 @@ export const ApiClient = {
     async addSnapshot(id: string, snapshot: SnapshotData) {
         const response = await authFetch(`${API_URL}/assets/${id}/snapshot`, {
             method: 'POST',
-            body: JSON.stringify(snapshot)
+            body: JSON.stringify(snapshot),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -268,7 +268,7 @@ export const ApiClient = {
     async updateAssetValue(id: string, value: number) {
         const response = await authFetch(`${API_URL}/assets/${id}/value`, {
             method: 'POST',
-            body: JSON.stringify({ value })
+            body: JSON.stringify({ value }),
         });
         return response.json();
     },
@@ -285,11 +285,14 @@ export const ApiClient = {
         await authFetch(`${API_URL}/snapshots/${id}`, { method: 'DELETE' });
     },
 
-    async updateSnapshot(id: number, data: { date: string; value: number; investmentChange: number; notes: string }) {
+    async updateSnapshot(
+        id: number,
+        data: { date: string; value: number; investmentChange: number; notes: string }
+    ) {
         const response = await authFetch(`${API_URL}/snapshots/${id}`, {
             method: 'PUT',
-            body: JSON.stringify(data)
+            body: JSON.stringify(data),
         });
         return response.json();
-    }
+    },
 };

@@ -41,7 +41,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         currency: 'USD',
         defaultFilter: 'all',
         defaultDateRange: '1Y',
-        theme: 'dark'
+        theme: 'dark',
     });
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -52,7 +52,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             try {
                 const [settingsData, categoriesData] = await Promise.all([
                     ApiClient.getSettings(),
-                    ApiClient.getCategories()
+                    ApiClient.getCategories(),
                 ]);
 
                 if (settingsData) {
@@ -61,7 +61,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                         currency: settingsData.currency || 'USD',
                         defaultFilter: settingsData.defaultFilter || 'all',
                         defaultDateRange: settingsData.defaultDateRange || '1Y',
-                        theme: theme
+                        theme: theme,
                     });
 
                     // Apply theme to document
@@ -131,7 +131,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const updateCategory = async (id: string, label: string, color: string) => {
         try {
             const updated = await ApiClient.updateCategory(id, label, color);
-            setCategories(prev => prev.map(c => c.id === id ? { ...c, ...updated } : c));
+            setCategories(prev => prev.map(c => (c.id === id ? { ...c, ...updated } : c)));
         } catch (error) {
             console.error('Failed to update category:', error);
             throw error;
@@ -150,36 +150,40 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
     const formatAmount = (amount: number) => {
         if (settings.currency === 'PLN') {
-            return new Intl.NumberFormat('en-US', {
-                style: 'decimal',
-                maximumFractionDigits: 0
-            }).format(amount) + ' zł';
+            return (
+                new Intl.NumberFormat('en-US', {
+                    style: 'decimal',
+                    maximumFractionDigits: 0,
+                }).format(amount) + ' zł'
+            );
         }
 
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
             currency: settings.currency,
-            maximumFractionDigits: 0
+            maximumFractionDigits: 0,
         }).format(amount);
     };
 
     return (
-        <SettingsContext.Provider value={{
-            currency: settings.currency,
-            setCurrency,
-            theme: settings.theme,
-            setTheme,
-            defaultFilter: settings.defaultFilter,
-            setDefaultFilter,
-            defaultDateRange: settings.defaultDateRange,
-            setDefaultDateRange,
-            categories,
-            addCategory,
-            updateCategory,
-            deleteCategory,
-            isLoading,
-            formatAmount
-        }}>
+        <SettingsContext.Provider
+            value={{
+                currency: settings.currency,
+                setCurrency,
+                theme: settings.theme,
+                setTheme,
+                defaultFilter: settings.defaultFilter,
+                setDefaultFilter,
+                defaultDateRange: settings.defaultDateRange,
+                setDefaultDateRange,
+                categories,
+                addCategory,
+                updateCategory,
+                deleteCategory,
+                isLoading,
+                formatAmount,
+            }}
+        >
             {children}
         </SettingsContext.Provider>
     );

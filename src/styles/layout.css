@@ -27,7 +27,7 @@
     }
 
     /* Prevent grid blowout */
-    .charts-row>* {
+    .charts-row > * {
         min-width: 0;
     }
 }

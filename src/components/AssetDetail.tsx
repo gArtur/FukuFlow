@@ -27,7 +27,7 @@ export default function AssetDetail({
     onEdit,
     onDelete,
     onEditSnapshot,
-    onOpenImportModal
+    onOpenImportModal,
 }: AssetDetailProps) {
     const { formatAmount, isHidden } = usePrivacy();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -47,7 +47,7 @@ export default function AssetDetail({
 
     const owner = persons.find(p => p.id === asset.ownerId);
     const gain = asset.currentValue - asset.purchaseAmount;
-    const gainPercent = asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100) : 0;
+    const gainPercent = asset.purchaseAmount > 0 ? (gain / asset.purchaseAmount) * 100 : 0;
 
     // Process history to add derived fields (extracted to hook)
     const enhancedHistory = useSnapshotHistory(asset.valueHistory);
@@ -71,7 +71,6 @@ export default function AssetDetail({
 
     return (
         <div className="asset-detail">
-
             <AssetHero
                 asset={asset}
                 owner={owner}
@@ -97,7 +96,7 @@ export default function AssetDetail({
                             onClick={handleExportCSV}
                             className="btn-small-outline"
                             disabled={isHidden}
-                            title={isHidden ? "Disabled in Private Mode" : "Export CSV"}
+                            title={isHidden ? 'Disabled in Private Mode' : 'Export CSV'}
                             style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                         >
                             Export CSV
@@ -106,7 +105,7 @@ export default function AssetDetail({
                             onClick={onOpenImportModal}
                             className="btn-small-outline"
                             disabled={isHidden}
-                            title={isHidden ? "Disabled in Private Mode" : "Import CSV"}
+                            title={isHidden ? 'Disabled in Private Mode' : 'Import CSV'}
                             style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                         >
                             Import CSV
@@ -144,6 +143,6 @@ export default function AssetDetail({
                 confirmLabel="Delete"
                 isDangerous={true}
             />
-        </div >
+        </div>
     );
 }

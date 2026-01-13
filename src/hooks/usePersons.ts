@@ -37,21 +37,19 @@ export function usePersons() {
         }
     }, []);
 
-    const updatePerson = useCallback(async (
-        id: string,
-        updates: { name?: string; displayOrder?: number }
-    ): Promise<boolean> => {
-        try {
-            await ApiClient.updatePerson(id, updates);
-            setPersons(prev => prev.map(p =>
-                p.id === id ? { ...p, ...updates } : p
-            ));
-            return true;
-        } catch (error) {
-            console.error('Failed to update person:', error);
-            return false;
-        }
-    }, []);
+    const updatePerson = useCallback(
+        async (id: string, updates: { name?: string; displayOrder?: number }): Promise<boolean> => {
+            try {
+                await ApiClient.updatePerson(id, updates);
+                setPersons(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
+                return true;
+            } catch (error) {
+                console.error('Failed to update person:', error);
+                return false;
+            }
+        },
+        []
+    );
 
     const deletePerson = useCallback(async (id: string): Promise<boolean> => {
         try {
@@ -64,30 +62,36 @@ export function usePersons() {
         }
     }, []);
 
-    const reorderPersons = useCallback(async (ids: string[]): Promise<boolean> => {
-        // Optimistic update
-        const previousPersons = persons;
-        const orderedPersons = ids
-            .map(id => persons.find(p => p.id === id))
-            .filter((p): p is Person => p !== undefined)
-            .map((p, index) => ({ ...p, displayOrder: index }));
-        setPersons(orderedPersons);
+    const reorderPersons = useCallback(
+        async (ids: string[]): Promise<boolean> => {
+            // Optimistic update
+            const previousPersons = persons;
+            const orderedPersons = ids
+                .map(id => persons.find(p => p.id === id))
+                .filter((p): p is Person => p !== undefined)
+                .map((p, index) => ({ ...p, displayOrder: index }));
+            setPersons(orderedPersons);
 
-        try {
-            await ApiClient.reorderPersons(ids);
-            return true;
-        } catch (error) {
-            console.error('Failed to reorder persons:', error);
-            // Rollback on error
-            setPersons(previousPersons);
-            return false;
-        }
-    }, [persons]);
+            try {
+                await ApiClient.reorderPersons(ids);
+                return true;
+            } catch (error) {
+                console.error('Failed to reorder persons:', error);
+                // Rollback on error
+                setPersons(previousPersons);
+                return false;
+            }
+        },
+        [persons]
+    );
 
-    const getPersonName = useCallback((ownerId: string): string => {
-        const person = persons.find(p => p.id === ownerId);
-        return person?.name || 'Unknown';
-    }, [persons]);
+    const getPersonName = useCallback(
+        (ownerId: string): string => {
+            const person = persons.find(p => p.id === ownerId);
+            return person?.name || 'Unknown';
+        },
+        [persons]
+    );
 
     return {
         persons,
@@ -97,7 +101,7 @@ export function usePersons() {
         updatePerson,
         deletePerson,
         reorderPersons,
-        getPersonName
+        getPersonName,
     };
 }
 

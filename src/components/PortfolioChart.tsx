@@ -29,13 +29,15 @@ export default function PortfolioChart({ stats }: PortfolioChartProps) {
 
     const data = {
         labels: nonZeroCategories.map(cat => CATEGORY_LABELS[cat]),
-        datasets: [{
-            data: nonZeroCategories.map(cat => stats.byCategory[cat]),
-            backgroundColor: nonZeroCategories.map(cat => CATEGORY_COLORS[cat]),
-            borderColor: 'rgba(0,0,0,0.3)',
-            borderWidth: 2,
-            hoverOffset: 8
-        }]
+        datasets: [
+            {
+                data: nonZeroCategories.map(cat => stats.byCategory[cat]),
+                backgroundColor: nonZeroCategories.map(cat => CATEGORY_COLORS[cat]),
+                borderColor: 'rgba(0,0,0,0.3)',
+                borderWidth: 2,
+                hoverOffset: 8,
+            },
+        ],
     };
 
     const options = {
@@ -44,7 +46,7 @@ export default function PortfolioChart({ stats }: PortfolioChartProps) {
         cutout: '65%',
         plugins: {
             legend: {
-                display: false
+                display: false,
             },
             tooltip: {
                 backgroundColor: 'rgba(26, 26, 34, 0.95)',
@@ -57,13 +59,16 @@ export default function PortfolioChart({ stats }: PortfolioChartProps) {
                 callbacks: {
                     label: (context: { label: string; parsed: number }) => {
                         const value = context.parsed;
-                        const total = nonZeroCategories.reduce((acc, cat) => acc + stats.byCategory[cat], 0);
+                        const total = nonZeroCategories.reduce(
+                            (acc, cat) => acc + stats.byCategory[cat],
+                            0
+                        );
                         const percentage = ((value / total) * 100).toFixed(1);
                         return `${new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', maximumFractionDigits: 0 }).format(value)} (${percentage}%)`;
-                    }
-                }
-            }
-        }
+                    },
+                },
+            },
+        },
     };
 
     return (

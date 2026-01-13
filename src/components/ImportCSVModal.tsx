@@ -11,10 +11,18 @@ interface ImportCSVModalProps {
     onClose: () => void;
     assetName: string;
     ownerName?: string;
-    onImport: (snapshots: { date: string; value: number; investmentChange: number; notes: string }[]) => Promise<ImportResult>;
+    onImport: (
+        snapshots: { date: string; value: number; investmentChange: number; notes: string }[]
+    ) => Promise<ImportResult>;
 }
 
-export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, onImport }: ImportCSVModalProps) {
+export default function ImportCSVModal({
+    isOpen,
+    onClose,
+    assetName,
+    ownerName,
+    onImport,
+}: ImportCSVModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<ImportResult | null>(null);
@@ -30,40 +38,50 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, 
         onClose();
     };
 
-    const processFile = useCallback(async (file: File) => {
-        if (!file.name.endsWith('.csv')) {
-            setResult({ success: 0, failed: 1, errors: ['File must be a CSV file'] });
-            return;
-        }
-
-        setIsProcessing(true);
-        try {
-            const text = await file.text();
-            const snapshots = parseCSV(text);
-
-            if (snapshots.length === 0) {
-                setResult({ success: 0, failed: 0, errors: ['No valid entries found in the file'] });
+    const processFile = useCallback(
+        async (file: File) => {
+            if (!file.name.endsWith('.csv')) {
+                setResult({ success: 0, failed: 1, errors: ['File must be a CSV file'] });
                 return;
             }
 
-            const importResult = await onImport(snapshots);
-            setResult(importResult);
-        } catch {
-            setResult({ success: 0, failed: 1, errors: ['Failed to process file'] });
-        } finally {
-            setIsProcessing(false);
-        }
-    }, [onImport]);
+            setIsProcessing(true);
+            try {
+                const text = await file.text();
+                const snapshots = parseCSV(text);
+
+                if (snapshots.length === 0) {
+                    setResult({
+                        success: 0,
+                        failed: 0,
+                        errors: ['No valid entries found in the file'],
+                    });
+                    return;
+                }
+
+                const importResult = await onImport(snapshots);
+                setResult(importResult);
+            } catch {
+                setResult({ success: 0, failed: 1, errors: ['Failed to process file'] });
+            } finally {
+                setIsProcessing(false);
+            }
+        },
+        [onImport]
+    );
 
     /* Logic moved outside component */
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            setIsDragging(false);
 
-        const file = e.dataTransfer.files[0];
-        if (file) processFile(file);
-    }, [processFile]);
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        },
+        [processFile]
+    );
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -87,7 +105,9 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, 
             <div className="modal import-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">Import Snapshots</h2>
-                    <button className="modal-close" onClick={handleClose}>×</button>
+                    <button className="modal-close" onClick={handleClose}>
+                        ×
+                    </button>
                 </div>
 
                 <div className="modal-body">
@@ -108,10 +128,20 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, 
                                     <code>2024-03-15,11000,1000,"Added funds"</code>
                                 </div>
                                 <ul className="import-tips">
-                                    <li><strong>Date:</strong> YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY</li>
-                                    <li><strong>Value:</strong> Current value at snapshot date (required)</li>
-                                    <li><strong>Invested:</strong> Positive = added, Negative = withdrawn</li>
-                                    <li><strong>Notes:</strong> Optional description</li>
+                                    <li>
+                                        <strong>Date:</strong> YYYY-MM-DD, DD/MM/YYYY, or MM/DD/YYYY
+                                    </li>
+                                    <li>
+                                        <strong>Value:</strong> Current value at snapshot date
+                                        (required)
+                                    </li>
+                                    <li>
+                                        <strong>Invested:</strong> Positive = added, Negative =
+                                        withdrawn
+                                    </li>
+                                    <li>
+                                        <strong>Notes:</strong> Optional description
+                                    </li>
                                 </ul>
                             </div>
 
@@ -147,17 +177,25 @@ export default function ImportCSVModal({ isOpen, onClose, assetName, ownerName, 
                         </>
                     ) : (
                         <div className="import-result">
-                            <div className={`result-summary ${result.success > 0 ? 'success' : 'error'}`}>
+                            <div
+                                className={`result-summary ${result.success > 0 ? 'success' : 'error'}`}
+                            >
                                 {result.success > 0 && (
                                     <div className="result-item success">
                                         <span className="result-icon">✓</span>
-                                        <span>{result.success} snapshot{result.success !== 1 ? 's' : ''} imported successfully</span>
+                                        <span>
+                                            {result.success} snapshot
+                                            {result.success !== 1 ? 's' : ''} imported successfully
+                                        </span>
                                     </div>
                                 )}
                                 {result.failed > 0 && (
                                     <div className="result-item error">
                                         <span className="result-icon">✗</span>
-                                        <span>{result.failed} snapshot{result.failed !== 1 ? 's' : ''} failed</span>
+                                        <span>
+                                            {result.failed} snapshot{result.failed !== 1 ? 's' : ''}{' '}
+                                            failed
+                                        </span>
                                     </div>
                                 )}
                                 {result.errors.length > 0 && (
@@ -215,7 +253,9 @@ const parseDateFlexible = (dateStr: string): Date | null => {
     return null;
 };
 
-const parseCSV = (text: string): { date: string; value: number; investmentChange: number; notes: string }[] => {
+const parseCSV = (
+    text: string
+): { date: string; value: number; investmentChange: number; notes: string }[] => {
     const lines = text.split('\n');
     const hasHeader = lines[0]?.toLowerCase().includes('date');
     const dataLines = hasHeader ? lines.slice(1) : lines;
@@ -254,7 +294,7 @@ const parseCSV = (text: string): { date: string; value: number; investmentChange
                 value: parseFloat(valueStr) || 0,
                 investmentChange: parseFloat(investmentChangeStr) || 0,
                 notes: notes || '',
-                _rawDate: dateStr // Keep for error reporting
+                _rawDate: dateStr, // Keep for error reporting
             };
         })
         .filter(s => {

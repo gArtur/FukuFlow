@@ -17,7 +17,7 @@ interface GeneralSettingsProps {
 const THEME_OPTIONS = [
     { value: 'dark', label: 'Dark (Default)' },
     { value: 'light', label: 'Light' },
-    { value: 'high-contrast', label: 'High Contrast' }
+    { value: 'high-contrast', label: 'High Contrast' },
 ];
 
 const CURRENCY_OPTIONS = [
@@ -28,7 +28,7 @@ const CURRENCY_OPTIONS = [
     { value: 'JPY', label: 'JPY (¥)' },
     { value: 'CHF', label: 'CHF (Fr)' },
     { value: 'CAD', label: 'CAD ($)' },
-    { value: 'AUD', label: 'AUD ($)' }
+    { value: 'AUD', label: 'AUD ($)' },
 ];
 
 const DATE_RANGE_OPTIONS: TimeRange[] = ['YTD', '1Y', '5Y', 'MAX'];
@@ -42,11 +42,11 @@ export default function GeneralSettings({
     setDefaultFilter,
     defaultDateRange,
     setDefaultDateRange,
-    persons
+    persons,
 }: GeneralSettingsProps) {
     const filterOptions = [
         { value: 'all', label: 'All' },
-        ...persons.map(p => ({ value: p.id, label: p.name }))
+        ...persons.map(p => ({ value: p.id, label: p.name })),
     ];
 
     return (
@@ -63,7 +63,7 @@ export default function GeneralSettings({
                             label="Theme"
                             value={theme || 'dark'}
                             options={THEME_OPTIONS}
-                            onChange={(val) => setTheme(val as 'dark' | 'light' | 'high-contrast')}
+                            onChange={val => setTheme(val as 'dark' | 'light' | 'high-contrast')}
                         />
                     </div>
                     <div className="settings-group">

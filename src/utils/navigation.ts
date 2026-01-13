@@ -8,12 +8,12 @@ export const slugify = (text: string): string => {
     return text
         .toString()
         .toLowerCase()
-        .replace(/\s+/g, '-')           // Replace spaces with -
-        .replace(/&/g, '-and-')         // Replace & with 'and'
-        .replace(/[^\w-]+/g, '')        // Remove all non-word chars
-        .replace(/-+/g, '-')            // Replace multiple - with single -
-        .replace(/^-+/, '')             // Trim - from start of text
-        .replace(/-+$/, '');            // Trim - from end of text
+        .replace(/\s+/g, '-') // Replace spaces with -
+        .replace(/&/g, '-and-') // Replace & with 'and'
+        .replace(/[^\w-]+/g, '') // Remove all non-word chars
+        .replace(/-+/g, '-') // Replace multiple - with single -
+        .replace(/^-+/, '') // Trim - from start of text
+        .replace(/-+$/, ''); // Trim - from end of text
 };
 
 /**
@@ -33,7 +33,7 @@ export const resolveAssetFromSlug = (
     persons: Person[],
     ownerSlug: string | undefined,
     assetSlug: string | undefined
-): { asset?: Asset, person?: Person } => {
+): { asset?: Asset; person?: Person } => {
     if (!ownerSlug || !assetSlug) return {};
 
     // 1. Find the person/owner first
@@ -42,10 +42,7 @@ export const resolveAssetFromSlug = (
     if (!person) return {};
 
     // 2. Find the asset that belongs to this person AND matches the asset slug
-    const asset = assets.find(a =>
-        a.ownerId === person.id &&
-        slugify(a.name) === assetSlug
-    );
+    const asset = assets.find(a => a.ownerId === person.id && slugify(a.name) === assetSlug);
 
     return { asset, person };
 };

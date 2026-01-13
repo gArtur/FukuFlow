@@ -8,10 +8,7 @@ import { formatCurrency as formatCurrencyUtil, formatPercent as formatPercentUti
  */
 export function useFormatCurrency() {
     const { currency } = useSettings();
-    return useCallback(
-        (amount: number) => formatCurrencyUtil(amount, currency),
-        [currency]
-    );
+    return useCallback((amount: number) => formatCurrencyUtil(amount, currency), [currency]);
 }
 
 /**

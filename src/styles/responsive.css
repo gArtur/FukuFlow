@@ -58,7 +58,6 @@
 
 /* ===== LARGE PHONES (480px and below) ===== */
 @media (max-width: 480px) {
-
     /* Header stacking */
     .header-content {
         flex-wrap: wrap;
@@ -313,7 +312,6 @@
 
 /* ===== TABLETS AND PHONES: TOUCH-FRIENDLY (768px and below) ===== */
 @media (max-width: 768px) {
-
     /* Form inputs - 16px prevents iOS zoom */
     .form-input,
     .form-select,

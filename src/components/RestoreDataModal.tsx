@@ -35,7 +35,7 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
 
         setIsProcessing(true);
         const reader = new FileReader();
-        reader.onload = async (event) => {
+        reader.onload = async event => {
             try {
                 const json = JSON.parse(event.target?.result as string);
                 await ApiClient.restoreBackup(json);
@@ -59,13 +59,16 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
         reader.readAsText(file);
     }, []);
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            setIsDragging(false);
 
-        const file = e.dataTransfer.files[0];
-        if (file) processFile(file);
-    }, [processFile]);
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        },
+        [processFile]
+    );
 
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
@@ -89,16 +92,29 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
             <div className="modal import-modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">Restore Data</h2>
-                    <button className="modal-close" onClick={handleClose}>×</button>
+                    <button className="modal-close" onClick={handleClose}>
+                        ×
+                    </button>
                 </div>
 
                 <div className="modal-body">
                     {!result ? (
                         <>
-                            <div className="import-instructions" style={{ borderLeft: '4px solid var(--accent-red)' }}>
-                                <h4 style={{ color: 'var(--accent-red)' }}>⚠️ WARNING: DATA OVERWRITE</h4>
-                                <p>Restoring a backup will <strong>PERMANENTLY REPLACE ALL CURRENT DATA</strong>.</p>
-                                <p>This action cannot be undone. Please ensure you have a backup of your current data if you wish to keep it.</p>
+                            <div
+                                className="import-instructions"
+                                style={{ borderLeft: '4px solid var(--accent-red)' }}
+                            >
+                                <h4 style={{ color: 'var(--accent-red)' }}>
+                                    ⚠️ WARNING: DATA OVERWRITE
+                                </h4>
+                                <p>
+                                    Restoring a backup will{' '}
+                                    <strong>PERMANENTLY REPLACE ALL CURRENT DATA</strong>.
+                                </p>
+                                <p>
+                                    This action cannot be undone. Please ensure you have a backup of
+                                    your current data if you wish to keep it.
+                                </p>
                             </div>
 
                             <div
@@ -133,7 +149,9 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
                         </>
                     ) : (
                         <div className="import-result">
-                            <div className={`result-summary ${result.success ? 'success' : 'error'}`}>
+                            <div
+                                className={`result-summary ${result.success ? 'success' : 'error'}`}
+                            >
                                 {result.success ? (
                                     <div className="result-item success">
                                         <span className="result-icon">✓</span>

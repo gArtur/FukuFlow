@@ -8,7 +8,10 @@ interface AuthContextType {
     login: (password: string) => Promise<{ success: boolean; error?: string }>;
     setup: (password: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => Promise<void>;
-    changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; error?: string }>;
+    changePassword: (
+        currentPassword: string,
+        newPassword: string
+    ) => Promise<{ success: boolean; error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -114,15 +117,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{
-            isAuthenticated,
-            needsSetup,
-            isLoading,
-            login,
-            setup,
-            logout,
-            changePassword
-        }}>
+        <AuthContext.Provider
+            value={{
+                isAuthenticated,
+                needsSetup,
+                isLoading,
+                login,
+                setup,
+                logout,
+                changePassword,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

@@ -5,7 +5,7 @@ import {
     LinearScale,
     PointElement,
     LineElement,
-    Filler
+    Filler,
 } from 'chart.js';
 import type { Asset, Person } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
@@ -25,9 +25,8 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
     const { categories, theme } = useSettings();
 
     const gain = asset.currentValue - asset.purchaseAmount;
-    const gainPercent = asset.purchaseAmount > 0
-        ? ((gain / asset.purchaseAmount) * 100).toFixed(1)
-        : '0';
+    const gainPercent =
+        asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100).toFixed(1) : '0';
     const isPositive = gain >= 0;
 
     const owner = persons.find(p => p.id === asset.ownerId);
@@ -39,45 +38,60 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
     const isHighContrast = theme === 'high-contrast';
 
     // In High Contrast, use Cyan for everything. In normal modes, use Green/Red.
-    const positiveColor = isHighContrast ? '#00FFFF' : (isLight ? '#10B981' : '#00D9A5');
-    const negativeColor = isHighContrast ? '#00FFFF' : (isLight ? '#EF4444' : '#FF6B6B');
+    const positiveColor = isHighContrast ? '#00FFFF' : isLight ? '#10B981' : '#00D9A5';
+    const negativeColor = isHighContrast ? '#00FFFF' : isLight ? '#EF4444' : '#FF6B6B';
 
     const sparklineData = {
         labels: (asset.valueHistory || []).map((_, i) => i.toString()),
-        datasets: [{
-            data: (asset.valueHistory || []).map(h => h.value),
-            borderColor: isPositive ? positiveColor : negativeColor,
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            backgroundColor: (context: any) => {
-                const ctx = context.chart.ctx;
-                const chartArea = context.chart.chartArea;
-                if (!chartArea) return 'transparent';
-                const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-                const color = isPositive ? positiveColor : negativeColor;
+        datasets: [
+            {
+                data: (asset.valueHistory || []).map(h => h.value),
+                borderColor: isPositive ? positiveColor : negativeColor,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                backgroundColor: (context: any) => {
+                    const ctx = context.chart.ctx;
+                    const chartArea = context.chart.chartArea;
+                    if (!chartArea) return 'transparent';
+                    const gradient = ctx.createLinearGradient(
+                        0,
+                        chartArea.top,
+                        0,
+                        chartArea.bottom
+                    );
+                    const color = isPositive ? positiveColor : negativeColor;
 
-                // Convert hex to rgba for gradient
-                const hexToRgb = (hex: string) => {
-                    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                    return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : null;
-                };
+                    // Convert hex to rgba for gradient
+                    const hexToRgb = (hex: string) => {
+                        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                        return result
+                            ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+                            : null;
+                    };
 
-                const rgb = hexToRgb(color);
+                    const rgb = hexToRgb(color);
 
-                if (rgb) {
-                    gradient.addColorStop(0, `rgba(${rgb}, ${isHighContrast ? 0.6 : 0.3})`); // Stronger fill in HC
-                    gradient.addColorStop(1, `rgba(${rgb}, 0)`);
-                } else {
-                    gradient.addColorStop(0, isPositive ? 'rgba(0, 217, 165, 0.3)' : 'rgba(255, 107, 107, 0.3)');
-                    gradient.addColorStop(1, isPositive ? 'rgba(0, 217, 165, 0)' : 'rgba(255, 107, 107, 0)');
-                }
+                    if (rgb) {
+                        gradient.addColorStop(0, `rgba(${rgb}, ${isHighContrast ? 0.6 : 0.3})`); // Stronger fill in HC
+                        gradient.addColorStop(1, `rgba(${rgb}, 0)`);
+                    } else {
+                        gradient.addColorStop(
+                            0,
+                            isPositive ? 'rgba(0, 217, 165, 0.3)' : 'rgba(255, 107, 107, 0.3)'
+                        );
+                        gradient.addColorStop(
+                            1,
+                            isPositive ? 'rgba(0, 217, 165, 0)' : 'rgba(255, 107, 107, 0)'
+                        );
+                    }
 
-                return gradient;
+                    return gradient;
+                },
+                borderWidth: isHighContrast ? 2.5 : 1.5,
+                tension: 0.4,
+                pointRadius: 0,
+                fill: true,
             },
-            borderWidth: isHighContrast ? 2.5 : 1.5,
-            tension: 0.4,
-            pointRadius: 0,
-            fill: true
-        }]
+        ],
     };
 
     const sparklineOptions = {
@@ -86,11 +100,11 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
         plugins: { legend: { display: false }, tooltip: { enabled: false } },
         scales: {
             x: { display: false },
-            y: { display: false }
+            y: { display: false },
         },
         elements: {
-            line: { borderCapStyle: 'round' as const }
-        }
+            line: { borderCapStyle: 'round' as const },
+        },
     };
 
     const handleAddSnapshot = (e: React.MouseEvent) => {
@@ -101,7 +115,14 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
     return (
         <div className="mover-card clickable" onClick={() => onCardClick(asset)}>
             <div className="mover-header">
-                <div className="mover-icon" style={{ background: isPositive ? 'var(--accent-green-glow)' : 'var(--accent-red-glow)' }}>
+                <div
+                    className="mover-icon"
+                    style={{
+                        background: isPositive
+                            ? 'var(--accent-green-glow)'
+                            : 'var(--accent-red-glow)',
+                    }}
+                >
                     {asset.name.charAt(0)}
                 </div>
                 <div className="mover-info">
@@ -114,7 +135,7 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
                 <button
                     className="snapshot-btn"
                     onClick={!isHidden ? handleAddSnapshot : undefined}
-                    title={isHidden ? "Disabled in Private Mode" : "Add Snapshot"}
+                    title={isHidden ? 'Disabled in Private Mode' : 'Add Snapshot'}
                     disabled={isHidden}
                     style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                 >
@@ -126,8 +147,12 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
                 <div className="mover-value-section">
                     <div className="mover-value">{formatAmount(asset.currentValue)}</div>
                     <div className={`mover-gain ${isPositive ? 'positive' : 'negative'}`}>
-                        {isPositive ? '+' : ''}{formatAmount(gain)}
-                        <span className="mover-percent">{isPositive ? '+' : ''}{gainPercent}%</span>
+                        {isPositive ? '+' : ''}
+                        {formatAmount(gain)}
+                        <span className="mover-percent">
+                            {isPositive ? '+' : ''}
+                            {gainPercent}%
+                        </span>
                     </div>
                 </div>
                 <div className="mover-sparkline">

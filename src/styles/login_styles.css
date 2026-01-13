@@ -71,7 +71,9 @@
     border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-primary);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
 }
 
 .auth-input:focus {
@@ -116,12 +118,18 @@
     padding: 14px;
     font-size: 1rem;
     font-weight: 600;
-    background: var(--gradient-primary, linear-gradient(135deg, #D4AF37 0%, #C9A227 50%, #B8921B 100%));
+    background: var(
+        --gradient-primary,
+        linear-gradient(135deg, #d4af37 0%, #c9a227 50%, #b8921b 100%)
+    );
     color: #000;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+    transition:
+        background 0.2s,
+        transform 0.1s,
+        opacity 0.2s;
     margin-top: 8px;
 }
 
@@ -168,39 +176,39 @@
 }
 
 /* High contrast theme adjustments */
-[data-theme="high-contrast"] .auth-card {
+[data-theme='high-contrast'] .auth-card {
     border-width: 2px;
     border-color: var(--border-color);
 }
 
-[data-theme="high-contrast"] .auth-input {
+[data-theme='high-contrast'] .auth-input {
     border-width: 2px;
 }
 
-[data-theme="high-contrast"] .auth-button {
+[data-theme='high-contrast'] .auth-button {
     font-weight: 700;
 }
 
 /* Light theme adjustments */
-[data-theme="light"] .auth-container {
+[data-theme='light'] .auth-container {
     background: var(--bg-primary);
 }
 
-[data-theme="light"] .auth-card {
+[data-theme='light'] .auth-card {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="light"] .auth-input {
-    background: #FFFFFF;
+[data-theme='light'] .auth-input {
+    background: #ffffff;
     border-color: rgba(0, 0, 0, 0.15);
     color: var(--text-primary);
 }
 
-[data-theme="light"] .auth-input::placeholder {
+[data-theme='light'] .auth-input::placeholder {
     color: var(--text-muted);
 }
 
-[data-theme="light"] .auth-button:disabled {
-    background: #D1D5DB;
-    color: #9CA3AF;
+[data-theme='light'] .auth-button:disabled {
+    background: #d1d5db;
+    color: #9ca3af;
 }

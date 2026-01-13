@@ -54,7 +54,7 @@ export default function SetupPage() {
                         <input
                             type={showPassword ? 'text' : 'password'}
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={e => setPassword(e.target.value)}
                             placeholder="Create password"
                             className="auth-input"
                             autoFocus
@@ -74,7 +74,7 @@ export default function SetupPage() {
                         <input
                             type={showPassword ? 'text' : 'password'}
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={e => setConfirmPassword(e.target.value)}
                             placeholder="Confirm password"
                             className={`auth-input ${confirmPassword && !passwordsMatch ? 'auth-input-error' : ''}`}
                             disabled={isLoading}
@@ -82,35 +82,23 @@ export default function SetupPage() {
                     </div>
 
                     {password.length > 0 && password.length < 4 && (
-                        <div className="auth-hint">
-                            Password must be at least 4 characters
-                        </div>
+                        <div className="auth-hint">Password must be at least 4 characters</div>
                     )}
 
                     {confirmPassword && !passwordsMatch && (
-                        <div className="auth-hint auth-hint-error">
-                            Passwords do not match
-                        </div>
+                        <div className="auth-hint auth-hint-error">Passwords do not match</div>
                     )}
 
-                    {error && (
-                        <div className="auth-error">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="auth-error">{error}</div>}
 
-                    <button
-                        type="submit"
-                        className="auth-button"
-                        disabled={isLoading || !isValid}
-                    >
+                    <button type="submit" className="auth-button" disabled={isLoading || !isValid}>
                         {isLoading ? 'Setting up...' : 'Create Password'}
                     </button>
                 </form>
 
                 <p className="auth-note">
-                    This password will be required each time you access FukuFlow.
-                    Make sure to remember it!
+                    This password will be required each time you access FukuFlow. Make sure to
+                    remember it!
                 </p>
             </div>
         </div>

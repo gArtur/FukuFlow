@@ -5,20 +5,20 @@ import type { ValueEntry } from '../types';
  * Enhanced snapshot with calculated metrics
  */
 export interface EnhancedSnapshot extends ValueEntry {
-    cumInvested: number;      // Cumulative invested amount
-    periodGL: number;         // Period gain/loss
-    periodGLPercent: number;  // Period gain/loss percentage
-    cumGL: number;            // Cumulative gain/loss
-    roi: number;              // Return on investment percentage
-    ytdGL: number;            // Year-to-date gain/loss
-    ytdROI: number;           // Year-to-date ROI percentage
-    actualIndex: number;      // Original index in sorted array
+    cumInvested: number; // Cumulative invested amount
+    periodGL: number; // Period gain/loss
+    periodGLPercent: number; // Period gain/loss percentage
+    cumGL: number; // Cumulative gain/loss
+    roi: number; // Return on investment percentage
+    ytdGL: number; // Year-to-date gain/loss
+    ytdROI: number; // Year-to-date ROI percentage
+    actualIndex: number; // Original index in sorted array
 }
 
 /**
  * Hook to process value history and add derived financial metrics.
  * Calculates period G/L, cumulative G/L, ROI, and YTD metrics for each snapshot.
- * 
+ *
  * @param valueHistory - Raw value history from asset
  * @returns Enhanced history sorted most recent first
  */
@@ -28,8 +28,8 @@ export function useSnapshotHistory(valueHistory: ValueEntry[] | undefined): Enha
             return [];
         }
 
-        const sortedHistory = [...valueHistory].sort((a, b) =>
-            new Date(a.date).getTime() - new Date(b.date).getTime()
+        const sortedHistory = [...valueHistory].sort(
+            (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
         );
 
         let runningInvested = 0;
@@ -47,7 +47,7 @@ export function useSnapshotHistory(valueHistory: ValueEntry[] | undefined): Enha
                 const prevEntry = idx > 0 ? sortedHistory[idx - 1] : null;
                 yearStartData.set(year, {
                     value: prevEntry ? prevEntry.value : 0,
-                    invested: tempInvested - investChange
+                    invested: tempInvested - investChange,
                 });
             }
         });
@@ -61,7 +61,7 @@ export function useSnapshotHistory(valueHistory: ValueEntry[] | undefined): Enha
 
             // Period Gain/Loss: (Current Value - Previous Value) - Net Investment Change
             const prevValue = prevEntry ? prevEntry.value : 0;
-            const periodGL = (entry.value - prevValue) - investChange;
+            const periodGL = entry.value - prevValue - investChange;
 
             // Period G/L Percent: PeriodGL / (StartValue + Flows)
             const basis = prevValue + investChange;
@@ -106,7 +106,7 @@ export function useSnapshotHistory(valueHistory: ValueEntry[] | undefined): Enha
                 roi,
                 ytdGL,
                 ytdROI,
-                actualIndex: index
+                actualIndex: index,
             };
         });
 

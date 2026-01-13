@@ -1,35 +1,35 @@
 /* HIGH CONTRAST THEME */
-[data-theme="high-contrast"] {
+[data-theme='high-contrast'] {
     --bg-primary: #000000;
     --bg-secondary: #000000;
     --bg-card: #000000;
     --bg-card-hover: #1a1a1a;
     --bg-header: #000000;
 
-    --border-color: #FFFFFF;
-    --border-color-light: #FFFFFF;
+    --border-color: #ffffff;
+    --border-color-light: #ffffff;
 
-    --accent-primary: #FFFF00;
+    --accent-primary: #ffff00;
     --accent-primary-glow: transparent;
-    --accent-green: #00FF00;
+    --accent-green: #00ff00;
     --accent-green-glow: transparent;
-    --accent-red: #FF0000;
+    --accent-red: #ff0000;
     --accent-red-glow: transparent;
 
-    --text-primary: #FFFFFF;
-    --text-secondary: #FFFF00;
-    --text-muted: #00FF00;
+    --text-primary: #ffffff;
+    --text-secondary: #ffff00;
+    --text-muted: #00ff00;
 
-    --gradient-primary: linear-gradient(135deg, #FFFF00 0%, #FFFF00 100%);
-    --gradient-success: linear-gradient(135deg, #00FF00 0%, #00FF00 100%);
+    --gradient-primary: linear-gradient(135deg, #ffff00 0%, #ffff00 100%);
+    --gradient-success: linear-gradient(135deg, #00ff00 0%, #00ff00 100%);
 
     /* Button/Tab Variables */
-    --tab-active-bg: #FFFF00;
+    --tab-active-bg: #ffff00;
     --tab-active-text: #000000;
 
     --filter-active-bg: #000000;
-    --filter-active-text: #FFFF00;
-    --filter-active-border: #FFFF00;
+    --filter-active-text: #ffff00;
+    --filter-active-border: #ffff00;
 
     --shadow-sm: none;
     --shadow-md: none;
@@ -37,119 +37,119 @@
 }
 
 /* HIGH CONTRAST MODE - HEATMAP OVERRIDES */
-[data-theme="high-contrast"] .heatmap-cell.gain-high {
-    background: #00FF00;
+[data-theme='high-contrast'] .heatmap-cell.gain-high {
+    background: #00ff00;
     color: #000;
     text-shadow: none;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.gain-medium {
+[data-theme='high-contrast'] .heatmap-cell.gain-medium {
     background: rgba(0, 255, 0, 0.8);
     color: #000;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.gain-low {
+[data-theme='high-contrast'] .heatmap-cell.gain-low {
     background: rgba(0, 255, 0, 0.4);
     color: #fff;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.neutral {
+[data-theme='high-contrast'] .heatmap-cell.neutral {
     background: #333;
     color: #fff;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.loss-low {
+[data-theme='high-contrast'] .heatmap-cell.loss-low {
     background: rgba(255, 0, 0, 0.4);
     color: #fff;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.loss-medium {
+[data-theme='high-contrast'] .heatmap-cell.loss-medium {
     background: rgba(255, 0, 0, 0.8);
     color: #fff;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.loss-high {
-    background: #FF0000;
+[data-theme='high-contrast'] .heatmap-cell.loss-high {
+    background: #ff0000;
     color: #fff;
     text-shadow: none;
     border: 2px solid #fff;
 }
 
-[data-theme="high-contrast"] .heatmap-cell.inception {
-    background: #FFFF00;
+[data-theme='high-contrast'] .heatmap-cell.inception {
+    background: #ffff00;
     border: 2px solid #fff;
     color: #000;
 }
 
-[data-theme="high-contrast"] .heatmap-cell-total.positive {
-    color: #00FF00;
+[data-theme='high-contrast'] .heatmap-cell-total.positive {
+    color: #00ff00;
     font-weight: 900;
 }
 
-[data-theme="high-contrast"] .heatmap-cell-total.negative {
-    color: #FF0000;
+[data-theme='high-contrast'] .heatmap-cell-total.negative {
+    color: #ff0000;
     font-weight: 900;
 }
 
-[data-theme="high-contrast"] .legend-cell.gain-high {
-    background: #00FF00;
+[data-theme='high-contrast'] .legend-cell.gain-high {
+    background: #00ff00;
     border: 1px solid #fff;
 }
 
-[data-theme="high-contrast"] .legend-cell.gain-medium {
+[data-theme='high-contrast'] .legend-cell.gain-medium {
     background: rgba(0, 255, 0, 0.8);
     border: 1px solid #fff;
 }
 
-[data-theme="high-contrast"] .legend-cell.gain-low {
+[data-theme='high-contrast'] .legend-cell.gain-low {
     background: rgba(0, 255, 0, 0.4);
     border: 1px solid #fff;
 }
 
-[data-theme="high-contrast"] .legend-cell.loss-high {
-    background: #FF0000;
+[data-theme='high-contrast'] .legend-cell.loss-high {
+    background: #ff0000;
     border: 1px solid #fff;
 }
 
-[data-theme="high-contrast"] .legend-cell.loss-medium {
+[data-theme='high-contrast'] .legend-cell.loss-medium {
     background: rgba(255, 0, 0, 0.8);
     border: 1px solid #fff;
 }
 
-[data-theme="high-contrast"] .legend-cell.loss-low {
+[data-theme='high-contrast'] .legend-cell.loss-low {
     background: rgba(255, 0, 0, 0.4);
     border: 1px solid #fff;
 }
 
 /* HIGH CONTRAST MODE - MODAL OVERRIDES */
-[data-theme="high-contrast"] .modal {
-    border: 3px solid #FFFFFF;
+[data-theme='high-contrast'] .modal {
+    border: 3px solid #ffffff;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
 }
 
-[data-theme="high-contrast"] .modal-header {
-    border-bottom: 2px solid #FFFFFF;
+[data-theme='high-contrast'] .modal-header {
+    border-bottom: 2px solid #ffffff;
 }
 
-[data-theme="high-contrast"] .modal-close {
-    border: 2px solid #FFFFFF;
+[data-theme='high-contrast'] .modal-close {
+    border: 2px solid #ffffff;
 }
 
-[data-theme="high-contrast"] .modal-form input,
-[data-theme="high-contrast"] .modal-form textarea,
-[data-theme="high-contrast"] .modal-form select {
-    border: 2px solid #FFFFFF;
+[data-theme='high-contrast'] .modal-form input,
+[data-theme='high-contrast'] .modal-form textarea,
+[data-theme='high-contrast'] .modal-form select {
+    border: 2px solid #ffffff;
 }
 
-[data-theme="high-contrast"] .modal-form input:focus,
-[data-theme="high-contrast"] .modal-form textarea:focus,
-[data-theme="high-contrast"] .modal-form select:focus {
-    border-color: #FFFF00;
-    outline: 2px solid #FFFF00;
+[data-theme='high-contrast'] .modal-form input:focus,
+[data-theme='high-contrast'] .modal-form textarea:focus,
+[data-theme='high-contrast'] .modal-form select:focus {
+    border-color: #ffff00;
+    outline: 2px solid #ffff00;
 }

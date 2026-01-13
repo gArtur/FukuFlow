@@ -2,7 +2,6 @@ import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
 import type { TimeRange } from '../types';
 
-
 interface TotalWorthChartProps {
     assets: {
         valueHistory: { date: string; value: number; investmentChange?: number }[];
@@ -24,12 +23,16 @@ import {
     PointElement,
     LineElement,
     Filler,
-    Tooltip
+    Tooltip,
 } from 'chart.js';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }: TotalWorthChartProps) {
+export default function TotalWorthChart({
+    assets,
+    stats,
+    title = 'Total Worth',
+}: TotalWorthChartProps) {
     const { defaultDateRange, theme } = useSettings();
     const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
     const [customStartDate, setCustomStartDate] = useState<string>('');
@@ -40,13 +43,28 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
     // Theme-based colors
     // Theme-based colors
     const isHighContrast = theme === 'high-contrast';
-    const textColor = theme === 'light' ? '#4B5563' : (isHighContrast ? '#ffff00' : '#9CA3AF');
-    const gridColor = theme === 'light' ? 'rgba(0,0,0,0.05)' : (isHighContrast ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.05)');
+    const textColor = theme === 'light' ? '#4B5563' : isHighContrast ? '#ffff00' : '#9CA3AF';
+    const gridColor =
+        theme === 'light'
+            ? 'rgba(0,0,0,0.05)'
+            : isHighContrast
+              ? 'rgba(255,255,255,0.2)'
+              : 'rgba(255,255,255,0.05)';
 
     // Tooltip colors
-    const tooltipBg = theme === 'light' ? 'rgba(255, 255, 255, 0.95)' : (isHighContrast ? '#000000' : 'rgba(26, 26, 34, 0.95)');
-    const tooltipText = theme === 'light' ? '#111827' : (isHighContrast ? '#ffffff' : '#fff');
-    const tooltipBorder = theme === 'light' ? 'rgba(0,0,0,0.1)' : (isHighContrast ? '#ffffff' : 'rgba(255,255,255,0.1)');
+    const tooltipBg =
+        theme === 'light'
+            ? 'rgba(255, 255, 255, 0.95)'
+            : isHighContrast
+              ? '#000000'
+              : 'rgba(26, 26, 34, 0.95)';
+    const tooltipText = theme === 'light' ? '#111827' : isHighContrast ? '#ffffff' : '#fff';
+    const tooltipBorder =
+        theme === 'light'
+            ? 'rgba(0,0,0,0.1)'
+            : isHighContrast
+              ? '#ffffff'
+              : 'rgba(255,255,255,0.1)';
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {
@@ -74,7 +92,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             const sortedHistory = [...history]
                 .map(e => ({
                     ...e,
-                    dateStr: e.date.split('T')[0]
+                    dateStr: e.date.split('T')[0],
                 }))
                 .sort((a, b) => a.dateStr.localeCompare(b.dateStr));
 
@@ -123,8 +141,13 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
         });
 
         // Binary search helper: find largest index where entry.dateStr <= target
-        const findLatestEntryIndex = (history: { dateStr: string }[], targetDate: string): number => {
-            let left = 0, right = history.length - 1, result = -1;
+        const findLatestEntryIndex = (
+            history: { dateStr: string }[],
+            targetDate: string
+        ): number => {
+            let left = 0,
+                right = history.length - 1,
+                result = -1;
             while (left <= right) {
                 const mid = Math.floor((left + right) / 2);
                 if (history[mid].dateStr <= targetDate) {
@@ -185,7 +208,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
 
     // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)
     // If Start Invested is 0, fall back to Start Value to avoid divide by zero, or just show 0
-    const baseline = startInvested > 0 ? startInvested : (startValue > 0 ? startValue : 1);
+    const baseline = startInvested > 0 ? startInvested : startValue > 0 ? startValue : 1;
 
     const normalize = (val: number) => {
         return ((val - baseline) / baseline) * 100;
@@ -200,11 +223,10 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
             return d.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
-                year: 'numeric'
+                year: 'numeric',
             });
         }),
         datasets: [
-
             {
                 label: 'Value',
                 data: isHidden ? normalizedValueData : history.map(h => h.value),
@@ -250,7 +272,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : '#00D9A5',
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
-                borderWidth: isHighContrast ? 3 : 2
+                borderWidth: isHighContrast ? 3 : 2,
             },
             {
                 label: 'Invested',
@@ -267,9 +289,9 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
                 borderWidth: isHighContrast ? 3 : 2,
-                borderDash: [5, 5]
-            }
-        ]
+                borderDash: [5, 5],
+            },
+        ],
     };
 
     const options = {
@@ -277,7 +299,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
         maintainAspectRatio: false,
         interaction: {
             intersect: false,
-            mode: 'index' as const
+            mode: 'index' as const,
         },
 
         plugins: {
@@ -289,8 +311,8 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     font: { size: 11 },
                     padding: 20,
                     usePointStyle: true,
-                    pointStyle: 'circle'
-                }
+                    pointStyle: 'circle',
+                },
             },
             tooltip: {
                 enabled: true,
@@ -307,7 +329,11 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     title: (tooltipItems: any) => {
                         if (!tooltipItems || !tooltipItems.length) return '';
                         const d = new Date(history[tooltipItems[0].dataIndex].date);
-                        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        return d.toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                        });
                     },
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label: (context: any) => {
@@ -345,7 +371,8 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         if (!item) return '';
 
                         const gainLoss = item.value - item.invested;
-                        const gainLossPercent = item.invested > 0 ? (gainLoss / item.invested) * 100 : 0;
+                        const gainLossPercent =
+                            item.invested > 0 ? (gainLoss / item.invested) * 100 : 0;
                         const sign = gainLoss >= 0 ? '+' : '';
 
                         if (isHidden) {
@@ -353,7 +380,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                         }
 
                         return `Gain/Loss: ${sign}${formatAmount(gainLoss)} (${sign}${gainLossPercent.toFixed(2)}%)`;
-                    }
+                    },
                 },
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 footerColor: (context: any) => {
@@ -369,9 +396,9 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     return isPositive ? '#10B981' : '#EF4444'; // Standard Green/Red
                 },
                 footerFont: {
-                    weight: 'bold' as const
-                }
-            }
+                    weight: 'bold' as const,
+                },
+            },
         },
         scales: {
             x: {
@@ -380,15 +407,15 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                 ticks: {
                     color: textColor,
                     font: { size: 10 },
-                    maxTicksLimit: 6
+                    maxTicksLimit: 6,
                 },
-                border: { display: false }
+                border: { display: false },
             },
             y: {
                 display: true,
                 grid: {
                     color: gridColor,
-                    drawBorder: false
+                    drawBorder: false,
                 },
                 ticks: {
                     color: textColor,
@@ -403,11 +430,11 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                             if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
                             return num;
                         }
-                    }
+                    },
                 },
-                border: { display: false }
-            }
-        }
+                border: { display: false },
+            },
+        },
     };
 
     const formatPercent = (value: number) => {
@@ -423,7 +450,9 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     <div className="chart-value">{formatAmount(currentValue)}</div>
                     <div className={`chart-change ${displayGain >= 0 ? 'positive' : 'negative'}`}>
                         <span>{isHidden ? '' : formatAmount(Math.abs(displayGain))}</span>
-                        <span className="chart-change-percent">{formatPercent(displayGainPercent)}</span>
+                        <span className="chart-change-percent">
+                            {formatPercent(displayGainPercent)}
+                        </span>
                     </div>
                 </div>
                 <div className="chart-header-right">
@@ -446,7 +475,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                                     type="date"
                                     id="start-date"
                                     value={customStartDate}
-                                    onChange={(e) => setCustomStartDate(e.target.value)}
+                                    onChange={e => setCustomStartDate(e.target.value)}
                                     className="date-input"
                                 />
                             </div>
@@ -456,7 +485,7 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                                     type="date"
                                     id="end-date"
                                     value={customEndDate}
-                                    onChange={(e) => setCustomEndDate(e.target.value)}
+                                    onChange={e => setCustomEndDate(e.target.value)}
                                     className="date-input"
                                 />
                             </div>
@@ -478,7 +507,9 @@ export default function TotalWorthChart({ assets, stats, title = 'Total Worth' }
                     <Line ref={chartRef} data={data} options={options} />
                 ) : (
                     <div className="empty-state">
-                        <p className="empty-text">Add more investments or updates to see performance over time</p>
+                        <p className="empty-text">
+                            Add more investments or updates to see performance over time
+                        </p>
                     </div>
                 )}
             </div>

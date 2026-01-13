@@ -1,6 +1,6 @@
 /**
  * Heatmap Components Module
- * 
+ *
  * This module provides a modular heatmap component system.
  * Import from here for cleaner imports.
  */
