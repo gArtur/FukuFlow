@@ -112,7 +112,9 @@ app.use('/api/backup', backupRoutes);
 
 if (isProduction) {
     // Anything that doesn't match the above routes, send back index.html
-    app.get('*', (req, res) => {
+    // In Express 5 (path-to-regexp v8), '*' must be part of a captured group or written as /(.*)/
+    // For SPA catch-all, we can use a splat capture
+    app.get([/^(?!\/api).+/], (req, res) => {
         res.sendFile(path.join(__dirname, '../dist/index.html'));
     });
 }

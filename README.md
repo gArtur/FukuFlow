@@ -66,12 +66,9 @@ Use this if you just want to run the application without building it from source
 
 Run the following command in your terminal:
 ```bash
-docker run -d \
-  -p 3001:3001 \
-  -v fukuflow-data:/app/server/db \
-  --name fukuflow-app \
-  ghcr.io/gartur/fukuflow:latest
+docker run -d -p 3001:3001 -v fukuflow-data:/app/server/db -e JWT_SECRET=change_me_to_something_secret --name fukuflow-app ghcr.io/gartur/fukuflow:latest
 ```
+*Note: Replace `change_me_to_something_secret` with a real secret string.*
 The application will be available at `http://localhost:3001`.
 
 #### Option 2: Build from Source (Docker Compose)
