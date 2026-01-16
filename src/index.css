@@ -2276,6 +2276,15 @@
     text-decoration: underline;
 }
 
+.table-action-btn.danger {
+    color: var(--accent-red);
+}
+
+.table-action-btn.danger:hover {
+    color: var(--accent-red);
+    text-decoration: underline;
+}
+
 @media (hover: none) {
     .table-action-btn {
         opacity: 1;

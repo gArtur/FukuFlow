@@ -17,6 +17,7 @@ interface AssetHistoryTableProps {
     isHidden: boolean;
     formatAmount: (value: number) => string;
     onEditSnapshot: (snapshot: ValueEntry & { id: number }) => void;
+    onDeleteSnapshot: (id: number) => void;
 }
 
 export default function AssetHistoryTable({
@@ -24,6 +25,7 @@ export default function AssetHistoryTable({
     isHidden,
     formatAmount,
     onEditSnapshot,
+    onDeleteSnapshot,
 }: AssetHistoryTableProps) {
     return (
         <div className="compact-table-container desktop-only">
@@ -141,20 +143,31 @@ export default function AssetHistoryTable({
                                 </div>
                             </td>
                             <td className="text-right">
-                                <button
-                                    className="table-action-btn"
-                                    onClick={() =>
-                                        onEditSnapshot({
-                                            ...entry,
-                                            id: entry.id || entry.actualIndex,
-                                        })
-                                    }
-                                    disabled={isHidden}
-                                    title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
-                                    style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                                >
-                                    Edit
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                    <button
+                                        className="table-action-btn"
+                                        onClick={() =>
+                                            onEditSnapshot({
+                                                ...entry,
+                                                id: entry.id || entry.actualIndex,
+                                            })
+                                        }
+                                        disabled={isHidden}
+                                        title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
+                                        style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        className="table-action-btn danger"
+                                        onClick={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
+                                        disabled={isHidden}
+                                        title={isHidden ? 'Disabled in Private Mode' : 'Delete'}
+                                        style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     ))}

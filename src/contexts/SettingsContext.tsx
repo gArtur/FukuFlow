@@ -7,6 +7,7 @@ interface Settings {
     defaultFilter: string;
     defaultDateRange: TimeRange;
     theme: 'dark' | 'light' | 'high-contrast';
+    showAssetHeatmap: boolean;
 }
 
 interface Category {
@@ -22,6 +23,8 @@ interface SettingsContextType {
     setCurrency: (currency: string) => Promise<void>;
     theme: 'dark' | 'light' | 'high-contrast';
     setTheme: (theme: 'dark' | 'light' | 'high-contrast') => Promise<void>;
+    showAssetHeatmap: boolean;
+    setShowAssetHeatmap: (show: boolean) => Promise<void>;
     defaultFilter: string;
     setDefaultFilter: (filter: string) => Promise<void>;
     defaultDateRange: TimeRange;
@@ -42,6 +45,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         defaultFilter: 'all',
         defaultDateRange: '1Y',
         theme: 'dark',
+        showAssetHeatmap: false,
     });
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,6 +66,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                         defaultFilter: settingsData.defaultFilter || 'all',
                         defaultDateRange: settingsData.defaultDateRange || '1Y',
                         theme: theme,
+                        showAssetHeatmap: settingsData.showAssetHeatmap === 'true' || settingsData.showAssetHeatmap === true,
                     });
 
                     // Apply theme to document
@@ -97,6 +102,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             document.documentElement.setAttribute('data-theme', newTheme);
         } catch (error) {
             console.error('Failed to update theme:', error);
+        }
+    };
+
+    const setShowAssetHeatmap = async (show: boolean) => {
+        try {
+            await ApiClient.updateSetting('showAssetHeatmap', String(show));
+            setSettings(prev => ({ ...prev, showAssetHeatmap: show }));
+        } catch (error) {
+            console.error('Failed to update showAssetHeatmap:', error);
         }
     };
 
@@ -172,6 +186,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                 setCurrency,
                 theme: settings.theme,
                 setTheme,
+                showAssetHeatmap: settings.showAssetHeatmap,
+                setShowAssetHeatmap,
                 defaultFilter: settings.defaultFilter,
                 setDefaultFilter,
                 defaultDateRange: settings.defaultDateRange,

@@ -26,6 +26,8 @@ const ASSET_TEMPLATES = [
     { category: 'stocks', name: 'Tech Growth Stock', symbol: 'TECH', annualReturn: 0.12, volatility: 0.20 },
     { category: 'stocks', name: 'Global Index ETF', symbol: 'WLD', annualReturn: 0.08, volatility: 0.12 },
     { category: 'stocks', name: 'Dividend King', symbol: 'DIV', annualReturn: 0.06, volatility: 0.10 },
+    { category: 'stocks', name: 'S&P 500 ETF', symbol: 'SPY', annualReturn: 0.10, volatility: 0.15 },
+    { category: 'stocks', name: 'Nasdaq 100 ETF', symbol: 'QQQ', annualReturn: 0.15, volatility: 0.22 },
     { category: 'crypto', name: 'Bitcoin', symbol: 'BTC', annualReturn: 0.60, volatility: 0.70 },
     { category: 'crypto', name: 'Ethereum', symbol: 'ETH', annualReturn: 0.50, volatility: 0.60 },
     { category: 'real_estate', name: 'Downtown Apartment', symbol: null, annualReturn: 0.04, volatility: 0.03 },
@@ -110,22 +112,27 @@ async function generateData() {
         // 3. Create Assets and History
         console.log('Generating assets and history...');
         const NOW = new Date();
-        const SIX_YEARS_AGO = new Date(NOW);
-        SIX_YEARS_AGO.setFullYear(NOW.getFullYear() - 6);
+        const START_DATE_LIMIT = new Date(NOW);
+        START_DATE_LIMIT.setFullYear(NOW.getFullYear() - 15);
         const SIX_MONTHS_AGO = new Date(NOW);
         SIX_MONTHS_AGO.setMonth(NOW.getMonth() - 6);
 
+        // Calculate assets per user to distribute 12 assets evenly
+        const assetsPerUser = Math.floor(ASSET_TEMPLATES.length / USERS.length);
+        let templateIndex = 0;
+
+        await dbRun('BEGIN TRANSACTION');
+
         for (const u of USERS) {
             const userId = userIds[u.name];
-            // Randomly assign 2-4 assets
-            const numAssets = Math.floor(Math.random() * 3) + 2;
 
-            // Shuffle templates to pick random distinct ones
-            const templates = [...ASSET_TEMPLATES].sort(() => 0.5 - Math.random()).slice(0, numAssets);
+            // Assign next batch of assets to this user
+            const userTemplates = ASSET_TEMPLATES.slice(templateIndex, templateIndex + assetsPerUser);
+            templateIndex += assetsPerUser;
 
-            for (const item of templates) {
-                // Randomize Purchase Date: between 6 years ago and 6 months ago
-                const purchaseDate = generateReviewDate(SIX_YEARS_AGO, SIX_MONTHS_AGO);
+            for (const item of userTemplates) {
+                // Randomize Purchase Date: between 15 years ago and 6 months ago
+                const purchaseDate = generateReviewDate(START_DATE_LIMIT, SIX_MONTHS_AGO);
 
                 // Randomize Initial Investment: 1k to 50k
                 const purchaseAmount = Math.floor(Math.random() * 49000) + 1000;
@@ -142,7 +149,7 @@ async function generateData() {
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         assetId,
-                        item.name, // Removed (${u.name}) suffix
+                        item.name,
                         item.category,
                         userId,
                         purchaseAmount,
@@ -155,8 +162,6 @@ async function generateData() {
                 // Insert History
                 const stmt = db.prepare('INSERT INTO asset_history (assetId, date, value, investmentChange) VALUES (?, ?, ?, ?)');
                 history.forEach((h, index) => {
-                    // For the first entry, investmentChange is the purchaseAmount
-                    // For subsequent entries, it's 0 (unless we simulated additional buys, but for now 0)
                     const change = index === 0 ? purchaseAmount : 0;
                     stmt.run(assetId, h.date, h.value, change);
                 });
@@ -165,6 +170,8 @@ async function generateData() {
                 console.log(`Created asset: ${item.name} for ${u.name} with ${history.length} history points.`);
             }
         }
+
+        await dbRun('COMMIT');
 
         console.log('Sample data generation complete!');
 

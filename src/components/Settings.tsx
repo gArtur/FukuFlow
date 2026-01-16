@@ -55,6 +55,8 @@ export default function Settings({
         addCategory,
         updateCategory,
         deleteCategory,
+        showAssetHeatmap,
+        setShowAssetHeatmap,
     } = useSettings();
 
     // Confirmation Modal State
@@ -62,7 +64,7 @@ export default function Settings({
         isOpen: false,
         title: '',
         message: null,
-        onConfirm: () => {},
+        onConfirm: () => { },
         isDangerous: false,
     });
 
@@ -167,6 +169,8 @@ export default function Settings({
                         setDefaultFilter={setDefaultFilter}
                         defaultDateRange={defaultDateRange}
                         setDefaultDateRange={setDefaultDateRange}
+                        showAssetHeatmap={showAssetHeatmap}
+                        setShowAssetHeatmap={setShowAssetHeatmap}
                         persons={persons}
                     />
 

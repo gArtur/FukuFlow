@@ -7,9 +7,10 @@ import type { Asset, Person } from '../types';
 import {
     formatMonthLabel,
     formatFullMonthYear,
-    getPreviousMonth,
     generateMonthRange,
 } from '../utils/dateUtils';
+import { generateAssetUrl } from '../utils/navigation';
+import { getAssetTimeline } from '../utils/heatmapLogic';
 
 interface PortfolioHeatmapProps {
     assets: Asset[];
@@ -151,92 +152,101 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     // Helper function to process a single asset's data into heatmap rows
     const processAssetData = useCallback(
         (asset: Asset): HeatmapRow => {
-            // Create a map of month -> value and investment changes from valueHistory
-            const monthlyValues = new Map<string, number>();
-            const monthlyInvestmentChanges = new Map<string, number>();
+            // Use shared logic for timeline generation with forward fill
+            // Range is minimal necessary to cover minMonth -> rangeEnd (or maxMonth)
+            // But we can just ask for history til maxMonth to be safe and consistent
+            // Actually, we need to respect the view's rangeStart for 'visible' logic,
+            // but the timeline itself should be generated from data start.
 
-            // Sort value history by date
-            const sorted = [...asset.valueHistory].sort(
-                (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-            );
+            const timeline = getAssetTimeline(asset, maxMonth);
 
-            // Find the first month when this asset had any data (inception month)
-            const firstDataMonth = sorted.length > 0 ? sorted[0].date.substring(0, 7) : null;
-
-            // Use last value of each month and sum investment changes
-            sorted.forEach(entry => {
-                const month = entry.date.substring(0, 7);
-                monthlyValues.set(month, entry.value);
-                const currentInvest = monthlyInvestmentChanges.get(month) || 0;
-                monthlyInvestmentChanges.set(month, currentInvest + (entry.investmentChange || 0));
-            });
-
-            // Forward-fill: for each visible month, use actual value or carry forward
             const cells: HeatmapCell[] = [];
-            let lastKnownValue = 0; // Start at 0 to correctly capture initial investment as flow/gain
-            let assetExists = false; // Track whether we've reached the asset's first data
+            const sortedTimelineKeys = Array.from(timeline.keys()).sort();
+            const firstDataMonth = sortedTimelineKeys.length > 0 ? sortedTimelineKeys[0] : null;
 
-            // First, find the value just before our range starts (for proper first month calculation)
-            const monthsBeforeRange = generateMonthRange(minMonth, getPreviousMonth(rangeStart));
-            monthsBeforeRange.forEach(month => {
-                if (monthlyValues.has(month)) {
-                    lastKnownValue = monthlyValues.get(month)!;
-                    assetExists = true;
-                }
-                // Check if we've reached or passed the inception month
-                if (firstDataMonth && month >= firstDataMonth) {
-                    assetExists = true;
-                }
-            });
-
-            let previousValue = lastKnownValue;
+            // We need 'previousValue' for the first month in 'visibleMonths'.
+            // getAssetTimeline returns values for months. 
+            // We can look up (visibleMonth - 1) in the timeline.
 
             visibleMonths.forEach(month => {
-                // Check if we've reached the inception month
                 const isInception = month === firstDataMonth;
-                if (firstDataMonth && month >= firstDataMonth) {
-                    assetExists = true;
+                // Wait, getAssetTimeline returns map with keys for full range.
+                // But does it include keys BEFORE the asset started? No, it starts at historyStart.
+                // So .has(month) effectively means "Asset has started".
+
+                const entry = timeline.get(month);
+
+                // Needed: previousValue.
+                let prevValue = 0;
+                // Calculate previous month string
+                // We're iterating strings like "2023-05".
+                // We can't easily do string math.
+                // But we can optimize: just track it in the loop?
+                // The loop iterates visibleMonths. The previous month might be outside.
+
+                // Lookup previous month in timeline
+                const y = parseInt(month.substring(0, 4));
+                const m = parseInt(month.substring(5, 7)) - 1;
+                const date = new Date(y, m, 1);
+                date.setMonth(date.getMonth() - 1);
+                const prevMonthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+                if (timeline.has(prevMonthStr)) {
+                    prevValue = timeline.get(prevMonthStr)!.value;
                 }
-                const hasData = monthlyValues.has(month);
-                const value = hasData ? monthlyValues.get(month)! : lastKnownValue;
-                const monthlyInvest = monthlyInvestmentChanges.get(month) || 0;
 
-                // For inception month, the previousValue is effectively 0 for G/L calculation
-                // but any monthlyInvest in that month acts as the capital basis.
-                const prevValueForCalc = isInception ? 0 : previousValue;
-                const change = assetExists ? value - prevValueForCalc - monthlyInvest : 0;
+                // If entry exists (meaning asset has started)
+                if (entry) {
+                    const value = entry.value;
+                    // For inception month, strictly speaking previous value is 0 (or undefined).
+                    // In heatmap logic, we usually treat inception: 
+                    // basis = flow. change = value - flow.
 
-                // Basis for percentage is the capital at risk: previous value + new investment
-                const basis = prevValueForCalc + monthlyInvest;
-                const changePercent = assetExists && basis !== 0 ? (change / basis) * 100 : 0;
+                    const flow = entry.flow;
+                    // If isInception, prevValue should definitely be 0 from lookup (key won't exist).
 
-                cells.push({
-                    month,
-                    value: assetExists ? value : 0,
-                    previousValue: assetExists ? (isInception ? monthlyInvest : previousValue) : 0,
-                    change,
-                    changePercent,
-                    hasData,
-                    exists: assetExists,
-                    isInception,
-                });
+                    const basis = prevValue + flow;
+                    const change = value - basis;
+                    const changePercent = basis !== 0 ? (change / basis) * 100 : 0;
 
-                // Always store the monthly flow for total portfolio calculation
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (cells[cells.length - 1] as any).monthlyFlow = assetExists ? monthlyInvest : 0;
+                    cells.push({
+                        month,
+                        value,
+                        previousValue: prevValue,
+                        change,
+                        changePercent,
+                        hasData: entry.realDataExists,
+                        exists: true,
+                        isInception,
+                    });
 
-                if (assetExists) {
-                    previousValue = value;
-                    lastKnownValue = value;
+                    // Attach extra data for portfolio aggregation using type assertion or weak map?
+                    // The original code did: (cells[..] as any).monthlyFlow
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (cells[cells.length - 1] as any).monthlyFlow = flow;
+                } else {
+                    // Asset hasn't started yet
+                    cells.push({
+                        month,
+                        value: 0,
+                        previousValue: 0,
+                        change: 0,
+                        changePercent: 0,
+                        hasData: false,
+                        exists: false,
+                        isInception: false,
+                    });
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (cells[cells.length - 1] as any).monthlyFlow = 0;
                 }
             });
 
-            // Calculate totals for the visible range based on summed monthly G/L
+            // Calculate totals for the visible range
             const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const totalFlow = cells.reduce((sum, c) => sum + ((c as any).monthlyFlow || 0), 0);
 
-            // ROI Basis: If asset started in the first visible month, startValue is 0 (flow is in totalFlow)
+            // ROI Basis: If asset started in the first visible month, startValue is 0.
             // If asset existed before, startValue is its carry-over value.
             const startValueBasis =
                 cells.length > 0 && !cells[0].isInception ? cells[0].previousValue : 0;
@@ -258,7 +268,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 endValue,
             };
         },
-        [visibleMonths, rangeStart, minMonth, getPersonName]
+        [visibleMonths, maxMonth, getPersonName]
     );
 
     // Generate Heatmap Data
@@ -659,8 +669,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                 {viewMode === 'percent'
                                     ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
                                     : isHidden
-                                      ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                      : formatAmount(portfolioRow.totalChange)}
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(portfolioRow.totalChange)}
                             </div>
                         </div>
 
@@ -669,7 +679,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             <div key={row.id} className="heatmap-row">
                                 <div
                                     className="heatmap-asset-name clickable"
-                                    onClick={() => navigate(`/asset/${row.id}`)}
+                                    onClick={() => navigate(generateAssetUrl(row.ownerName, row.name))}
                                     title={`View ${row.name} details`}
                                 >
                                     <span className="asset-icon">
@@ -704,8 +714,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                     {viewMode === 'percent'
                                         ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
                                         : isHidden
-                                          ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                          : formatAmount(row.totalChange)}
+                                            ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                            : formatAmount(row.totalChange)}
                                 </div>
                             </div>
                         ))}

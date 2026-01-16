@@ -7,6 +7,8 @@ interface GeneralSettingsProps {
     setCurrency: (val: string) => Promise<void>;
     theme: 'dark' | 'light' | 'high-contrast';
     setTheme: (val: 'dark' | 'light' | 'high-contrast') => Promise<void>;
+    showAssetHeatmap: boolean;
+    setShowAssetHeatmap: (val: boolean) => Promise<void>;
     defaultFilter: string;
     setDefaultFilter: (val: string) => Promise<void>;
     defaultDateRange: TimeRange;
@@ -38,6 +40,8 @@ export default function GeneralSettings({
     setCurrency,
     theme,
     setTheme,
+    showAssetHeatmap,
+    setShowAssetHeatmap,
     defaultFilter,
     setDefaultFilter,
     defaultDateRange,
@@ -82,6 +86,8 @@ export default function GeneralSettings({
                             onChange={setDefaultFilter}
                         />
                     </div>
+                </div>
+                <div className="settings-row" style={{ marginTop: '20px' }}>
                     <div className="settings-group">
                         <label className="settings-label">Default Date Range</label>
                         <div className="date-range-pills">
@@ -94,6 +100,20 @@ export default function GeneralSettings({
                                     {range}
                                 </button>
                             ))}
+                        </div>
+                    </div>
+                    <div className="settings-group">
+                        <label className="settings-label">Show Asset Details Heatmap</label>
+                        <div className="checkbox-wrapper">
+                            <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={showAssetHeatmap}
+                                    onChange={e => setShowAssetHeatmap(e.target.checked)}
+                                />
+                                <span className="toggle-slider"></span>
+                            </label>
+                            <span className="checkbox-label">{showAssetHeatmap ? 'Visible' : 'Hidden'}</span>
                         </div>
                     </div>
                 </div>

@@ -407,6 +407,7 @@ function AssetDetailView({
                     onEdit={() => onEdit(asset)}
                     onDelete={() => onDelete(asset.id)}
                     onEditSnapshot={onEditSnapshot}
+                    onDeleteSnapshot={handleDeleteSnapshot}
                     onOpenImportModal={() => setShowImportModal(true)}
                 />
             </main>

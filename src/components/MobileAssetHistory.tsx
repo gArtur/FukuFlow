@@ -17,6 +17,7 @@ interface MobileAssetHistoryProps {
     isHidden: boolean;
     formatAmount: (value: number) => string;
     onEditSnapshot: (snapshot: ValueEntry & { id: number }) => void;
+    onDeleteSnapshot: (id: number) => void;
 }
 
 export default function MobileAssetHistory({
@@ -24,6 +25,7 @@ export default function MobileAssetHistory({
     isHidden,
     formatAmount,
     onEditSnapshot,
+    onDeleteSnapshot,
 }: MobileAssetHistoryProps) {
     return (
         <div className="mobile-history-list mobile-only">
@@ -37,17 +39,28 @@ export default function MobileAssetHistory({
                                 year: 'numeric',
                             })}
                         </span>
-                        <button
-                            className="mobile-action-btn"
-                            onClick={() =>
-                                onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })
-                            }
-                            disabled={isHidden}
-                            title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
-                            style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                        >
-                            Edit
-                        </button>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                            <button
+                                className="mobile-action-btn"
+                                onClick={() =>
+                                    onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })
+                                }
+                                disabled={isHidden}
+                                title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
+                                style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                            >
+                                Edit
+                            </button>
+                            <button
+                                className="mobile-action-btn"
+                                onClick={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
+                                disabled={isHidden}
+                                title={isHidden ? 'Disabled in Private Mode' : 'Delete'}
+                                style={isHidden ? { opacity: 0.5, cursor: 'not-allowed', color: 'var(--accent-red)' } : { color: 'var(--accent-red)' }}
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
 
                     <div className="mobile-history-row">

@@ -67,7 +67,7 @@ const schemas = {
 
     // Settings schemas - whitelist allowed keys
     setting: Joi.object({
-        key: Joi.string().valid('currency', 'theme', 'defaultFilter', 'defaultDateRange').required(),
+        key: Joi.string().valid('currency', 'theme', 'defaultFilter', 'defaultDateRange', 'showAssetHeatmap').required(),
         value: Joi.string().max(50).required()
     }),
 
@@ -140,7 +140,7 @@ const schemas = {
             isDefault: Joi.number().valid(0, 1).optional()
         })).required(),
         settings: Joi.array().items(Joi.object({
-            key: Joi.string().valid('currency', 'theme', 'defaultFilter', 'defaultDateRange').required(),
+            key: Joi.string().valid('currency', 'theme', 'defaultFilter', 'defaultDateRange', 'showAssetHeatmap').required(),
             value: Joi.string().max(50).required()
         })).optional()
     })
