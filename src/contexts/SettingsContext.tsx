@@ -66,7 +66,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                         defaultFilter: settingsData.defaultFilter || 'all',
                         defaultDateRange: settingsData.defaultDateRange || '1Y',
                         theme: theme,
-                        showAssetHeatmap: settingsData.showAssetHeatmap === 'true' || settingsData.showAssetHeatmap === true,
+                        showAssetHeatmap:
+                            settingsData.showAssetHeatmap === 'true' ||
+                            settingsData.showAssetHeatmap === true,
                     });
 
                     // Apply theme to document

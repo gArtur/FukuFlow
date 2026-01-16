@@ -143,7 +143,13 @@ export default function AssetHistoryTable({
                                 </div>
                             </td>
                             <td className="text-right">
-                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        gap: '8px',
+                                        justifyContent: 'flex-end',
+                                    }}
+                                >
                                     <button
                                         className="table-action-btn"
                                         onClick={() =>
@@ -154,16 +160,22 @@ export default function AssetHistoryTable({
                                         }
                                         disabled={isHidden}
                                         title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
-                                        style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                        style={
+                                            isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}
+                                        }
                                     >
                                         Edit
                                     </button>
                                     <button
                                         className="table-action-btn danger"
-                                        onClick={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
+                                        onClick={() =>
+                                            onDeleteSnapshot(entry.id || entry.actualIndex)
+                                        }
                                         disabled={isHidden}
                                         title={isHidden ? 'Disabled in Private Mode' : 'Delete'}
-                                        style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                        style={
+                                            isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}
+                                        }
                                     >
                                         Delete
                                     </button>

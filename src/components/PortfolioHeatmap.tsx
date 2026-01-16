@@ -4,11 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import type { Asset, Person } from '../types';
 // remove formatCurrency import as we'll use formatAmount from settings
-import {
-    formatMonthLabel,
-    formatFullMonthYear,
-    generateMonthRange,
-} from '../utils/dateUtils';
+import { formatMonthLabel, formatFullMonthYear, generateMonthRange } from '../utils/dateUtils';
 import { generateAssetUrl } from '../utils/navigation';
 import { getAssetTimeline } from '../utils/heatmapLogic';
 
@@ -165,7 +161,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             const firstDataMonth = sortedTimelineKeys.length > 0 ? sortedTimelineKeys[0] : null;
 
             // We need 'previousValue' for the first month in 'visibleMonths'.
-            // getAssetTimeline returns values for months. 
+            // getAssetTimeline returns values for months.
             // We can look up (visibleMonth - 1) in the timeline.
 
             visibleMonths.forEach(month => {
@@ -199,7 +195,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 if (entry) {
                     const value = entry.value;
                     // For inception month, strictly speaking previous value is 0 (or undefined).
-                    // In heatmap logic, we usually treat inception: 
+                    // In heatmap logic, we usually treat inception:
                     // basis = flow. change = value - flow.
 
                     const flow = entry.flow;
@@ -669,8 +665,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                 {viewMode === 'percent'
                                     ? `${portfolioRow.totalChangePercent >= 0 ? '+' : ''}${portfolioRow.totalChangePercent.toFixed(1)}%`
                                     : isHidden
-                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                        : formatAmount(portfolioRow.totalChange)}
+                                      ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                      : formatAmount(portfolioRow.totalChange)}
                             </div>
                         </div>
 
@@ -679,7 +675,9 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             <div key={row.id} className="heatmap-row">
                                 <div
                                     className="heatmap-asset-name clickable"
-                                    onClick={() => navigate(generateAssetUrl(row.ownerName, row.name))}
+                                    onClick={() =>
+                                        navigate(generateAssetUrl(row.ownerName, row.name))
+                                    }
                                     title={`View ${row.name} details`}
                                 >
                                     <span className="asset-icon">
@@ -714,8 +712,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                     {viewMode === 'percent'
                                         ? `${row.totalChangePercent >= 0 ? '+' : ''}${row.totalChangePercent.toFixed(1)}%`
                                         : isHidden
-                                            ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                            : formatAmount(row.totalChange)}
+                                          ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                          : formatAmount(row.totalChange)}
                                 </div>
                             </div>
                         ))}

@@ -56,7 +56,15 @@ export default function MobileAssetHistory({
                                 onClick={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
                                 disabled={isHidden}
                                 title={isHidden ? 'Disabled in Private Mode' : 'Delete'}
-                                style={isHidden ? { opacity: 0.5, cursor: 'not-allowed', color: 'var(--accent-red)' } : { color: 'var(--accent-red)' }}
+                                style={
+                                    isHidden
+                                        ? {
+                                              opacity: 0.5,
+                                              cursor: 'not-allowed',
+                                              color: 'var(--accent-red)',
+                                          }
+                                        : { color: 'var(--accent-red)' }
+                                }
                             >
                                 Delete
                             </button>

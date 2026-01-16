@@ -71,6 +71,23 @@ docker run -d -p 3001:3001 -v fukuflow-data:/app/server/db -e JWT_SECRET=change_
 *Note: Replace `change_me_to_something_secret` with a real secret string.*
 The application will be available at `http://localhost:3001`.
 
+**Updating to the Latest Version**
+To update the container to the newest version:
+```bash
+# 1. Pull the latest image
+docker pull ghcr.io/gartur/fukuflow:latest
+
+# 2. Stop and remove the old container
+docker stop fukuflow-app
+docker rm fukuflow-app
+
+# 3. Start the new container (same command as above)
+docker run -d -p 3001:3001 -v fukuflow-data:/app/server/db -e JWT_SECRET=change_me_to_something_secret --name fukuflow-app ghcr.io/gartur/fukuflow:latest
+
+# Note: The '-v fukuflow-data:/app/server/db' flag ensures your database (wealth.db) persists 
+# in the 'fukuflow-data' volume, so you will NOT lose data when deleting the old container.
+```
+
 #### Option 2: Build from Source (Docker Compose)
 Use this if you want to develop or customize the build.
 

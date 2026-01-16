@@ -50,7 +50,7 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
             value: cell.value,
             previousValue: cell.previousValue,
             change: cell.changeValue,
-            changePercent: cell.changePercent
+            changePercent: cell.changePercent,
         });
     };
 
@@ -64,7 +64,7 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
             previousValue: row.startValue,
             change: row.totalChange,
             changePercent: row.totalReturn,
-            isYearTotal: true
+            isYearTotal: true,
         });
     };
 
@@ -84,8 +84,23 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
                     <thead>
                         <tr>
                             <th className="heatmap-th year-header">Year</th>
-                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
-                                <th key={m} className="heatmap-th">{m}</th>
+                            {[
+                                'Jan',
+                                'Feb',
+                                'Mar',
+                                'Apr',
+                                'May',
+                                'Jun',
+                                'Jul',
+                                'Aug',
+                                'Sep',
+                                'Oct',
+                                'Nov',
+                                'Dec',
+                            ].map(m => (
+                                <th key={m} className="heatmap-th">
+                                    {m}
+                                </th>
                             ))}
                             <th className="heatmap-th total-header">Total</th>
                         </tr>
@@ -99,10 +114,11 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
                                         <td
                                             key={idx}
                                             className={`heatmap-cell ${getColorClass(cell.changePercent)}`}
-                                            onMouseEnter={(e) => handleCellEnter(e, cell)}
+                                            onMouseEnter={e => handleCellEnter(e, cell)}
                                             onMouseLeave={handleCellLeave}
                                         >
-                                            {cell.changePercent > 0 ? '+' : ''}{cell.changePercent.toFixed(1)}%
+                                            {cell.changePercent > 0 ? '+' : ''}
+                                            {cell.changePercent.toFixed(1)}%
                                         </td>
                                     ) : (
                                         <td key={idx} className="heatmap-cell empty"></td>
@@ -110,10 +126,11 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
                                 )}
                                 <td
                                     className={`heatmap-total-cell ${row.totalReturn >= 0 ? 'positive' : 'negative'}`}
-                                    onMouseEnter={(e) => handleTotalEnter(e, row)}
+                                    onMouseEnter={e => handleTotalEnter(e, row)}
                                     onMouseLeave={handleCellLeave}
                                 >
-                                    {row.totalReturn > 0 ? '+' : ''}{row.totalReturn.toFixed(1)}%
+                                    {row.totalReturn > 0 ? '+' : ''}
+                                    {row.totalReturn.toFixed(1)}%
                                 </td>
                             </tr>
                         ))}
@@ -137,57 +154,60 @@ export default function AssetHeatmap({ asset }: AssetHeatmapProps) {
             </div>
 
             {/* Tooltip - using createPortal like PortfolioHeatmap */}
-            {tooltip && createPortal(
-                <div
-                    className="heatmap-tooltip"
-                    style={{
-                        left: tooltip.x,
-                        top: tooltip.y,
-                        transform: 'translate(-50%, -100%)',
-                    }}
-                >
-                    <div className="tooltip-header">
-                        <strong>{asset.name}</strong>
-                    </div>
-                    <div className="tooltip-month">
-                        {tooltip.isYearTotal ? `Year ${tooltip.month}` : formatFullMonthYear(tooltip.month)}
-                    </div>
-                    <div className="tooltip-stats">
-                        <div className="tooltip-row">
-                            <span>Start Value:</span>
-                            <span>
-                                {isHidden
-                                    ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                    : formatAmount(tooltip.previousValue)}
-                            </span>
+            {tooltip &&
+                createPortal(
+                    <div
+                        className="heatmap-tooltip"
+                        style={{
+                            left: tooltip.x,
+                            top: tooltip.y,
+                            transform: 'translate(-50%, -100%)',
+                        }}
+                    >
+                        <div className="tooltip-header">
+                            <strong>{asset.name}</strong>
                         </div>
-                        <div className="tooltip-row">
-                            <span>End Value:</span>
-                            <span>
-                                {isHidden
-                                    ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                    : formatAmount(tooltip.value)}
-                            </span>
+                        <div className="tooltip-month">
+                            {tooltip.isYearTotal
+                                ? `Year ${tooltip.month}`
+                                : formatFullMonthYear(tooltip.month)}
                         </div>
-                        <div className="tooltip-row">
-                            <span>Result:</span>
-                            <span className={tooltip.change >= 0 ? 'gain-text' : 'loss-text'}>
-                                {isHidden
-                                    ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
-                                    : formatAmount(tooltip.change)}
-                            </span>
+                        <div className="tooltip-stats">
+                            <div className="tooltip-row">
+                                <span>Start Value:</span>
+                                <span>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.previousValue)}
+                                </span>
+                            </div>
+                            <div className="tooltip-row">
+                                <span>End Value:</span>
+                                <span>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.value)}
+                                </span>
+                            </div>
+                            <div className="tooltip-row">
+                                <span>Result:</span>
+                                <span className={tooltip.change >= 0 ? 'gain-text' : 'loss-text'}>
+                                    {isHidden
+                                        ? `***** ${currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency}`
+                                        : formatAmount(tooltip.change)}
+                                </span>
+                            </div>
+                            <div className="tooltip-row grand-total">
+                                <span>Change:</span>
+                                <span className={getColorClass(tooltip.changePercent)}>
+                                    {tooltip.changePercent > 0 ? '+' : ''}
+                                    {tooltip.changePercent.toFixed(2)}%
+                                </span>
+                            </div>
                         </div>
-                        <div className="tooltip-row grand-total">
-                            <span>Change:</span>
-                            <span className={getColorClass(tooltip.changePercent)}>
-                                {tooltip.changePercent > 0 ? '+' : ''}
-                                {tooltip.changePercent.toFixed(2)}%
-                            </span>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+                    </div>,
+                    document.body
+                )}
 
             <style>{`
                 .asset-heatmap-table-wrapper {

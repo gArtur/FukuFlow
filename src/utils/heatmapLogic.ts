@@ -25,10 +25,7 @@ export interface TimelineEntry {
     realDataExists: boolean;
 }
 
-export const getAssetTimeline = (
-    asset: Asset,
-    endMonth?: string
-): Map<string, TimelineEntry> => {
+export const getAssetTimeline = (asset: Asset, endMonth?: string): Map<string, TimelineEntry> => {
     const valueHistory = [...asset.valueHistory].sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
@@ -43,7 +40,7 @@ export const getAssetTimeline = (
         const current = monthlyData.get(month) || { value: 0, flow: 0 };
         monthlyData.set(month, {
             value: entry.value,
-            flow: current.flow + (entry.investmentChange || 0)
+            flow: current.flow + (entry.investmentChange || 0),
         });
     });
 
@@ -124,7 +121,11 @@ export const calculateHeatmapData = (asset: Asset): HeatmapYearRow[] => {
                 continue;
             }
 
-            const currentData = timeline.get(monthStr) || { value: 0, flow: 0, realDataExists: false };
+            const currentData = timeline.get(monthStr) || {
+                value: 0,
+                flow: 0,
+                realDataExists: false,
+            };
 
             // Previous value lookup
             let prevValue = 0;
@@ -150,7 +151,7 @@ export const calculateHeatmapData = (asset: Asset): HeatmapYearRow[] => {
                 previousValue: prevValue,
                 changePercent,
                 changeValue,
-                hasData: currentData.realDataExists
+                hasData: currentData.realDataExists,
             });
         }
 
@@ -196,7 +197,7 @@ export const calculateHeatmapData = (asset: Asset): HeatmapYearRow[] => {
                 totalReturn: yearTotalReturn,
                 startValue: yearStartValue,
                 endValue: yearEndValue,
-                totalChange: yearChange
+                totalChange: yearChange,
             });
         }
     }

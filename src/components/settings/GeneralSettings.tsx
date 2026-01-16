@@ -113,7 +113,9 @@ export default function GeneralSettings({
                                 />
                                 <span className="toggle-slider"></span>
                             </label>
-                            <span className="checkbox-label">{showAssetHeatmap ? 'Visible' : 'Hidden'}</span>
+                            <span className="checkbox-label">
+                                {showAssetHeatmap ? 'Visible' : 'Hidden'}
+                            </span>
                         </div>
                     </div>
                 </div>
