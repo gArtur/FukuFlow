@@ -35,6 +35,9 @@ RUN npm install -g npm@11.7.0
 # Copy server package files specifically
 COPY server/package*.json ./
 
+# Install build dependencies for native modules (sqlite3)
+RUN apk add --no-cache python3 make g++
+
 # Install ONLY production dependencies for the server
 RUN npm ci --only=production
 
