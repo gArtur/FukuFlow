@@ -148,10 +148,20 @@ cd ..
 
 ### Running the Application
 
+**Quick Start (Recommended for Development):**
+
+```bash
+# Start both frontend and backend simultaneously
+npm run dev:all
+```
+This will start the backend on `http://localhost:3001` and the frontend on `http://localhost:5173`.
+
+**Manual Control:**
+
 **1. Start the Backend Server:**
 
 ```bash
-node server/index.js
+npm run dev:server
 ```
 
 The server runs on `http://localhost:3001`
