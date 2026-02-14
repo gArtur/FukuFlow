@@ -1511,6 +1511,29 @@
     color: var(--text-primary);
 }
 
+.snapshot-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-md);
+}
+
+.snapshot-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.snapshot-stat .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.snapshot-stat .stat-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
 .value-change-indicator {
     margin-top: var(--space-sm);
     padding: var(--space-sm) var(--space-md);
@@ -1534,6 +1557,16 @@
     font-size: 12px;
     color: var(--text-muted);
     margin-top: var(--space-xs);
+}
+
+.new-invested-total {
+    margin-top: var(--space-xs);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.new-invested-total strong {
+    color: var(--accent-primary);
 }
 
 .modal-form {

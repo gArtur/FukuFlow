@@ -232,8 +232,17 @@ export default function AddSnapshotModal({
                     {!isGlobalMode && activeAsset && (
                         <div className="snapshot-info">
                             <div className="snapshot-asset-name">{activeAsset.name}</div>
-                            <div className="snapshot-last-value">
-                                Last value: <strong>{formatCurrency(lastValue)}</strong>
+                            <div className="snapshot-stats-row">
+                                <div className="snapshot-stat">
+                                    <span className="stat-label">Last value:</span>
+                                    <span className="stat-value">{formatCurrency(lastValue)}</span>
+                                </div>
+                                <div className="snapshot-stat">
+                                    <span className="stat-label">Current invested:</span>
+                                    <span className="stat-value">
+                                        {formatCurrency(activeAsset.purchaseAmount)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -304,9 +313,21 @@ export default function AddSnapshotModal({
                             }}
                             placeholder="e.g., 500 or -200"
                         />
-                        <small className="form-hint">
-                            Positive = money added, Negative = money withdrawn
-                        </small>
+                        <div className="investment-change-preview">
+                            <small className="form-hint">
+                                Positive = money added, Negative = money withdrawn
+                            </small>
+                            {investmentChangeNum !== 0 && activeAsset && (
+                                <div className="new-invested-total">
+                                    New total invested:{' '}
+                                    <strong>
+                                        {formatCurrency(
+                                            activeAsset.purchaseAmount + investmentChangeNum
+                                        )}
+                                    </strong>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="form-group">
