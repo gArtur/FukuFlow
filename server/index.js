@@ -45,7 +45,11 @@ app.use(helmet({
             frameAncestors: ["'none'"],
         }
     } : false,
-    crossOriginEmbedderPolicy: false
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: false,
+    originAgentCluster: false,
+    hsts: false, // Don't force HTTPS since many self-hosted users don't use it
 }));
 
 // CORS configuration
