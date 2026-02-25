@@ -95,6 +95,27 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Client Logging (unprotected - allows catching React startup errors before auth)
+app.post('/api/logs', (req, res) => {
+    const { level, message, details, url, userAgent } = req.body;
+    const logPrefix = '[Client]';
+
+    let logObj = { message, details, url, userAgent };
+    try {
+        if (level === 'error' || level === 'fatal') {
+            console.error(logPrefix, 'ERROR:', JSON.stringify(logObj, null, 2));
+        } else if (level === 'warn') {
+            console.warn(logPrefix, 'WARN:', JSON.stringify(logObj, null, 2));
+        } else {
+            console.log(logPrefix, 'INFO:', JSON.stringify(logObj, null, 2));
+        }
+    } catch (e) {
+        console.error(logPrefix, message, details);
+    }
+
+    res.json({ success: true });
+});
+
 // Authentication middleware for protected api routes
 app.use('/api', authMiddleware);
 
