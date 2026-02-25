@@ -121,7 +121,11 @@ function seedCategories() {
             defaultCategories.forEach(cat => {
                 stmt.run(uuidv4(), cat.key, cat.label, cat.color);
             });
-            stmt.finalize();
+            stmt.finalize(() => {
+                console.log('Successfully seeded default categories.');
+            });
+        } else {
+            console.log('Categories already seeded.');
         }
     });
 }
@@ -131,8 +135,14 @@ function seedCategories() {
  */
 function seedSettings() {
     db.get('SELECT value FROM settings WHERE key = ?', ['currency'], (err, row) => {
+        if (err) return console.error('Error checking currency setting:', err);
         if (!row) {
-            db.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['currency', 'USD']);
+            db.run('INSERT INTO settings (key, value) VALUES (?, ?)', ['currency', 'USD'], (err) => {
+                if (err) console.error('Error seeding currency setting:', err);
+                else console.log('Successfully seeded default settings.');
+            });
+        } else {
+            console.log('Default settings already seeded.');
         }
     });
 }
@@ -141,6 +151,7 @@ function seedSettings() {
  * Sync asset values from history - Optimized: Single aggregation query instead of N+1
  */
 function syncAssets() {
+    console.log('Starting asset synchronization...');
     // Single query: get latest value and total invested for all assets at once
     db.all(`
         SELECT 
@@ -157,13 +168,16 @@ function syncAssets() {
 
         // Batch update using prepared statement
         const stmt = db.prepare('UPDATE assets SET currentValue = ?, purchaseAmount = ? WHERE id = ?');
+        let updateCount = 0;
         results.forEach(r => {
             if (r.latestValue !== null) {
                 stmt.run(r.latestValue, r.totalInvested, r.id);
+                updateCount++;
             }
         });
         stmt.finalize((err) => {
             if (err) console.error('Error finalizing sync statement:', err);
+            else console.log(`Asset synchronization complete. Updated ${updateCount} assets.`);
         });
     });
 }
