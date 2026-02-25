@@ -14,8 +14,8 @@ const sendLog = (level: string, message: string, details?: unknown) => {
                 message,
                 details: details ? String(details) : null,
                 url: window.location.href,
-                userAgent: navigator.userAgent
-            })
+                userAgent: navigator.userAgent,
+            }),
         }).catch(() => {
             // ignore fetch errors
         });
@@ -24,11 +24,11 @@ const sendLog = (level: string, message: string, details?: unknown) => {
     }
 };
 
-window.addEventListener('error', (event) => {
+window.addEventListener('error', event => {
     sendLog('fatal', event.message, event.error?.stack);
 });
 
-window.addEventListener('unhandledrejection', (event) => {
+window.addEventListener('unhandledrejection', event => {
     sendLog('fatal', 'Unhandled Promise Rejection', event.reason);
 });
 
