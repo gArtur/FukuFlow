@@ -43,6 +43,7 @@ app.use(helmet({
             fontSrc: ["'self'", "https://fonts.gstatic.com"],
             objectSrc: ["'none'"],
             frameAncestors: ["'none'"],
+            upgradeInsecureRequests: null, // Critical: Prevents browser from forcing HTTPS on HTTP-only Unraid
         }
     } : false,
     crossOriginEmbedderPolicy: false,
