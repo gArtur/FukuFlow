@@ -105,8 +105,10 @@ export function calculatePerformance(
         return { date, value: totalValue, invested: totalInvested };
     });
 
-    const currentValue = historyTimeline.length > 0 ? historyTimeline[historyTimeline.length - 1].value : 0;
-    const currentInvested = historyTimeline.length > 0 ? historyTimeline[historyTimeline.length - 1].invested : 0;
+    const currentValue =
+        historyTimeline.length > 0 ? historyTimeline[historyTimeline.length - 1].value : 0;
+    const currentInvested =
+        historyTimeline.length > 0 ? historyTimeline[historyTimeline.length - 1].invested : 0;
     const startValue = historyTimeline.length > 0 ? historyTimeline[0].value : 0;
     const startInvested = historyTimeline.length > 0 ? historyTimeline[0].invested : 0;
 

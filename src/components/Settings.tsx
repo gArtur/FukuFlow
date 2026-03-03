@@ -66,7 +66,7 @@ export default function Settings({
         isOpen: false,
         title: '',
         message: null,
-        onConfirm: () => { },
+        onConfirm: () => {},
         isDangerous: false,
     });
 

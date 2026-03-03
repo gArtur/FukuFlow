@@ -57,23 +57,23 @@ export default function TotalWorthChart({
         theme === 'light'
             ? 'rgba(0,0,0,0.05)'
             : isHighContrast
-                ? 'rgba(255,255,255,0.2)'
-                : 'rgba(255,255,255,0.05)';
+              ? 'rgba(255,255,255,0.2)'
+              : 'rgba(255,255,255,0.05)';
 
     // Tooltip colors
     const tooltipBg =
         theme === 'light'
             ? 'rgba(255, 255, 255, 0.95)'
             : isHighContrast
-                ? '#000000'
-                : 'rgba(26, 26, 34, 0.95)';
+              ? '#000000'
+              : 'rgba(26, 26, 34, 0.95)';
     const tooltipText = theme === 'light' ? '#111827' : isHighContrast ? '#ffffff' : '#fff';
     const tooltipBorder =
         theme === 'light'
             ? 'rgba(0,0,0,0.1)'
             : isHighContrast
-                ? '#ffffff'
-                : 'rgba(255,255,255,0.1)';
+              ? '#ffffff'
+              : 'rgba(255,255,255,0.1)';
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {

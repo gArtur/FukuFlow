@@ -77,7 +77,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                             settingsData.assetsFollowGeneral === undefined
                                 ? true
                                 : settingsData.assetsFollowGeneral === 'true' ||
-                                settingsData.assetsFollowGeneral === true,
+                                  settingsData.assetsFollowGeneral === true,
                     });
 
                     // Apply theme to document

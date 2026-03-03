@@ -43,11 +43,19 @@ export default function AssetCard({
     let historyToUse = asset.valueHistory || [];
 
     if (assetsFollowGeneral && timeRange && timeRange !== 'MAX') {
-        const { startDate, endDate } = getDateRangeFromTimeRange(timeRange, customStartDate, customEndDate);
+        const { startDate, endDate } = getDateRangeFromTimeRange(
+            timeRange,
+            customStartDate,
+            customEndDate
+        );
         const perf = calculatePerformance([asset], startDate, endDate, true);
         gain = perf.calculatedGain;
         gainPercent = perf.gainPercent.toFixed(1);
-        historyToUse = perf.history.map(h => ({ date: h.date, value: h.value, investmentChange: 0 }));
+        historyToUse = perf.history.map(h => ({
+            date: h.date,
+            value: h.value,
+            investmentChange: 0,
+        }));
     }
 
     const isPositive = gain >= 0;
