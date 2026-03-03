@@ -1,6 +1,7 @@
 /**
  * Shared date utilities for the FukuFlow application
  */
+import type { TimeRange } from '../types';
 
 const MONTH_ABBREV = [
     'Jan',
@@ -113,4 +114,30 @@ export function getTodayString(): string {
 export function getCurrentMonth(): string {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Calculate the start date and end date for a given TimeRange.
+ */
+export function getDateRangeFromTimeRange(
+    timeRange: TimeRange,
+    customStartDate?: string,
+    customEndDate?: string
+): { startDate: Date; endDate: Date } {
+    const now = new Date();
+    let startDate = new Date('2000-01-01');
+    let endDate = new Date();
+
+    if (timeRange === '1Y') {
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+    } else if (timeRange === '5Y') {
+        startDate = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
+    } else if (timeRange === 'YTD') {
+        startDate = new Date(now.getFullYear(), 0, 1);
+    } else if (timeRange === 'Custom' && customStartDate) {
+        startDate = new Date(customStartDate);
+        if (customEndDate) endDate = new Date(customEndDate);
+    }
+
+    return { startDate, endDate };
 }

@@ -1,21 +1,27 @@
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
-import type { TimeRange } from '../types';
+import type { TimeRange, Asset } from '../types';
 
 interface TotalWorthChartProps {
-    assets: {
-        valueHistory: { date: string; value: number; investmentChange?: number }[];
-    }[];
+    assets: Asset[];
     stats?: {
         totalGain: number;
         gainPercentage: number;
     };
     title?: string;
+    timeRange: TimeRange;
+    setTimeRange: (range: TimeRange) => void;
+    customStartDate: string;
+    setCustomStartDate: (date: string) => void;
+    customEndDate: string;
+    setCustomEndDate: (date: string) => void;
 }
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import type { Chart } from 'chart.js';
+import { getDateRangeFromTimeRange } from '../utils/dateUtils';
+import { calculatePerformance } from '../utils/performance';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -32,11 +38,14 @@ export default function TotalWorthChart({
     assets,
     stats,
     title = 'Total Worth',
+    timeRange,
+    setTimeRange,
+    customStartDate,
+    setCustomStartDate,
+    customEndDate,
+    setCustomEndDate,
 }: TotalWorthChartProps) {
-    const { defaultDateRange, theme } = useSettings();
-    const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
-    const [customStartDate, setCustomStartDate] = useState<string>('');
-    const [customEndDate, setCustomEndDate] = useState<string>('');
+    const { theme } = useSettings();
     const { isHidden, formatAmount } = usePrivacy();
     const chartRef = useRef<Chart<'line'>>(null);
 
@@ -48,23 +57,23 @@ export default function TotalWorthChart({
         theme === 'light'
             ? 'rgba(0,0,0,0.05)'
             : isHighContrast
-              ? 'rgba(255,255,255,0.2)'
-              : 'rgba(255,255,255,0.05)';
+                ? 'rgba(255,255,255,0.2)'
+                : 'rgba(255,255,255,0.05)';
 
     // Tooltip colors
     const tooltipBg =
         theme === 'light'
             ? 'rgba(255, 255, 255, 0.95)'
             : isHighContrast
-              ? '#000000'
-              : 'rgba(26, 26, 34, 0.95)';
+                ? '#000000'
+                : 'rgba(26, 26, 34, 0.95)';
     const tooltipText = theme === 'light' ? '#111827' : isHighContrast ? '#ffffff' : '#fff';
     const tooltipBorder =
         theme === 'light'
             ? 'rgba(0,0,0,0.1)'
             : isHighContrast
-              ? '#ffffff'
-              : 'rgba(255,255,255,0.1)';
+                ? '#ffffff'
+                : 'rgba(255,255,255,0.1)';
 
     // Cleanup chart on unmount to prevent tooltip persistence
     useEffect(() => {
@@ -78,122 +87,20 @@ export default function TotalWorthChart({
 
     // ... (logic remains same until options) ...
 
-    // Aggregate all value histories into a combined timeline
-    // OPTIMIZED: Pre-process histories once, then iterate dates efficiently
-    const aggregateHistory = () => {
-        if (assets.length === 0) return [];
+    const { startDate, endDate } = getDateRangeFromTimeRange(
+        timeRange,
+        customStartDate,
+        customEndDate
+    );
 
-        const now = new Date();
-        const nowStr = now.toISOString().split('T')[0];
-
-        // Pre-process: Sort each asset's history ONCE and compute running invested totals
-        const processedAssets = assets.map(asset => {
-            const history = asset.valueHistory || [];
-            const sortedHistory = [...history]
-                .map(e => ({
-                    ...e,
-                    dateStr: e.date.split('T')[0],
-                }))
-                .sort((a, b) => a.dateStr.localeCompare(b.dateStr));
-
-            // Pre-compute running invested totals for binary search
-            let runningInvested = 0;
-            const withRunningTotals = sortedHistory.map(entry => {
-                runningInvested += entry.investmentChange || 0;
-                return { ...entry, runningInvested };
-            });
-
-            return { sortedHistory: withRunningTotals };
-        });
-
-        // Collect all unique dates
-        const allDates = new Set<string>();
-        allDates.add(nowStr);
-        assets.forEach(asset => {
-            (asset.valueHistory || []).forEach(entry => {
-                allDates.add(entry.date.split('T')[0]);
-            });
-        });
-
-        let startDate = new Date('2000-01-01');
-        let endDate = new Date();
-
-        if (timeRange === '1Y') {
-            startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        } else if (timeRange === '5Y') {
-            startDate = new Date(now.getTime() - 5 * 365 * 24 * 60 * 60 * 1000);
-        } else if (timeRange === 'YTD') {
-            startDate = new Date(now.getFullYear(), 0, 1);
-        } else if (timeRange === 'Custom' && customStartDate) {
-            startDate = new Date(customStartDate);
-            if (customEndDate) endDate = new Date(customEndDate);
-        }
-
-        const startDateStr = startDate.toISOString().split('T')[0];
-        if (timeRange !== 'MAX') {
-            allDates.add(startDateStr);
-        }
-
-        const sortedDates = Array.from(allDates).sort();
-        const filteredDates = sortedDates.filter(d => {
-            const dateObj = new Date(d);
-            return dateObj >= startDate && dateObj <= endDate;
-        });
-
-        // Binary search helper: find largest index where entry.dateStr <= target
-        const findLatestEntryIndex = (
-            history: { dateStr: string }[],
-            targetDate: string
-        ): number => {
-            let left = 0,
-                right = history.length - 1,
-                result = -1;
-            while (left <= right) {
-                const mid = Math.floor((left + right) / 2);
-                if (history[mid].dateStr <= targetDate) {
-                    result = mid;
-                    left = mid + 1;
-                } else {
-                    right = mid - 1;
-                }
-            }
-            return result;
-        };
-
-        // Map dates efficiently using binary search
-        return filteredDates.map(date => {
-            let totalValue = 0;
-            let totalInvested = 0;
-
-            processedAssets.forEach(({ sortedHistory }) => {
-                const idx = findLatestEntryIndex(sortedHistory, date);
-                if (idx >= 0) {
-                    totalValue += sortedHistory[idx].value;
-                    totalInvested += sortedHistory[idx].runningInvested;
-                }
-            });
-
-            return { date, value: totalValue, invested: totalInvested };
-        });
-    };
-
-    const history = aggregateHistory();
-
-    const currentValue = history.length > 0 ? history[history.length - 1].value : 0;
-    const currentInvested = history.length > 0 ? history[history.length - 1].invested : 0;
-    const startValue = history.length > 0 ? history[0].value : 0;
-    const startInvested = history.length > 0 ? history[0].invested : 0;
-
-    // Calculate gain/loss for the selected period
-    const startTotalGain = startValue - startInvested;
-    const endTotalGain = currentValue - currentInvested;
-    const calculatedGain = endTotalGain - startTotalGain;
-
-    // Calculate ROI for the period
-    // Formula: Period Gain / (Start Value + Net New Investment)
-    // Denominator represents the effective capital at risk during the period
-    const investedChange = currentInvested - startInvested;
-    const averageCapital = startValue + investedChange; // Simplified "Ending Principal"
+    const {
+        history,
+        startValue,
+        startInvested,
+        currentValue,
+        calculatedGain,
+        gainPercent: calculatedGainPercent,
+    } = calculatePerformance(assets, startDate, endDate, timeRange !== 'MAX');
 
     // Fallback for MAX to use stats if available (for precise All-Time numbers), otherwise calculated
     const isMax = timeRange === 'MAX';
@@ -203,7 +110,7 @@ export default function TotalWorthChart({
     if (isMax && stats) {
         displayGainPercent = stats.gainPercentage;
     } else {
-        displayGainPercent = averageCapital > 0 ? (calculatedGain / averageCapital) * 100 : 0;
+        displayGainPercent = calculatedGainPercent;
     }
 
     // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)

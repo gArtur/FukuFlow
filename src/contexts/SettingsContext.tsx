@@ -8,6 +8,7 @@ interface Settings {
     defaultDateRange: TimeRange;
     theme: 'dark' | 'light' | 'high-contrast';
     showAssetHeatmap: boolean;
+    assetsFollowGeneral: boolean;
 }
 
 interface Category {
@@ -25,6 +26,8 @@ interface SettingsContextType {
     setTheme: (theme: 'dark' | 'light' | 'high-contrast') => Promise<void>;
     showAssetHeatmap: boolean;
     setShowAssetHeatmap: (show: boolean) => Promise<void>;
+    assetsFollowGeneral: boolean;
+    setAssetsFollowGeneral: (follow: boolean) => Promise<void>;
     defaultFilter: string;
     setDefaultFilter: (filter: string) => Promise<void>;
     defaultDateRange: TimeRange;
@@ -46,6 +49,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         defaultDateRange: '1Y',
         theme: 'dark',
         showAssetHeatmap: false,
+        assetsFollowGeneral: true,
     });
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -69,6 +73,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                         showAssetHeatmap:
                             settingsData.showAssetHeatmap === 'true' ||
                             settingsData.showAssetHeatmap === true,
+                        assetsFollowGeneral:
+                            settingsData.assetsFollowGeneral === undefined
+                                ? true
+                                : settingsData.assetsFollowGeneral === 'true' ||
+                                settingsData.assetsFollowGeneral === true,
                     });
 
                     // Apply theme to document
@@ -113,6 +122,15 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
             setSettings(prev => ({ ...prev, showAssetHeatmap: show }));
         } catch (error) {
             console.error('Failed to update showAssetHeatmap:', error);
+        }
+    };
+
+    const setAssetsFollowGeneral = async (follow: boolean) => {
+        try {
+            await ApiClient.updateSetting('assetsFollowGeneral', String(follow));
+            setSettings(prev => ({ ...prev, assetsFollowGeneral: follow }));
+        } catch (error) {
+            console.error('Failed to update assetsFollowGeneral:', error);
         }
     };
 
@@ -190,6 +208,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                 setTheme,
                 showAssetHeatmap: settings.showAssetHeatmap,
                 setShowAssetHeatmap,
+                assetsFollowGeneral: settings.assetsFollowGeneral,
+                setAssetsFollowGeneral,
                 defaultFilter: settings.defaultFilter,
                 setDefaultFilter,
                 defaultDateRange: settings.defaultDateRange,

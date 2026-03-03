@@ -7,9 +7,11 @@ import {
     LineElement,
     Filler,
 } from 'chart.js';
-import type { Asset, Person } from '../types';
+import type { Asset, Person, TimeRange } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { getDateRangeFromTimeRange } from '../utils/dateUtils';
+import { calculatePerformance } from '../utils/performance';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);
 
@@ -18,15 +20,36 @@ interface AssetCardProps {
     persons: Person[];
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
+    timeRange?: TimeRange;
+    customStartDate?: string;
+    customEndDate?: string;
 }
 
-export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }: AssetCardProps) {
+export default function AssetCard({
+    asset,
+    persons,
+    onCardClick,
+    onAddSnapshot,
+    timeRange,
+    customStartDate,
+    customEndDate,
+}: AssetCardProps) {
     const { formatAmount, isHidden } = usePrivacy();
-    const { categories, theme } = useSettings();
+    const { categories, theme, assetsFollowGeneral } = useSettings();
 
-    const gain = asset.currentValue - asset.purchaseAmount;
-    const gainPercent =
+    let gain = asset.currentValue - asset.purchaseAmount;
+    let gainPercent =
         asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100).toFixed(1) : '0';
+    let historyToUse = asset.valueHistory || [];
+
+    if (assetsFollowGeneral && timeRange && timeRange !== 'MAX') {
+        const { startDate, endDate } = getDateRangeFromTimeRange(timeRange, customStartDate, customEndDate);
+        const perf = calculatePerformance([asset], startDate, endDate, true);
+        gain = perf.calculatedGain;
+        gainPercent = perf.gainPercent.toFixed(1);
+        historyToUse = perf.history.map(h => ({ date: h.date, value: h.value, investmentChange: 0 }));
+    }
+
     const isPositive = gain >= 0;
 
     const owner = persons.find(p => p.id === asset.ownerId);
@@ -42,10 +65,10 @@ export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }
     const negativeColor = isHighContrast ? '#00FFFF' : isLight ? '#EF4444' : '#FF6B6B';
 
     const sparklineData = {
-        labels: (asset.valueHistory || []).map((_, i) => i.toString()),
+        labels: historyToUse.map((_, i) => i.toString()),
         datasets: [
             {
-                data: (asset.valueHistory || []).map(h => h.value),
+                data: historyToUse.map(h => h.value),
                 borderColor: isPositive ? positiveColor : negativeColor,
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 backgroundColor: (context: any) => {

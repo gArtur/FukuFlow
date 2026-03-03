@@ -9,6 +9,8 @@ interface GeneralSettingsProps {
     setTheme: (val: 'dark' | 'light' | 'high-contrast') => Promise<void>;
     showAssetHeatmap: boolean;
     setShowAssetHeatmap: (val: boolean) => Promise<void>;
+    assetsFollowGeneral: boolean;
+    setAssetsFollowGeneral: (val: boolean) => Promise<void>;
     defaultFilter: string;
     setDefaultFilter: (val: string) => Promise<void>;
     defaultDateRange: TimeRange;
@@ -42,6 +44,8 @@ export default function GeneralSettings({
     setTheme,
     showAssetHeatmap,
     setShowAssetHeatmap,
+    assetsFollowGeneral,
+    setAssetsFollowGeneral,
     defaultFilter,
     setDefaultFilter,
     defaultDateRange,
@@ -115,6 +119,22 @@ export default function GeneralSettings({
                             </label>
                             <span className="checkbox-label">
                                 {showAssetHeatmap ? 'Visible' : 'Hidden'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="settings-group">
+                        <label className="settings-label">Assets follow General Diagram</label>
+                        <div className="checkbox-wrapper">
+                            <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={assetsFollowGeneral}
+                                    onChange={e => setAssetsFollowGeneral(e.target.checked)}
+                                />
+                                <span className="toggle-slider"></span>
+                            </label>
+                            <span className="checkbox-label">
+                                {assetsFollowGeneral ? 'ON' : 'OFF'}
                             </span>
                         </div>
                     </div>

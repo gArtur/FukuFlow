@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
-import type { Asset, Person, ValueEntry } from '../types';
+import type { Asset, Person, ValueEntry, TimeRange } from '../types';
 import TotalWorthChart from './TotalWorthChart';
 import AssetHeatmap from './AssetHeatmap';
 import { useSettings } from '../contexts/SettingsContext';
@@ -26,8 +26,13 @@ export default function AssetDetail({
     onDeleteSnapshot,
     onOpenImportModal,
 }: AssetDetailProps) {
-    const { showAssetHeatmap } = useSettings();
+    const { showAssetHeatmap, defaultDateRange } = useSettings();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // Local time range state for this specific asset's chart
+    const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
+    const [customStartDate, setCustomStartDate] = useState<string>('');
+    const [customEndDate, setCustomEndDate] = useState<string>('');
 
     const owner = persons.find(p => p.id === asset.ownerId);
     const gain = asset.currentValue - asset.purchaseAmount;
@@ -53,6 +58,12 @@ export default function AssetDetail({
                     assets={[asset]}
                     stats={{ totalGain: gain, gainPercentage: gainPercent }}
                     title="Performance History"
+                    timeRange={timeRange}
+                    setTimeRange={setTimeRange}
+                    customStartDate={customStartDate}
+                    setCustomStartDate={setCustomStartDate}
+                    customEndDate={customEndDate}
+                    setCustomEndDate={setCustomEndDate}
                 />
             </div>
 

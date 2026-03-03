@@ -1,4 +1,4 @@
-import type { Asset, Person } from '../types';
+import type { Asset, Person, TimeRange } from '../types';
 import AssetCard from './AssetCard';
 
 interface MyMoversProps {
@@ -7,6 +7,9 @@ interface MyMoversProps {
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
     onAddAsset: () => void;
+    timeRange?: TimeRange;
+    customStartDate?: string;
+    customEndDate?: string;
 }
 
 export default function MyMovers({
@@ -15,6 +18,9 @@ export default function MyMovers({
     onCardClick,
     onAddSnapshot,
     onAddAsset,
+    timeRange,
+    customStartDate,
+    customEndDate,
 }: MyMoversProps) {
     if (assets.length === 0) {
         return (
@@ -67,6 +73,9 @@ export default function MyMovers({
                         persons={persons}
                         onCardClick={onCardClick}
                         onAddSnapshot={onAddSnapshot}
+                        timeRange={timeRange}
+                        customStartDate={customStartDate}
+                        customEndDate={customEndDate}
                     />
                 ))}
             </div>

@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from '
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
 import { usePersons } from './hooks/usePersons';
-import type { Asset, Person, ValueEntry } from './types';
+import type { Asset, Person, ValueEntry, TimeRange } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -31,7 +31,7 @@ import { generateAssetUrl, resolveAssetFromSlug } from './utils/navigation';
  * Shared logic and state for the application
  */
 function AppContent() {
-    const { defaultFilter, isLoading: settingsLoading } = useSettings();
+    const { defaultFilter, defaultDateRange, isLoading: settingsLoading } = useSettings();
     const {
         filteredAssets,
         selectedOwner,
@@ -74,6 +74,11 @@ function AppContent() {
     const [editingSnapshot, setEditingSnapshot] = useState<(ValueEntry & { id: number }) | null>(
         null
     );
+
+    // Time range state lifted from TotalWorthChart for sharing with Asset Cards
+    const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
+    const [customStartDate, setCustomStartDate] = useState<string>('');
+    const [customEndDate, setCustomEndDate] = useState<string>('');
 
     // Navigation handlers
     const handleCardClick = (asset: Asset) => {
@@ -214,7 +219,16 @@ function AppContent() {
                                 />
 
                                 <div className="charts-row">
-                                    <TotalWorthChart assets={filteredAssets} stats={stats} />
+                                    <TotalWorthChart
+                                        assets={filteredAssets}
+                                        stats={stats}
+                                        timeRange={timeRange}
+                                        setTimeRange={setTimeRange}
+                                        customStartDate={customStartDate}
+                                        setCustomStartDate={setCustomStartDate}
+                                        customEndDate={customEndDate}
+                                        setCustomEndDate={setCustomEndDate}
+                                    />
                                     <AllocationChart
                                         stats={stats}
                                         assets={filteredAssets}
@@ -228,6 +242,9 @@ function AppContent() {
                                     onCardClick={handleCardClick}
                                     onAddSnapshot={handleAddSnapshot}
                                     onAddAsset={() => setShowAddModal(true)}
+                                    timeRange={timeRange}
+                                    customStartDate={customStartDate}
+                                    customEndDate={customEndDate}
                                 />
                             </main>
 
