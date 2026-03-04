@@ -201,10 +201,29 @@
 
 /* ===== MOBILE HEATMAP (640px and below) ===== */
 @media (max-width: 640px) {
+    /* Align Chart Header correctly on mobile */
+    .chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+    }
+
+    .chart-header-left {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .chart-header-right {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    /* Grid cells — smaller for the full-grid toggle */
     .heatmap-cell {
-        width: 48px;
-        min-width: 48px;
-        height: 40px;
+        width: 44px;
+        min-width: 44px;
+        height: 38px;
     }
 
     .cell-change {
@@ -216,20 +235,20 @@
     }
 
     .heatmap-month {
-        width: 52px;
-        min-width: 52px;
+        width: 48px;
+        min-width: 48px;
         font-size: 9px;
     }
 
     .heatmap-asset-name {
-        width: 130px;
-        min-width: 130px;
+        width: 120px;
+        min-width: 120px;
         padding: var(--space-xs) var(--space-sm);
     }
 
     .heatmap-asset-name-header {
-        width: 130px;
-        min-width: 130px;
+        width: 120px;
+        min-width: 120px;
     }
 
     .asset-name-text {
@@ -244,8 +263,8 @@
 
     .heatmap-cell-total,
     .heatmap-total-header {
-        width: 80px;
-        min-width: 80px;
+        width: 72px;
+        min-width: 72px;
         font-size: 10px;
     }
 
@@ -262,20 +281,37 @@
 
     .heatmap-stats {
         grid-template-columns: repeat(2, 1fr);
+        margin-top: var(--space-md);
+        padding-top: var(--space-md);
+        gap: var(--space-md);
     }
 
-    /* Larger slider thumbs for touch */
+    /* Larger slider thumbs for touch — easier to grab */
     .range-slider::-webkit-slider-thumb {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
     }
 
     .range-slider::-moz-range-thumb {
-        width: 24px;
-        height: 24px;
+        width: 26px;
+        height: 26px;
     }
 
-    /* Stats summary */
+    /* Slider header: stack label above quick-filter tabs */
+    .slider-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        justify-content: flex-start;
+        width: 100%;
+        gap: 8px;
+    }
+
+    /* Allow quick-filter tabs to wrap if needed on very small phones */
+    .slider-header .time-range-tabs {
+        flex-wrap: wrap;
+    }
+
+    /* Stats */
     .stat-card-label {
         font-size: 11px;
     }
@@ -307,6 +343,23 @@
 
     .filter-tab {
         flex-shrink: 0;
+    }
+
+    /* Mobile card-list: tighter info column on small phones */
+    .heatmap-mobile-card-info {
+        width: 120px;
+    }
+}
+
+/* ===== VERY SMALL PHONES: extra compact (360px and below) ===== */
+@media (max-width: 360px) {
+    .heatmap-mobile-card-info {
+        width: 100px;
+    }
+
+    .heatmap-mobile-total {
+        width: 52px;
+        font-size: 12px;
     }
 }
 

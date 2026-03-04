@@ -3366,7 +3366,6 @@
 }
 
 /* Inception cell (asset start) */
-/* Inception cell (asset start) */
 .heatmap-cell.inception {
     background: var(--accent-primary-glow);
     border: 1px solid rgba(201, 162, 39, 0.5);
@@ -3376,40 +3375,40 @@
 }
 
 /* Color Scale Classes */
-.heatmap-cell.gain-high {
+.gain-high {
     background: linear-gradient(135deg, #00d9a5 0%, #34d399 100%);
-    color: #000;
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+    color: #fff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.heatmap-cell.gain-medium {
+.gain-medium {
     background: rgba(0, 217, 165, 0.85);
-    color: #fff;
+    color: #fff !important;
 }
 
-.heatmap-cell.gain-low {
-    background: rgba(0, 217, 165, 0.25);
-    color: var(--text-primary);
+.gain-low {
+    background: rgba(0, 217, 165, 0.65);
+    color: #fff !important;
 }
 
-.heatmap-cell.neutral {
+.neutral {
     background: var(--bg-secondary);
     color: var(--text-muted);
 }
 
-.heatmap-cell.loss-low {
-    background: rgba(255, 107, 107, 0.25);
-    color: var(--text-primary);
+.loss-low {
+    background: rgba(255, 107, 107, 0.65);
+    color: #fff !important;
 }
 
-.heatmap-cell.loss-medium {
+.loss-medium {
     background: rgba(255, 107, 107, 0.85);
-    color: #fff;
+    color: #fff !important;
 }
 
-.heatmap-cell.loss-high {
+.loss-high {
     background: linear-gradient(135deg, #ff6b6b 0%, #ef4444 100%);
-    color: #fff;
+    color: #fff !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -3599,4 +3598,423 @@
 
 .tooltip-row .negative {
     color: var(--accent-red) !important;
+}
+
+/* ===== ASSET HEATMAP GRID ===== */
+.asset-heatmap-table-wrapper {
+    overflow-x: auto;
+    min-width: 0;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    padding-bottom: var(--space-sm);
+}
+
+.asset-heatmap-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    min-width: 660px;
+    /* Forces scroll on mobile, allows stretch on desktop */
+}
+
+.asset-heatmap-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.asset-heatmap-year-label {
+    width: 48px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex-shrink: 0;
+}
+
+.asset-heatmap-month-label {
+    flex: 1;
+    min-width: 44px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.asset-heatmap-total-label {
+    width: 60px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+/* Named specifically to avoid collision with portfolio .heatmap-cell (display:flex) */
+.asset-heatmap-cell {
+    height: 30px;
+    flex: 1;
+    min-width: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.1s ease;
+}
+
+.asset-heatmap-cell:hover {
+    opacity: 0.85;
+}
+
+.asset-heatmap-cell.empty {
+    background: transparent;
+    cursor: default;
+}
+
+.asset-heatmap-total-cell {
+    width: 60px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.asset-heatmap-total-cell.positive {
+    color: var(--accent-green);
+}
+
+.asset-heatmap-total-cell.negative {
+    color: var(--accent-red);
+}
+
+.heatmap-th {
+    color: var(--text-muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-align: center;
+    padding: 4px 8px;
+    height: 20px;
+    white-space: nowrap;
+}
+
+.heatmap-th.year-header {
+    text-align: left;
+    width: 48px;
+}
+
+.heatmap-th.total-header {
+    text-align: center;
+    width: 60px;
+}
+
+.heatmap-year-cell {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 13px;
+    padding: 4px 8px;
+    width: 48px;
+}
+
+.heatmap-total-cell {
+    text-align: center;
+    vertical-align: middle;
+    font-weight: 700;
+    font-size: 12px;
+    white-space: nowrap;
+    padding: 4px 8px;
+    width: 60px;
+    cursor: pointer;
+}
+
+.heatmap-total-cell.positive {
+    color: var(--accent-green);
+}
+
+.heatmap-total-cell.negative {
+    color: var(--accent-red);
+}
+
+/* ===== MOBILE CARD-LIST VIEW (Portfolio Heatmap) ===== */
+
+.heatmap-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-sm) 0;
+}
+
+.heatmap-mobile-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: background 0.15s ease;
+}
+
+.heatmap-mobile-card.portfolio-total {
+    background: var(--bg-card);
+    border-color: rgba(201, 162, 39, 0.3);
+    box-shadow: inset 3px 0 0 var(--accent-primary);
+    font-weight: 600;
+}
+
+.heatmap-mobile-card-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 140px;
+    flex-shrink: 0;
+}
+
+.heatmap-mobile-strip {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+    overflow: hidden;
+    align-items: center;
+}
+
+.heatmap-mobile-strip-cell {
+    flex: 1;
+    height: 26px;
+    border-radius: 3px;
+    min-width: 0;
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+}
+
+.heatmap-mobile-strip-cell.not-exists {
+    background: transparent;
+    cursor: default;
+}
+
+.heatmap-mobile-strip-cell:not(.not-exists):hover {
+    opacity: 0.8;
+}
+
+.heatmap-mobile-total {
+    font-size: 13px;
+    font-weight: 700;
+    width: 60px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.heatmap-mobile-total.positive {
+    color: var(--accent-green);
+}
+
+.heatmap-mobile-total.negative {
+    color: var(--accent-red);
+}
+
+/* Mobile grid-view toggle button */
+.heatmap-mobile-toggle {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-sm) 0 var(--space-xs);
+}
+
+.heatmap-mobile-toggle-btn {
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: var(--radius-md);
+}
+
+/* ===== BOTTOM DRAWER TOOLTIP (touch devices) ===== */
+
+.heatmap-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 999;
+    touch-action: none;
+}
+
+.heatmap-tooltip-drawer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color-light);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 20px 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+    z-index: 1000;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
+    animation: heatmapDrawerSlideUp 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.heatmap-drawer-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border-color-light);
+    border-radius: 2px;
+    margin: 0 auto var(--space-md);
+}
+
+@keyframes heatmapDrawerSlideUp {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+/* ===== CARD DETAIL DRAWER (tap on mobile card) ===== */
+
+/* Make cards look tappable */
+.heatmap-mobile-card {
+    cursor: pointer;
+}
+
+.heatmap-mobile-card:active {
+    background: var(--bg-tertiary);
+}
+
+/* Taller drawer for the full-row detail */
+.heatmap-card-detail-drawer {
+    max-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+}
+
+.heatmap-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-md);
+    padding: 0 4px;
+}
+
+.heatmap-detail-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.heatmap-detail-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.heatmap-detail-owner {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+}
+
+.heatmap-detail-total {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.heatmap-detail-total.positive {
+    color: var(--accent-green);
+}
+
+.heatmap-detail-total.negative {
+    color: var(--accent-red);
+}
+
+/* Scrollable area that holds year rows */
+.heatmap-detail-scroll-area {
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.heatmap-detail-year-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+}
+
+.heatmap-detail-year-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    width: 36px;
+    flex-shrink: 0;
+    padding-top: 10px;
+    /* Aligned vertically with the first row of cells */
+}
+
+/* Months in a wrapping flex layout */
+.heatmap-detail-cells {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+}
+
+.heatmap-detail-cell {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: opacity 0.1s ease;
+}
+
+.heatmap-detail-cell:active {
+    opacity: 0.75;
+}
+
+.heatmap-detail-cell.empty {
+    background: transparent;
+    cursor: default;
+    border: 1px dashed var(--border-color);
+    opacity: 0.5;
+}
+
+.heatmap-detail-cell.inception {
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+}
+
+.detail-cell-month {
+    font-size: 10px;
+    font-weight: 600;
+    color: inherit;
+    opacity: 0.85;
+    line-height: 1;
+}
+
+.heatmap-detail-cell.empty .detail-cell-month {
+    color: var(--text-muted);
+    opacity: 1;
+}
+
+.detail-cell-pct {
+    font-size: 11px;
+    font-weight: 700;
+    color: inherit;
+    white-space: nowrap;
+    line-height: 1;
 }

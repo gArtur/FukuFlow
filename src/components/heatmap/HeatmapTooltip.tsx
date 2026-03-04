@@ -1,6 +1,5 @@
 import { createPortal } from 'react-dom';
 import type { TooltipData } from './types';
-import { getColorClass } from './heatmapUtils';
 import { formatFullMonthYear } from '../../utils/dateUtils';
 
 interface HeatmapTooltipProps {
@@ -8,26 +7,23 @@ interface HeatmapTooltipProps {
     isHidden: boolean;
     currency: string;
     formatAmount: (amount: number) => string;
+    /** On touch/mobile, render as a bottom drawer instead of a floating bubble */
+    drawerMode?: boolean;
+    onClose?: () => void;
 }
 
-export default function HeatmapTooltip({
+/** Shared tooltip content rendered in both floating and drawer modes */
+function TooltipContent({
     tooltip,
     isHidden,
     currency,
     formatAmount,
-}: HeatmapTooltipProps) {
+}: Omit<HeatmapTooltipProps, 'drawerMode' | 'onClose'>) {
     const currencySymbol = currency === 'PLN' ? 'zł' : currency === 'USD' ? '$' : currency;
     const hiddenValue = `***** ${currencySymbol}`;
 
-    return createPortal(
-        <div
-            className="heatmap-tooltip"
-            style={{
-                left: tooltip.x,
-                top: tooltip.y,
-                transform: 'translate(-50%, -100%)',
-            }}
-        >
+    return (
+        <>
             <div className="tooltip-header">
                 <strong>{tooltip.assetName}</strong>
                 {tooltip.category && <span className="tooltip-category">{tooltip.category}</span>}
@@ -50,7 +46,15 @@ export default function HeatmapTooltip({
                 </div>
                 <div className="tooltip-row grand-total">
                     <span>Change:</span>
-                    <span className={getColorClass(tooltip.changePercent)}>
+                    <span
+                        className={
+                            tooltip.changePercent > 0
+                                ? 'positive'
+                                : tooltip.changePercent < 0
+                                  ? 'negative'
+                                  : ''
+                        }
+                    >
                         {tooltip.changePercent > 0 ? '+' : ''}
                         {tooltip.changePercent.toFixed(2)}%
                     </span>
@@ -62,6 +66,44 @@ export default function HeatmapTooltip({
                     </div>
                 )}
             </div>
+        </>
+    );
+}
+
+export default function HeatmapTooltip({
+    tooltip,
+    isHidden,
+    currency,
+    formatAmount,
+    drawerMode = false,
+    onClose,
+}: HeatmapTooltipProps) {
+    const contentProps = { tooltip, isHidden, currency, formatAmount };
+
+    if (drawerMode) {
+        return createPortal(
+            <>
+                {/* Backdrop */}
+                <div className="heatmap-drawer-backdrop" onClick={onClose} />
+                <div className="heatmap-tooltip-drawer">
+                    <div className="heatmap-drawer-handle" />
+                    <TooltipContent {...contentProps} />
+                </div>
+            </>,
+            document.body
+        );
+    }
+
+    return createPortal(
+        <div
+            className="heatmap-tooltip"
+            style={{
+                left: tooltip.x,
+                top: tooltip.y,
+                transform: 'translate(-50%, -100%)',
+            }}
+        >
+            <TooltipContent {...contentProps} />
         </div>,
         document.body
     );

@@ -90,3 +90,26 @@ export const calculateVolatility = (monthlyReturns: number[]): number => {
         monthlyReturns.length;
     return Math.sqrt(variance);
 };
+
+const MONTH_ABBRS = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+];
+
+/**
+ * Convert a "YYYY-MM" month string to a 3-letter abbreviation (e.g. "Jan")
+ */
+export const formatMonthAbbr = (month: string): string => {
+    const m = parseInt(month.substring(5, 7), 10) - 1;
+    return MONTH_ABBRS[m] ?? month;
+};
