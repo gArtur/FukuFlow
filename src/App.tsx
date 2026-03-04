@@ -55,8 +55,6 @@ function AppContent() {
         reorderPersons,
     } = usePersons();
 
-
-
     const navigate = useNavigate();
 
     // Modal states
