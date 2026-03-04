@@ -55,12 +55,7 @@ function AppContent() {
         reorderPersons,
     } = usePersons();
 
-    // Set filter based on settings (initial load and updates)
-    useEffect(() => {
-        if (!settingsLoading) {
-            setSelectedOwner(defaultFilter || 'all');
-        }
-    }, [settingsLoading, defaultFilter, setSelectedOwner]);
+
 
     const navigate = useNavigate();
 
@@ -79,6 +74,17 @@ function AppContent() {
     const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
+
+    // Set filter and time range based on settings (initial load and updates)
+    useEffect(() => {
+        if (!settingsLoading) {
+            setSelectedOwner(defaultFilter || 'all');
+            if (defaultDateRange) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setTimeRange(defaultDateRange);
+            }
+        }
+    }, [settingsLoading, defaultFilter, defaultDateRange, setSelectedOwner]);
 
     // Navigation handlers
     const handleCardClick = (asset: Asset) => {
