@@ -105,7 +105,9 @@ export default function EditSnapshotModal({
                                 type="text"
                                 inputMode="decimal"
                                 value={investmentChange}
-                                onChange={e => handleNumberInput(e.target.value, setInvestmentChange, true)}
+                                onChange={e =>
+                                    handleNumberInput(e.target.value, setInvestmentChange, true)
+                                }
                                 onBlur={() => {
                                     // Clean up trailing delimiter or standalone minus
                                     if (

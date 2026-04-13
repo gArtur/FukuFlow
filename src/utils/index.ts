@@ -26,7 +26,11 @@ export function handleNumberInput(
     const cleanedValue = inputValue.replace(/\s/g, '');
     const pattern = allowNegative ? /^-?[0-9]*[.,]?[0-9]*$/ : /^[0-9]*[.,]?[0-9]*$/;
 
-    if (cleanedValue === '' || (allowNegative && cleanedValue === '-') || pattern.test(cleanedValue)) {
+    if (
+        cleanedValue === '' ||
+        (allowNegative && cleanedValue === '-') ||
+        pattern.test(cleanedValue)
+    ) {
         setter(cleanedValue);
     }
 }
