@@ -290,17 +290,7 @@ export default function AddSnapshotModal({
                             type="text"
                             inputMode="decimal"
                             value={investmentChange}
-                            onChange={e => {
-                                // Allow negative sign at start for investment change
-                                const val = e.target.value;
-                                if (
-                                    val === '' ||
-                                    val === '-' ||
-                                    /^-?[0-9]*[.,]?[0-9]*$/.test(val)
-                                ) {
-                                    setInvestmentChange(val);
-                                }
-                            }}
+                            onChange={e => handleNumberInput(e.target.value, setInvestmentChange, true)}
                             onBlur={() => {
                                 // Clean up trailing delimiter or standalone minus
                                 if (

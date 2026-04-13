@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -36,6 +37,7 @@ export default function AssetCard({
 }: AssetCardProps) {
     const { formatAmount, isHidden } = usePrivacy();
     const { categories, theme, assetsFollowGeneral } = useSettings();
+    const [copied, setCopied] = useState(false);
 
     let gain = asset.currentValue - asset.purchaseAmount;
     let gainPercent =
@@ -176,7 +178,41 @@ export default function AssetCard({
 
             <div className="mover-body">
                 <div className="mover-value-section">
-                    <div className="mover-value">{formatAmount(asset.currentValue)}</div>
+                    <div className="mover-value">
+                        <span 
+                            onClick={!isHidden ? (e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(asset.currentValue.toString());
+                                setCopied(true);
+                                setTimeout(() => setCopied(false), 2000);
+                            } : undefined}
+                            title={isHidden ? '' : 'Click to copy value'}
+                            style={!isHidden ? { cursor: 'pointer', position: 'relative', display: 'inline-block' } : {}}
+                        >
+                            {formatAmount(asset.currentValue)}
+                            {copied && (
+                                <span style={{
+                                    position: 'absolute',
+                                    left: '50%',
+                                    bottom: '100%',
+                                    transform: 'translateX(-50%)',
+                                    marginBottom: '4px',
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    color: '#ffffff',
+                                    backgroundColor: '#10B981',
+                                    padding: '2px 6px',
+                                    borderRadius: '4px',
+                                    pointerEvents: 'none',
+                                    whiteSpace: 'nowrap',
+                                    zIndex: 10,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }}>
+                                    Copied!
+                                </span>
+                            )}
+                        </span>
+                    </div>
                     <div className={`mover-gain ${isPositive ? 'positive' : 'negative'}`}>
                         {isPositive ? '+' : ''}
                         {formatAmount(gain)}

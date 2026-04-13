@@ -7,7 +7,7 @@
  * Returns 0 if the value cannot be parsed.
  */
 export function parseValue(val: string): number {
-    return parseFloat(val.replace(',', '.')) || 0;
+    return parseFloat(val.replace(/\s/g, '').replace(',', '.')) || 0;
 }
 
 /**
@@ -23,10 +23,11 @@ export function handleNumberInput(
     setter: (val: string) => void,
     allowNegative: boolean = false
 ): void {
+    const cleanedValue = inputValue.replace(/\s/g, '');
     const pattern = allowNegative ? /^-?[0-9]*[.,]?[0-9]*$/ : /^[0-9]*[.,]?[0-9]*$/;
 
-    if (inputValue === '' || (allowNegative && inputValue === '-') || pattern.test(inputValue)) {
-        setter(inputValue);
+    if (cleanedValue === '' || (allowNegative && cleanedValue === '-') || pattern.test(cleanedValue)) {
+        setter(cleanedValue);
     }
 }
 
