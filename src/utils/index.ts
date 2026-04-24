@@ -47,17 +47,18 @@ export function formatCurrency(
     currency: string = 'USD',
     decimals: number = 0
 ): string {
-    if (currency === 'PLN') {
-        return (
-            new Intl.NumberFormat('en-US', {
-                style: 'decimal',
-                minimumFractionDigits: decimals,
-                maximumFractionDigits: decimals,
-            }).format(value) + ' zł'
-        );
-    }
+    const CURRENCY_LOCALES: Record<string, string> = {
+        PLN: 'pl-PL',
+        USD: 'en-US',
+        EUR: 'de-DE', // Common European format
+        GBP: 'en-GB',
+        JPY: 'ja-JP',
+        CHF: 'de-CH',
+        CAD: 'en-CA',
+        AUD: 'en-AU',
+    };
 
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(CURRENCY_LOCALES[currency], {
         style: 'currency',
         currency,
         minimumFractionDigits: decimals,

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { formatCurrency } from '../utils';
 
 import { useSettings } from './SettingsContext';
 
@@ -30,20 +31,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
             return '•••••';
         }
 
-        if (currency === 'PLN') {
-            return (
-                new Intl.NumberFormat('en-US', {
-                    style: 'decimal',
-                    maximumFractionDigits: 0,
-                }).format(value) + ' zł'
-            );
-        }
-
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-            maximumFractionDigits: 0,
-        }).format(value);
+        return formatCurrency(value, currency, 0);
     };
 
     return (
