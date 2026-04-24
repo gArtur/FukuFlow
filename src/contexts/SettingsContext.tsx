@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { ApiClient } from '../lib/apiClient';
 import type { AssetCategory, TimeRange } from '../types';
+import { formatCurrency } from '../utils';
 
 interface Settings {
     currency: string;
@@ -183,20 +184,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     };
 
     const formatAmount = (amount: number) => {
-        if (settings.currency === 'PLN') {
-            return (
-                new Intl.NumberFormat('en-US', {
-                    style: 'decimal',
-                    maximumFractionDigits: 0,
-                }).format(amount) + ' zł'
-            );
-        }
-
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: settings.currency,
-            maximumFractionDigits: 0,
-        }).format(amount);
+        return formatCurrency(amount, settings.currency, 0);
     };
 
     return (
