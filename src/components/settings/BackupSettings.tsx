@@ -1,4 +1,6 @@
 import { ApiClient } from '../../lib/apiClient';
+import { toast } from 'react-hot-toast';
+import { getTodayString } from '../../utils';
 
 interface BackupSettingsProps {
     onShowRestoreModal: () => void;
@@ -11,14 +13,15 @@ export default function BackupSettings({ onShowRestoreModal }: BackupSettingsPro
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `wealth-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `FukuFlow-backup-${getTodayString()}.json`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
+            toast.success('Backup downloaded successfully');
         } catch (error) {
             console.error('Backup failed:', error);
-            alert('Backup failed');
+            toast.error('Backup failed');
         }
     };
 
