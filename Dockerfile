@@ -16,6 +16,10 @@ RUN npm ci
 # Copy the rest of the source code
 COPY . .
 
+# Support passing commit SHA for versioning
+ARG COMMIT_SHA
+ENV COMMIT_SHA=$COMMIT_SHA
+
 # Set API URL to relative path for production build (proxied by server)
 ENV VITE_API_URL=/api
 
