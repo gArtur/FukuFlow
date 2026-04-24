@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
 import type { Person } from '../types';
 import { ApiClient } from '../lib/apiClient';
 
@@ -17,6 +18,7 @@ export function usePersons() {
             setPersons(data);
         } catch (error) {
             console.error('Failed to fetch persons:', error);
+            toast.error('Failed to load persons');
         } finally {
             setIsLoading(false);
         }
@@ -30,9 +32,11 @@ export function usePersons() {
         try {
             const newPerson = await ApiClient.addPerson(name);
             setPersons(prev => [...prev, newPerson]);
+            toast.success('Person added successfully');
             return newPerson;
         } catch (error) {
             console.error('Failed to add person:', error);
+            toast.error('Failed to add person');
             return undefined;
         }
     }, []);
@@ -42,9 +46,11 @@ export function usePersons() {
             try {
                 await ApiClient.updatePerson(id, updates);
                 setPersons(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
+                toast.success('Person updated');
                 return true;
             } catch (error) {
                 console.error('Failed to update person:', error);
+                toast.error('Failed to update person');
                 return false;
             }
         },
@@ -55,9 +61,11 @@ export function usePersons() {
         try {
             await ApiClient.deletePerson(id);
             setPersons(prev => prev.filter(p => p.id !== id));
+            toast.success('Person deleted');
             return true;
         } catch (error) {
             console.error('Failed to delete person:', error);
+            toast.error('Failed to delete person');
             return false;
         }
     }, []);
@@ -74,9 +82,11 @@ export function usePersons() {
 
             try {
                 await ApiClient.reorderPersons(ids);
+                toast.success('Persons reordered');
                 return true;
             } catch (error) {
                 console.error('Failed to reorder persons:', error);
+                toast.error('Failed to reorder persons');
                 // Rollback on error
                 setPersons(previousPersons);
                 return false;

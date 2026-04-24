@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useParams, Navigate } from 'react-router-dom';
+import { Toaster, toast } from 'react-hot-toast';
 import './index.css';
 import { usePortfolio } from './hooks/usePortfolio';
 import { usePersons } from './hooks/usePersons';
@@ -116,8 +117,10 @@ function AppContent() {
             await ApiClient.addSnapshot(assetId, snapshot);
             await refreshAssets();
             setShowSnapshotModal(false);
+            toast.success('Snapshot added successfully');
         } catch (error) {
             console.error('Failed to add snapshot:', error);
+            toast.error('Failed to add snapshot');
         }
     };
 
@@ -134,8 +137,10 @@ function AppContent() {
             await ApiClient.updateSnapshot(id, data);
             await refreshAssets();
             setShowEditSnapshotModal(false);
+            toast.success('Snapshot updated successfully');
         } catch (error) {
             console.error('Failed to update snapshot:', error);
+            toast.error('Failed to update snapshot');
         }
     };
 
@@ -144,8 +149,10 @@ function AppContent() {
             await ApiClient.deleteSnapshot(id);
             await refreshAssets();
             setShowEditSnapshotModal(false);
+            toast.success('Snapshot deleted');
         } catch (error) {
             console.error('Failed to delete snapshot:', error);
+            toast.error('Failed to delete snapshot');
         }
     };
 
@@ -168,6 +175,12 @@ function AppContent() {
         }
 
         await refreshAssets();
+        if (success > 0) {
+            toast.success(`Successfully imported ${success} snapshots`);
+        }
+        if (failed > 0) {
+            toast.error(`Failed to import ${failed} snapshots`);
+        }
         return { success, failed, errors };
     };
 
@@ -507,6 +520,7 @@ export default function App() {
             <ScrollToTop />
             <AuthProvider>
                 <AuthenticatedApp />
+                <Toaster position="bottom-right" />
             </AuthProvider>
         </BrowserRouter>
     );

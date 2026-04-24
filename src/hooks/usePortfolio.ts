@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
 import type { Asset, PortfolioStats, ValueEntry } from '../types';
 import { ApiClient } from '../lib/apiClient';
 
@@ -17,6 +18,7 @@ export function usePortfolio() {
         } catch (error) {
             console.error('Failed to fetch assets:', error);
             setError('Failed to load assets. Please try again.');
+            toast.error('Failed to load assets');
         } finally {
             setIsLoading(false);
         }
@@ -66,8 +68,10 @@ export function usePortfolio() {
         try {
             const newAsset = await ApiClient.addAsset(asset);
             setAssets(prev => [...prev, newAsset]);
+            toast.success('Asset added successfully');
         } catch (error) {
             console.error('Failed to add asset:', error);
+            toast.error('Failed to add asset');
         }
     }, []);
 
@@ -88,8 +92,10 @@ export function usePortfolio() {
                     };
                 })
             );
+            toast.success('Asset value updated');
         } catch (error) {
             console.error('Failed to update asset value:', error);
+            toast.error('Failed to update asset value');
         }
     }, []);
 
@@ -97,8 +103,10 @@ export function usePortfolio() {
         try {
             await ApiClient.deleteAsset(id);
             setAssets(prev => prev.filter(asset => asset.id !== id));
+            toast.success('Asset deleted');
         } catch (error) {
             console.error('Failed to delete asset:', error);
+            toast.error('Failed to delete asset');
         }
     }, []);
 
@@ -112,8 +120,10 @@ export function usePortfolio() {
                         return { ...asset, ...updates };
                     })
                 );
+                toast.success('Asset updated successfully');
             } catch (error) {
                 console.error('Failed to update asset:', error);
+                toast.error('Failed to update asset');
             }
         },
         []
