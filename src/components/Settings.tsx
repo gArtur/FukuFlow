@@ -158,6 +158,9 @@ export default function Settings({
                     >
                         Security
                     </button>
+                    <div style={{ marginTop: 'auto', padding: '1rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                        {__APP_VERSION__}
+                    </div>
                 </nav>
 
                 {/* Content Area */}
