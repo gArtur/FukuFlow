@@ -1,6 +1,7 @@
 import { createPortal } from 'react-dom';
 import type { HeatmapRow, HeatmapCell, ViewMode } from './types';
 import { getColorClass, formatMonthAbbr } from './heatmapUtils';
+import PersonBadge from '../PersonBadge';
 
 interface HeatmapCardDetailProps {
     row: HeatmapRow;
@@ -94,7 +95,7 @@ export default function HeatmapCardDetail({
                         <span className="asset-icon">{row.category.charAt(0).toUpperCase()}</span>
                         <div>
                             <div className="heatmap-detail-name">{row.name}</div>
-                            <div className="heatmap-detail-owner">{row.ownerName}</div>
+                            <PersonBadge name={row.ownerName} className="heatmap-detail-owner" />
                         </div>
                     </div>
                     <div className={`heatmap-detail-total ${isPositive ? 'positive' : 'negative'}`}>

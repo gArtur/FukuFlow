@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
+import PersonBadge from './PersonBadge';
 
 interface ImportResult {
     success: number;
@@ -113,7 +114,9 @@ export default function ImportCSVModal({
                 <div className="modal-body">
                     <p className="import-asset-name">
                         Importing to: <strong>{assetName}</strong>
-                        {ownerName && <span className="import-owner-badge"> ({ownerName})</span>}
+                        {ownerName && (
+                            <PersonBadge name={ownerName} className="import-owner-badge" />
+                        )}
                     </p>
 
                     {!result ? (

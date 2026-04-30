@@ -13,6 +13,7 @@ import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { getDateRangeFromTimeRange } from '../utils/dateUtils';
 import { calculatePerformance } from '../utils/performance';
+import PersonBadge from './PersonBadge';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);
 
@@ -162,7 +163,7 @@ export default function AssetCard({
                     <div className="mover-name">{asset.name}</div>
                     <div className="mover-meta">
                         <span>{categoryLabel}</span>
-                        <span className="mover-owner">{ownerName}</span>
+                        <PersonBadge name={ownerName} className="mover-owner" />
                     </div>
                 </div>
                 <button

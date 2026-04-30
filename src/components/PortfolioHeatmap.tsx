@@ -16,6 +16,7 @@ import HeatmapTooltip from './heatmap/HeatmapTooltip';
 import HeatmapStats from './heatmap/HeatmapStats';
 import HeatmapMobileCard from './heatmap/HeatmapMobileCard';
 import HeatmapCardDetail from './heatmap/HeatmapCardDetail';
+import PersonBadge from './PersonBadge';
 import type {
     HeatmapCell,
     HeatmapRow,
@@ -582,9 +583,10 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                                         </span>
                                         <div className="asset-name-details">
                                             <span className="asset-name-text">{row.name}</span>
-                                            <span className="asset-owner-badge">
-                                                {row.ownerName}
-                                            </span>
+                                            <PersonBadge
+                                                name={row.ownerName}
+                                                className="asset-owner-badge"
+                                            />
                                         </div>
                                     </div>
                                     {row.cells.map((cell, index) => (

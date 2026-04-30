@@ -1,6 +1,7 @@
 import type { Asset, Person } from '../types';
 import { CATEGORY_LABELS } from '../types';
 import { useFormatting } from '../hooks/useFormatting';
+import PersonBadge from './PersonBadge';
 
 interface AssetListProps {
     assets: Asset[];
@@ -67,7 +68,10 @@ export default function AssetList({
                                         <span className="asset-category">
                                             {CATEGORY_LABELS[asset.category]}
                                         </span>
-                                        <span className="asset-owner-badge">{ownerName}</span>
+                                        <PersonBadge
+                                            name={ownerName}
+                                            className="asset-owner-badge"
+                                        />
                                     </div>
                                 </div>
                                 <div className="asset-value">

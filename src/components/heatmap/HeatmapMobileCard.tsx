@@ -1,5 +1,6 @@
 import type { HeatmapRow, HeatmapCell, ViewMode } from './types';
 import { getColorClass } from './heatmapUtils';
+import PersonBadge from '../PersonBadge';
 
 interface HeatmapMobileCardProps {
     row: HeatmapRow;
@@ -108,7 +109,7 @@ export default function HeatmapMobileCard({
                 <div className="asset-name-details">
                     <span className="asset-name-text">{row.name}</span>
                     {!isPortfolioTotal && (
-                        <span className="asset-owner-badge">{row.ownerName}</span>
+                        <PersonBadge name={row.ownerName} className="asset-owner-badge" />
                     )}
                 </div>
             </div>

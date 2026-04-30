@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Asset, Person } from '../types';
 import { parseValue, handleNumberInput, formatCurrency as formatCurrencyUtil } from '../utils';
 import { useSettings } from '../contexts/SettingsContext';
+import PersonBadge from './PersonBadge';
 
 interface AddSnapshotModalProps {
     isOpen: boolean;
@@ -44,34 +45,32 @@ export default function AddSnapshotModal({
     // We name this variable distinct from the state update logic to avoid confusion
     const activeAssetProvidedByState = assets?.find(a => a.id === selectedAssetId) ?? null;
 
-    // Track previous asset to detect prop changes
-    const [prevAssetId, setPrevAssetId] = useState(asset?.id);
-
-    const [wasOpen, setWasOpen] = useState(isOpen);
-
-    if (isOpen && !wasOpen) {
-        // Modal just opened: Reset form
-        setWasOpen(true);
-        // If we have a fixed asset, ensure it's selected
-        if (asset) {
-            if (selectedAssetId !== asset.id) setSelectedAssetId(asset.id);
-            setSearchQuery(asset.name);
-        } else {
-            // Global mode reset
-            if (activeAssetProvidedByState && activeAssetProvidedByState.id !== selectedAssetId) {
-                // If we want to persist selection, do nothing. If we want to clear:
+    // Reset form when modal opens or asset prop changes
+    useEffect(() => {
+        if (isOpen) {
+            if (asset) {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setSelectedAssetId(asset.id);
+                // eslint-disable-next-line react-hooks/set-state-in-effect
+                setSearchQuery(asset.name);
+            } else {
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedAssetId('');
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSearchQuery('');
             }
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setValue('');
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setInvestmentChange('');
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setNotes('');
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setDate(new Date().toISOString().split('T')[0]);
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setShowSuggestions(false);
         }
-        setValue('');
-        setInvestmentChange('');
-        setNotes('');
-        setDate(new Date().toISOString().split('T')[0]);
-        setShowSuggestions(false);
-    } else if (!isOpen && wasOpen) {
-        setWasOpen(false);
-    }
+    }, [isOpen, asset]);
 
     const activeAsset = asset || activeAssetProvidedByState;
     const lastValue = activeAsset?.currentValue || 0;
@@ -85,14 +84,6 @@ export default function AddSnapshotModal({
         const formattedValue = formatCurrency(a.currentValue);
         return `${a.name} (${ownerName}) - ${formattedValue}`;
     };
-
-    // Detect asset prop change while open
-    if (asset && asset.id !== prevAssetId) {
-        setPrevAssetId(asset.id);
-        setSelectedAssetId(asset.id);
-        setSearchQuery(asset.name);
-        setValue('');
-    }
 
     // Auto-clear value if the selected asset changes in global mode (activeAsset changes)
     const [prevActiveAssetId, setPrevActiveAssetId] = useState(activeAsset?.id);
@@ -211,11 +202,12 @@ export default function AddSnapshotModal({
                                                 <span className="combobox-option-name">
                                                     {a.name}
                                                 </span>
-                                                <span className="combobox-option-owner">
-                                                    ({getOwnerName(a.ownerId)})
-                                                </span>
+                                                <PersonBadge
+                                                    name={getOwnerName(a.ownerId)}
+                                                    className="combobox-option-owner"
+                                                />
                                                 <span className="combobox-option-value">
-                                                    - {formatCurrency(a.currentValue)}
+                                                    {formatCurrency(a.currentValue)}
                                                 </span>
                                             </li>
                                         ))}
@@ -231,7 +223,13 @@ export default function AddSnapshotModal({
                     {/* Show info only when not in global mode (asset passed directly) */}
                     {!isGlobalMode && activeAsset && (
                         <div className="snapshot-info">
-                            <div className="snapshot-asset-name">{activeAsset.name}</div>
+                            <div className="snapshot-asset-name-row">
+                                <div className="snapshot-asset-name">{activeAsset.name}</div>
+                                <PersonBadge
+                                    name={getOwnerName(activeAsset.ownerId)}
+                                    className="snapshot-owner-badge"
+                                />
+                            </div>
                             <div className="snapshot-stats-row">
                                 <div className="snapshot-stat">
                                     <span className="stat-label">Last value:</span>

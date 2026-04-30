@@ -547,10 +547,7 @@
 }
 
 .mover-owner {
-    padding: 1px 4px;
-    background: var(--accent-primary-glow);
-    color: var(--accent-primary);
-    border-radius: 3px;
+    /* Using the new generic person-badge class for this */
 }
 
 .mover-body {
@@ -921,29 +918,39 @@
 
 .combobox-suggestions {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-top: none;
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-    max-height: 200px;
+    border-radius: var(--radius-md);
+    max-height: 260px;
     overflow-y: auto;
-    z-index: 10;
+    z-index: 100;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: var(--space-xs);
+    box-shadow: var(--shadow-lg);
 }
 
 .combobox-option {
     padding: var(--space-sm) var(--space-md);
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2px;
+}
+
+.combobox-option:last-child {
+    margin-bottom: 0;
 }
 
 .combobox-option:hover {
     background: var(--bg-secondary);
+    padding-left: calc(var(--space-md) + 2px);
 }
 
 .combobox-option.selected {
@@ -959,12 +966,20 @@
 
 .combobox-option-name {
     font-weight: 500;
+    flex-shrink: 0;
 }
 
 .combobox-option-owner {
+    /* PersonBadge handles its own color/bg, just position it */
+    flex-shrink: 0;
+}
+
+.combobox-option-value {
+    margin-left: auto;
     color: var(--text-muted);
     font-size: 13px;
-    margin-left: var(--space-xs);
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .combobox-selected-info {
@@ -1497,9 +1512,10 @@
 }
 
 .snapshot-asset-name {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: var(--space-xs);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
 }
 
 .snapshot-last-value {
@@ -3280,8 +3296,26 @@
 }
 
 .asset-owner-badge {
-    font-size: 10px;
-    color: var(--text-muted);
+    /* Styles handled by .person-badge now, but we keep the class for targeted overrides if needed */
+    margin-top: 2px;
+    align-self: flex-start;
+}
+
+.import-owner-badge {
+    margin-left: var(--space-xs);
+    vertical-align: middle;
+}
+
+.snapshot-asset-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+    flex-wrap: wrap;
+}
+
+.snapshot-owner-badge {
+    flex-shrink: 0;
 }
 
 /* Data Cells */
@@ -4081,4 +4115,43 @@
     transform: none;
     border-color: var(--border-color);
     box-shadow: none;
+}
+
+/* ===== PERSON BADGES ===== */
+.person-badge {
+    padding: 0 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    line-height: 1;
+    height: 1.8em;
+    vertical-align: middle;
+    box-sizing: border-box;
+
+    /* Default dark theme colors using HSL */
+    background: hsla(var(--badge-hue), 70%, 50%, 0.15);
+    color: hsla(var(--badge-hue), 80%, 75%, 1);
+    border: 1px solid hsla(var(--badge-hue), 70%, 50%, 0.2);
+}
+
+.person-badge.person-badge-neutral {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme='light'] .person-badge:not(.person-badge-neutral) {
+    background: hsla(var(--badge-hue), 60%, 45%, 0.1);
+    color: hsla(var(--badge-hue), 80%, 35%, 1);
+    border: 1px solid hsla(var(--badge-hue), 60%, 45%, 0.2);
+}
+
+[data-theme='high-contrast'] .person-badge:not(.person-badge-neutral) {
+    background: transparent;
+    color: hsla(var(--badge-hue), 100%, 70%, 1);
+    border: 1px solid hsla(var(--badge-hue), 100%, 70%, 1);
 }
