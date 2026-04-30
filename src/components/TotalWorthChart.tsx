@@ -171,7 +171,7 @@ export default function TotalWorthChart({
                     return gradient;
                 },
                 fill: !isHighContrast ? 'origin' : false,
-                tension: 0.4,
+                tension: 0.1,
                 pointRadius: isHighContrast ? 4 : 0,
                 pointBackgroundColor: isHighContrast ? '#000' : undefined,
                 pointBorderWidth: isHighContrast ? 2 : 0,
@@ -187,7 +187,7 @@ export default function TotalWorthChart({
                 borderColor: isHighContrast ? '#FFFF00' : '#3B82F6', // Yellow in HC
                 backgroundColor: 'transparent',
                 fill: false,
-                tension: 0.4,
+                tension: 0.1,
                 pointRadius: isHighContrast ? 4 : 0,
                 pointBackgroundColor: isHighContrast ? '#000' : undefined,
                 pointBorderWidth: isHighContrast ? 2 : 0,

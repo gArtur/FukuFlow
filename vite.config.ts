@@ -7,7 +7,7 @@ let commitHash = process.env.VITE_APP_VERSION || process.env.COMMIT_SHA || ''
 if (!commitHash) {
   try {
     commitHash = execSync('git rev-parse --short HEAD').toString().trim()
-  } catch (e) {
+  } catch {
     commitHash = 'unknown'
   }
 }

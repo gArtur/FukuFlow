@@ -348,7 +348,6 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         if (rangeStart === oneY.start && rangeEnd === oneY.end) return '1Y';
         if (rangeStart === fiveY.start && rangeEnd === fiveY.end) return '5Y';
         return null;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [rangeStart, rangeEnd, minMonth, maxMonth]);
 
     const toggleSort = () => {

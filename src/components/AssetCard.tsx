@@ -120,7 +120,7 @@ export default function AssetCard({
                     return gradient;
                 },
                 borderWidth: isHighContrast ? 2.5 : 1.5,
-                tension: 0.4,
+                tension: 0.1,
                 pointRadius: 0,
                 fill: true,
             },

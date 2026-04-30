@@ -18,7 +18,10 @@ function SkeletonAssetCard() {
             {/* Header row: avatar + two lines + snapshot button */}
             <div className="mover-header">
                 <Shimmer style={{ width: 36, height: 36, borderRadius: 6, flexShrink: 0 }} />
-                <div className="mover-info" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div
+                    className="mover-info"
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                >
                     <Shimmer style={{ height: 13, width: '60%', borderRadius: 4 }} />
                     <Shimmer style={{ height: 10, width: '40%', borderRadius: 4 }} />
                 </div>
@@ -26,7 +29,10 @@ function SkeletonAssetCard() {
             </div>
             {/* Body row: value + sparkline */}
             <div className="mover-body">
-                <div className="mover-value-section" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div
+                    className="mover-value-section"
+                    style={{ display: 'flex', flexDirection: 'column', gap: 6 }}
+                >
                     <Shimmer style={{ height: 20, width: '70%', borderRadius: 4 }} />
                     <Shimmer style={{ height: 12, width: '50%', borderRadius: 4 }} />
                 </div>
@@ -42,7 +48,10 @@ function SkeletonTotalWorthChart() {
         <div className="chart-card total-worth-card" aria-hidden="true">
             {/* Title + time tabs */}
             <div className="chart-header">
-                <div className="chart-header-left" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div
+                    className="chart-header-left"
+                    style={{ display: 'flex', flexDirection: 'column', gap: 8 }}
+                >
                     <Shimmer style={{ height: 12, width: 100, borderRadius: 4 }} />
                     <Shimmer style={{ height: 32, width: 180, borderRadius: 4 }} />
                     <Shimmer style={{ height: 16, width: 120, borderRadius: 4 }} />
@@ -103,7 +112,10 @@ export default function SkeletonDashboard({ cardCount = 8 }: SkeletonDashboardPr
             {/* Family filter tab row */}
             <div className="filter-tabs" style={{ paddingBottom: 'var(--space-md)' }}>
                 {['All', '', '', ''].map((_, i) => (
-                    <Shimmer key={i} style={{ height: 34, width: i === 0 ? 52 : 72, borderRadius: 20 }} />
+                    <Shimmer
+                        key={i}
+                        style={{ height: 34, width: i === 0 ? 52 : 72, borderRadius: 20 }}
+                    />
                 ))}
             </div>
 
