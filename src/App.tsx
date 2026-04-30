@@ -23,6 +23,7 @@ import Settings from './components/Settings';
 import PortfolioHeatmap from './components/PortfolioHeatmap';
 import { ApiClient } from './lib/apiClient';
 import MigrationTool from './components/MigrationTool';
+import SkeletonDashboard from './components/SkeletonDashboard';
 import LoginPage from './components/LoginPage';
 import SetupPage from './components/SetupPage';
 import ScrollToTop from './components/ScrollToTop';
@@ -206,11 +207,13 @@ function AppContent() {
         onAddSnapshot: handleGlobalAddSnapshot,
     };
 
+    // Show the skeleton dashboard (within the real app shell) instead of a full-screen spinner.
+    // This gives users instant visual feedback about the page structure while data loads.
     if (isInitialLoad) {
         return (
-            <div className="loading-screen">
-                <div className="spinner"></div>
-                <p>Loading your wealth data...</p>
+            <div className="app">
+                <Header onAddSnapshot={handleGlobalAddSnapshot} />
+                <SkeletonDashboard cardCount={8} />
             </div>
         );
     }

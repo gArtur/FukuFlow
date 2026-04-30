@@ -4018,3 +4018,68 @@
     white-space: nowrap;
     line-height: 1;
 }
+
+/* ===== SKELETON LOADING ===== */
+/*
+ * Skeleton shimmer — a single reusable class for all placeholder shapes.
+ * Uses CSS custom properties so it adapts to dark & light themes automatically.
+ */
+:root {
+    --skeleton-base: rgba(255, 255, 255, 0.04);
+    --skeleton-highlight: rgba(255, 255, 255, 0.09);
+}
+
+[data-theme='light'] {
+    --skeleton-base: rgba(0, 0, 0, 0.06);
+    --skeleton-highlight: rgba(0, 0, 0, 0.12);
+}
+
+[data-theme='high-contrast'] {
+    --skeleton-base: rgba(0, 255, 255, 0.04);
+    --skeleton-highlight: rgba(0, 255, 255, 0.1);
+}
+
+@keyframes skeleton-wave {
+    0% {
+        background-position: -400px 0;
+    }
+
+    100% {
+        background-position: 400px 0;
+    }
+}
+
+.skeleton-shimmer {
+    display: block;
+    background: linear-gradient(
+        90deg,
+        var(--skeleton-base) 25%,
+        var(--skeleton-highlight) 50%,
+        var(--skeleton-base) 75%
+    );
+    background-size: 800px 100%;
+    animation: skeleton-wave 1.4s ease-in-out infinite;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer {
+        animation: none;
+        background: var(--skeleton-base);
+    }
+}
+
+/* Ensure skeleton cards don't flash on hover/click */
+.skeleton-card {
+    pointer-events: none;
+    cursor: default;
+}
+
+.skeleton-card:hover {
+    transform: none;
+    border-color: var(--border-color);
+    box-shadow: none;
+}
+
