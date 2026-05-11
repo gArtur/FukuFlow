@@ -76,7 +76,7 @@ function authMiddleware(req, res, next) {
 
     // Verify tokenVersion matches current database version
     // This ensures tokens are invalidated when password is changed
-    const { db } = require('../db');
+    const db = req.app.locals.db;
     db.get('SELECT tokenVersion FROM auth WHERE id = 1', [], (err, row) => {
         if (err) {
             console.error('Token version check error:', err);

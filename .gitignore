@@ -31,3 +31,11 @@ dist-ssr
 server/.env
 /server/db
 /dist-exe
+/docs/superpowers
+
+# Claude Code
+.claude/settings.local.json
+.claude/worktrees/
+
+# Built frontend (served from packaged exe)
+/server/html/

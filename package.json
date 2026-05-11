@@ -29,7 +29,8 @@
     "preview": "vite preview",
     "package": "pkg . --compress GZip",
     "build:icon": "node scripts/generate_ico.js",
-    "build:full": "npm run build:icon && npm run build && npm run package && node server/patch_exe.js"
+    "build:full": "npm run build:icon && npm run build && npm run package && node server/patch_exe.js",
+    "test:server": "npm test --prefix server"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
