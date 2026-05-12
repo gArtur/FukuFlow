@@ -228,6 +228,7 @@ export default function PeopleSettings({
                 <button
                     className="add-asset-btn-inline"
                     onClick={() => setAddingPerson(!addingPerson)}
+                    data-testid="add-person-btn"
                 >
                     <span>{addingPerson ? '✕' : '+'}</span> {addingPerson ? 'Cancel' : 'Add Person'}
                 </button>
@@ -251,12 +252,14 @@ export default function PeopleSettings({
                                     if (e.key === 'Enter') handleAddPerson();
                                     if (e.key === 'Escape') setAddingPerson(false);
                                 }}
+                                data-testid="add-person-input"
                             />
                         </div>
                         <button
                             onClick={handleAddPerson}
                             className="btn-primary"
                             style={{ flex: 'none' }}
+                            data-testid="add-person-submit"
                         >
                             Add
                         </button>
@@ -269,6 +272,8 @@ export default function PeopleSettings({
                     <div
                         key={person.id}
                         className={`item-card ${draggedId === person.id ? 'dragging' : ''} ${dragOverId === person.id ? 'drag-over' : ''}`}
+                        data-testid="person-item"
+                        data-person-name={person.name}
                         draggable={editingPerson === null}
                         onDragStart={e => handleDragStart(e, person.id)}
                         onDragOver={e => handleDragOver(e, person.id)}
@@ -330,6 +335,7 @@ export default function PeopleSettings({
                                             onClick={() => handleDeletePersonClick(person.id)}
                                             className="action-icon-btn delete"
                                             title="Delete"
+                                            data-testid="person-delete-btn"
                                         >
                                             <DeleteIcon />
                                         </button>

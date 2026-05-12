@@ -48,6 +48,7 @@ export default function MobileAssetHistory({
                                 disabled={isHidden}
                                 title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
                                 style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                data-testid="snapshot-row-edit"
                             >
                                 Edit
                             </button>

@@ -154,7 +154,7 @@ export default function AddSnapshotModal({
     };
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} data-testid="add-snapshot-modal">
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">Add Snapshot</h2>
@@ -252,6 +252,7 @@ export default function AddSnapshotModal({
                             value={date}
                             onChange={e => setDate(e.target.value)}
                             required
+                            data-testid="snapshot-date"
                         />
                     </div>
 
@@ -264,6 +265,7 @@ export default function AddSnapshotModal({
                             onChange={e => handleNumberInput(e.target.value, setValue)}
                             placeholder="Enter new value"
                             required
+                            data-testid="snapshot-value"
                         />
                         {value && (
                             <div
@@ -334,7 +336,7 @@ export default function AddSnapshotModal({
                         <button type="button" className="btn-secondary" onClick={onClose}>
                             Cancel
                         </button>
-                        <button type="submit" className="btn-primary">
+                        <button type="submit" className="btn-primary" data-testid="snapshot-submit">
                             Save Snapshot
                         </button>
                     </div>

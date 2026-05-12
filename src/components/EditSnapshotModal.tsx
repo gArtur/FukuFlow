@@ -67,7 +67,7 @@ export default function EditSnapshotModal({
 
     return (
         <>
-            <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-overlay" onClick={onClose} data-testid="edit-snapshot-modal">
                 <div className="modal" onClick={e => e.stopPropagation()}>
                     <div className="modal-header">
                         <h2 className="modal-title">Edit Snapshot</h2>
@@ -84,6 +84,7 @@ export default function EditSnapshotModal({
                                 value={date}
                                 onChange={e => setDate(e.target.value)}
                                 required
+                                data-testid="edit-snapshot-date"
                             />
                         </div>
 
@@ -96,6 +97,7 @@ export default function EditSnapshotModal({
                                 onChange={e => handleNumberInput(e.target.value, setValue)}
                                 onFocus={e => e.target.select()}
                                 required
+                                data-testid="edit-snapshot-value"
                             />
                         </div>
 
@@ -139,10 +141,11 @@ export default function EditSnapshotModal({
                                 type="button"
                                 className="btn-secondary"
                                 onClick={() => setShowDeleteConfirm(true)}
+                                data-testid="edit-snapshot-delete-btn"
                             >
                                 Delete
                             </button>
-                            <button type="submit" className="btn-primary">
+                            <button type="submit" className="btn-primary" data-testid="edit-snapshot-submit">
                                 Save Changes
                             </button>
                         </div>

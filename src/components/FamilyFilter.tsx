@@ -8,10 +8,11 @@ interface FamilyFilterProps {
 
 export default function FamilyFilter({ persons, selected, onSelect }: FamilyFilterProps) {
     return (
-        <div className="filter-tabs">
+        <div className="filter-tabs" data-testid="family-filter">
             <button
                 className={`filter-tab ${selected === 'all' ? 'active' : ''}`}
                 onClick={() => onSelect('all')}
+                data-testid="filter-all"
             >
                 All
             </button>
@@ -20,6 +21,8 @@ export default function FamilyFilter({ persons, selected, onSelect }: FamilyFilt
                     key={person.id}
                     className={`filter-tab ${selected === person.id ? 'active' : ''}`}
                     onClick={() => onSelect(person.id)}
+                    data-testid={`filter-person-${person.id}`}
+                    data-person-name={person.name}
                 >
                     {person.name}
                 </button>

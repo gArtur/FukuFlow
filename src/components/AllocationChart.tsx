@@ -256,7 +256,7 @@ export default function AllocationChart({
     };
 
     return (
-        <div className="chart-card allocation-card">
+        <div className="chart-card allocation-card" data-testid="allocation-chart">
             <div
                 className="chart-header"
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}

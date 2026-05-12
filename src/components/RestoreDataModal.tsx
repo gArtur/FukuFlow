@@ -145,6 +145,7 @@ export default function RestoreDataModal({ isOpen, onClose }: RestoreDataModalPr
                                 accept=".json"
                                 onChange={handleFileSelect}
                                 style={{ display: 'none' }}
+                                data-testid="restore-file-input"
                             />
                         </>
                     ) : (

@@ -174,6 +174,49 @@ npm run dev
 
 The app opens at `http://localhost:5173`
 
+### Testing
+
+#### Unit & Integration Tests (Backend)
+```bash
+npm run test:server
+```
+Runs Vitest + Supertest against an in-memory SQLite database. No external dependencies required.
+
+#### E2E Tests (Playwright)
+Playwright drives a real Chromium browser against a live dev server using an isolated test database.
+
+**Prerequisites** (first time only):
+```bash
+npx playwright install chromium
+```
+
+**Run headless (CI-style):**
+```bash
+npm run test:e2e
+```
+
+**Run with browser visible:**
+```bash
+npm run test:e2e:headed
+```
+
+**Interactive UI mode (step through tests):**
+```bash
+npm run test:e2e:ui
+```
+
+**Debug a single test:**
+```bash
+npm run test:e2e:debug
+```
+
+**View HTML report after a run:**
+```bash
+npx playwright show-report e2e/playwright-report
+```
+
+The E2E suite starts both the backend (port 3001) and the Vite dev server (port 5173) automatically via `webServer` in [`playwright.config.ts`](playwright.config.ts). Tests use an isolated database at `server/db/e2e-test.db` that is created fresh each run.
+
 ### Building for Production
 #### Web Build
 ```bash

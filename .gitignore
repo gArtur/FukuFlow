@@ -37,5 +37,10 @@ server/.env
 .claude/settings.local.json
 .claude/worktrees/
 
+# Playwright E2E
+e2e/.auth/
+e2e/test-results/
+e2e/playwright-report/
+
 # Built frontend (served from packaged exe)
 /server/html/

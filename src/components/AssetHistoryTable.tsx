@@ -163,6 +163,7 @@ export default function AssetHistoryTable({
                                         style={
                                             isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}
                                         }
+                                        data-testid="snapshot-row-edit"
                                     >
                                         Edit
                                     </button>
@@ -176,6 +177,7 @@ export default function AssetHistoryTable({
                                         style={
                                             isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}
                                         }
+                                        data-testid="snapshot-row-delete"
                                     >
                                         Delete
                                     </button>
