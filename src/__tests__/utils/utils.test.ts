@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { parseValue, formatCurrency, formatPercent, hashCode, handleNumberInput } from '../../utils/index';
+import {
+    parseValue,
+    formatCurrency,
+    formatPercent,
+    hashCode,
+    handleNumberInput,
+} from '../../utils/index';
 
 // ─── parseValue ──────────────────────────────────────────────────────────────
 

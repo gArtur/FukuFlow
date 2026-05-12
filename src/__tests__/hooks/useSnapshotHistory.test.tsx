@@ -38,17 +38,23 @@ describe('useSnapshotHistory', () => {
 
     describe('single entry', () => {
         it('cumInvested equals the entry investmentChange', () => {
-            const { result } = renderHook(() => useSnapshotHistory([entry('2024-01-01', 1000, 1000)]));
+            const { result } = renderHook(() =>
+                useSnapshotHistory([entry('2024-01-01', 1000, 1000)])
+            );
             expect(result.current[0].cumInvested).toBe(1000);
         });
 
         it('cumGL = value - cumInvested', () => {
-            const { result } = renderHook(() => useSnapshotHistory([entry('2024-01-01', 1000, 1000)]));
+            const { result } = renderHook(() =>
+                useSnapshotHistory([entry('2024-01-01', 1000, 1000)])
+            );
             expect(result.current[0].cumGL).toBe(0); // 1000 - 1000
         });
 
         it('roi = 0 when no gain on first entry', () => {
-            const { result } = renderHook(() => useSnapshotHistory([entry('2024-01-01', 1000, 1000)]));
+            const { result } = renderHook(() =>
+                useSnapshotHistory([entry('2024-01-01', 1000, 1000)])
+            );
             expect(result.current[0].roi).toBe(0);
         });
     });
@@ -56,10 +62,7 @@ describe('useSnapshotHistory', () => {
     // ─── Two entries, no investment change ────────────────────────────────────
 
     describe('two entries without investmentChange', () => {
-        const history = [
-            entry('2024-01-01', 1000, 1000),
-            entry('2024-06-01', 1200, 0),
-        ];
+        const history = [entry('2024-01-01', 1000, 1000), entry('2024-06-01', 1200, 0)];
 
         it('periodGL = value2 - value1 - flow', () => {
             const { result } = renderHook(() => useSnapshotHistory(history));
@@ -116,10 +119,7 @@ describe('useSnapshotHistory', () => {
     // ─── Loss scenario ────────────────────────────────────────────────────────
 
     describe('loss scenario', () => {
-        const history = [
-            entry('2024-01-01', 1000, 1000),
-            entry('2024-06-01', 800, 0),
-        ];
+        const history = [entry('2024-01-01', 1000, 1000), entry('2024-06-01', 800, 0)];
 
         it('periodGL is negative for a loss', () => {
             const { result } = renderHook(() => useSnapshotHistory(history));
@@ -142,8 +142,8 @@ describe('useSnapshotHistory', () => {
     describe('YTD calculations spanning a year boundary', () => {
         const history = [
             entry('2023-06-01', 1000, 1000), // Previous year
-            entry('2024-01-15', 1050, 0),    // New year - first entry
-            entry('2024-06-01', 1200, 0),    // New year - second entry
+            entry('2024-01-15', 1050, 0), // New year - first entry
+            entry('2024-06-01', 1200, 0), // New year - second entry
         ];
 
         it('ytdGL for the first entry in a new year references previous year end value', () => {

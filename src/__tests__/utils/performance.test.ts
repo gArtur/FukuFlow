@@ -39,7 +39,11 @@ describe('calculatePerformance — empty assets', () => {
 describe('calculatePerformance — single asset, history outside range', () => {
     it('returns 0 values when all history is outside the date range', () => {
         const asset = makeAsset([{ date: '2022-01-01', value: 5000, investmentChange: 5000 }]);
-        const result = calculatePerformance([asset], new Date('2025-01-01'), new Date('2025-12-31'));
+        const result = calculatePerformance(
+            [asset],
+            new Date('2025-01-01'),
+            new Date('2025-12-31')
+        );
         // No snapshots in range but the binary search will find the closest prior entry
         // confirming the function doesn't crash
         expect(result).toBeDefined();
@@ -95,8 +99,12 @@ describe('calculatePerformance — single asset with snapshots in range', () => 
 
 describe('calculatePerformance — multiple assets', () => {
     it('sums values across all assets for a shared date', () => {
-        const a1 = makeAsset([{ date: '2024-06-01', value: 1000, investmentChange: 1000 }], { id: 'a1' });
-        const a2 = makeAsset([{ date: '2024-06-01', value: 500, investmentChange: 500 }], { id: 'a2' });
+        const a1 = makeAsset([{ date: '2024-06-01', value: 1000, investmentChange: 1000 }], {
+            id: 'a1',
+        });
+        const a2 = makeAsset([{ date: '2024-06-01', value: 500, investmentChange: 500 }], {
+            id: 'a2',
+        });
         const result = calculatePerformance([a1, a2], START, END);
         // Both assets have a snapshot on 2024-06-01; the last datum should sum them
         const datum = result.history.find(d => d.date === '2024-06-01');

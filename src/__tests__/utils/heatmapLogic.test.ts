@@ -72,9 +72,7 @@ describe('getAssetTimeline', () => {
     });
 
     it('populates flow from investmentChange', () => {
-        const asset = makeAsset([
-            { date: '2024-03-01', value: 1500, investmentChange: 200 },
-        ]);
+        const asset = makeAsset([{ date: '2024-03-01', value: 1500, investmentChange: 200 }]);
         const timeline = getAssetTimeline(asset, '2024-03');
         expect(timeline.get('2024-03')?.flow).toBe(200);
     });
