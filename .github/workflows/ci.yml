@@ -86,6 +86,7 @@ jobs:
   build-and-push:
     name: Build and Push Image
     needs: [quality-check, backend-tests, frontend-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
