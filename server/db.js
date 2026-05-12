@@ -31,72 +31,70 @@ const db = new sqlite3.Database(dbPath, (err) => {
     }
 });
 
+function initSchema(database) {
+    return new Promise((resolve, reject) => {
+        database.serialize(() => {
+            database.run(`CREATE TABLE IF NOT EXISTS persons (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                displayOrder INTEGER DEFAULT 0
+            )`);
+            database.run(`CREATE TABLE IF NOT EXISTS assets (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                ownerId TEXT NOT NULL,
+                purchaseAmount REAL NOT NULL,
+                purchaseDate TEXT NOT NULL,
+                currentValue REAL NOT NULL,
+                symbol TEXT,
+                FOREIGN KEY (ownerId) REFERENCES persons(id)
+            )`);
+            database.run(`CREATE TABLE IF NOT EXISTS asset_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                assetId TEXT NOT NULL,
+                date TEXT NOT NULL,
+                value REAL NOT NULL,
+                investmentChange REAL DEFAULT 0,
+                notes TEXT,
+                FOREIGN KEY (assetId) REFERENCES assets(id) ON DELETE CASCADE
+            )`);
+            database.run(`CREATE TABLE IF NOT EXISTS categories (
+                id TEXT PRIMARY KEY,
+                key TEXT NOT NULL UNIQUE,
+                label TEXT NOT NULL,
+                color TEXT NOT NULL,
+                isDefault INTEGER DEFAULT 0
+            )`);
+            database.run(`CREATE TABLE IF NOT EXISTS settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )`);
+            database.run(`CREATE TABLE IF NOT EXISTS auth (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                passwordHash TEXT NOT NULL,
+                tokenVersion INTEGER DEFAULT 1,
+                createdAt TEXT NOT NULL,
+                updatedAt TEXT NOT NULL
+            )`, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
+    });
+}
+
 /**
  * Initialize database tables
  */
 function initializeDb() {
-    db.serialize(() => {
-        // Persons table
-        db.run(`CREATE TABLE IF NOT EXISTS persons (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL
-        )`);
-
-        // Assets table
-        db.run(`CREATE TABLE IF NOT EXISTS assets (
-            id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            category TEXT NOT NULL,
-            ownerId TEXT NOT NULL,
-            purchaseAmount REAL NOT NULL,
-            purchaseDate TEXT NOT NULL,
-            currentValue REAL NOT NULL,
-            symbol TEXT,
-            FOREIGN KEY (ownerId) REFERENCES persons(id)
-        )`);
-
-        // Asset History table
-        db.run(`CREATE TABLE IF NOT EXISTS asset_history (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            assetId TEXT NOT NULL,
-            date TEXT NOT NULL,
-            value REAL NOT NULL,
-            investmentChange REAL DEFAULT 0,
-            notes TEXT,
-            FOREIGN KEY (assetId) REFERENCES assets(id) ON DELETE CASCADE
-        )`);
-
-        // Categories table
-        db.run(`CREATE TABLE IF NOT EXISTS categories (
-            id TEXT PRIMARY KEY,
-            key TEXT NOT NULL UNIQUE,
-            label TEXT NOT NULL,
-            color TEXT NOT NULL,
-            isDefault INTEGER DEFAULT 0
-        )`);
-
-        // Settings table
-        db.run(`CREATE TABLE IF NOT EXISTS settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL
-        )`);
-
-        // Auth table - single user only (id = 1)
-        // tokenVersion is incremented on password change to invalidate old tokens
-        db.run(`CREATE TABLE IF NOT EXISTS auth (
-            id INTEGER PRIMARY KEY CHECK (id = 1),
-            passwordHash TEXT NOT NULL,
-            tokenVersion INTEGER DEFAULT 1,
-            createdAt TEXT NOT NULL,
-            updatedAt TEXT NOT NULL
-        )`);
-
-        // Add columns if they don't exist (for existing databases)
+    initSchema(db).then(() => {
+        // Migration: add columns to existing databases that predate schema updates
         db.run(`ALTER TABLE asset_history ADD COLUMN investmentChange REAL DEFAULT 0`, () => { });
         db.run(`ALTER TABLE asset_history ADD COLUMN notes TEXT`, () => { });
         db.run(`ALTER TABLE persons ADD COLUMN displayOrder INTEGER DEFAULT 0`, () => { });
         db.run(`ALTER TABLE auth ADD COLUMN tokenVersion INTEGER DEFAULT 1`, () => { });
-    });
+    }).catch(err => console.error('Schema init failed:', err));
 }
 
 /**
@@ -184,6 +182,7 @@ function syncAssets() {
 
 module.exports = {
     db,
+    initSchema,
     initializeDb,
     seedCategories,
     seedSettings,

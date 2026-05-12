@@ -38,9 +38,33 @@ jobs:
       - name: TypeScript Check
         run: npm run typecheck
 
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Update npm
+        run: npm install -g npm@11.7.0
+
+      - name: Install Server Dependencies
+        run: npm ci --prefix server
+
+      - name: Run Backend Tests
+        run: mkdir -p server/db && npm test --prefix server
+        env:
+          NODE_ENV: test
+
   build-and-push:
     name: Build and Push Image
-    needs: quality-check
+    needs: [quality-check, backend-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read

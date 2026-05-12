@@ -1,19 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { db } = require('../db');
 const { validatePerson, validatePersonUpdate, validatePersonReorder, validateUuidParam } = require('../validation/schemas');
 
 // GET all persons
 router.get('/', (req, res) => {
+    const db = req.app.locals.db;
     db.all('SELECT * FROM persons ORDER BY displayOrder ASC', [], (err, rows) => {
         if (err) return res.status(500).json({ error: 'Failed to fetch persons' });
         res.json(rows);
     });
 });
 
-// POST create person (with validation)
+// POST create person
 router.post('/', validatePerson, (req, res) => {
+    const db = req.app.locals.db;
     const { id, name } = req.body;
     const personId = id || uuidv4();
 
@@ -28,17 +29,16 @@ router.post('/', validatePerson, (req, res) => {
     });
 });
 
-// PUT reorder persons (with validation)
+// PUT reorder persons
 router.put('/reorder', validatePersonReorder, (req, res) => {
+    const db = req.app.locals.db;
     const { ids } = req.body;
 
     db.serialize(() => {
         db.run('BEGIN TRANSACTION');
         const stmt = db.prepare('UPDATE persons SET displayOrder = ? WHERE id = ?');
 
-        ids.forEach((id, index) => {
-            stmt.run(index, id);
-        });
+        ids.forEach((id, index) => { stmt.run(index, id); });
 
         stmt.finalize((err) => {
             if (err) {
@@ -52,8 +52,9 @@ router.put('/reorder', validatePersonReorder, (req, res) => {
     });
 });
 
-// PUT update person (with validation)
+// PUT update person
 router.put('/:id', validateUuidParam, validatePersonUpdate, (req, res) => {
+    const db = req.app.locals.db;
     const { id } = req.params;
     const { name, displayOrder } = req.body;
 
@@ -77,43 +78,41 @@ router.put('/:id', validateUuidParam, validatePersonUpdate, (req, res) => {
     }
 });
 
-// DELETE person (cascades to assets)
+// DELETE person (cascades to assets and history)
 router.delete('/:id', validateUuidParam, (req, res) => {
+    const db = req.app.locals.db;
     const { id } = req.params;
 
-    db.serialize(() => {
-        db.run('BEGIN TRANSACTION');
+    const rollback = (cb) => db.run('ROLLBACK', cb);
+
+    db.run('BEGIN TRANSACTION', (err) => {
+        if (err) return res.status(500).json({ error: 'Failed to delete person' });
 
         db.all('SELECT id FROM assets WHERE ownerId = ?', [id], (err, assets) => {
-            if (err) {
-                db.run('ROLLBACK');
-                return res.status(500).json({ error: 'Failed to delete person' });
-            }
+            if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
 
             const assetIds = assets.map(a => a.id);
 
-            if (assetIds.length > 0) {
+            const deleteAssets = (cb) => {
+                if (assetIds.length === 0) return cb(null);
                 const placeholders = assetIds.map(() => '?').join(',');
-
                 db.run(`DELETE FROM asset_history WHERE assetId IN (${placeholders})`, assetIds, (err) => {
-                    if (err) console.error('Error deleting history:', err);
+                    if (err) return cb(err);
+                    db.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds, cb);
                 });
+            };
 
-                db.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds, (err) => {
-                    if (err) {
-                        db.run('ROLLBACK');
-                        return res.status(500).json({ error: 'Failed to delete person' });
-                    }
+            deleteAssets((err) => {
+                if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
+
+                db.run('DELETE FROM persons WHERE id = ?', [id], (err) => {
+                    if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
+
+                    db.run('COMMIT', (err) => {
+                        if (err) return res.status(500).json({ error: 'Failed to commit' });
+                        res.status(204).send();
+                    });
                 });
-            }
-
-            db.run('DELETE FROM persons WHERE id = ?', [id], (err) => {
-                if (err) {
-                    db.run('ROLLBACK');
-                    return res.status(500).json({ error: 'Failed to delete person' });
-                }
-                db.run('COMMIT');
-                res.status(204).send();
             });
         });
     });
