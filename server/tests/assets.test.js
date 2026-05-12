@@ -98,9 +98,33 @@ describe('Assets routes', () => {
             // currentValue should not appear in response (was stripped)
             expect(res.body.currentValue).toBeUndefined();
         });
+
+        it('returns 200 with message when only disallowed fields are provided', async () => {
+            const res = await request(app)
+                .put(`/api/assets/${assetId}`)
+                .set(authHeader(token))
+                .send({ currentValue: 99999, purchaseAmount: 1 });
+            expect(res.status).toBe(200);
+            expect(res.body.message).toMatch(/no valid fields/i);
+        });
+
+        it('returns 400 for invalid UUID in :id param', async () => {
+            const res = await request(app)
+                .put('/api/assets/not-a-uuid')
+                .set(authHeader(token))
+                .send({ name: 'Nope' });
+            expect(res.status).toBe(400);
+        });
     });
 
     describe('DELETE /api/assets/:id', () => {
+        it('returns 400 for invalid UUID in :id param', async () => {
+            const res = await request(app)
+                .delete('/api/assets/not-a-uuid')
+                .set(authHeader(token));
+            expect(res.status).toBe(400);
+        });
+
         it('removes the asset from GET response', async () => {
             const createRes = await request(app)
                 .post('/api/assets')
@@ -158,6 +182,89 @@ describe('Assets routes', () => {
             const listRes = await request(app).get('/api/assets').set(authHeader(token));
             const asset = listRes.body.find(a => a.id === assetId);
             expect(asset.currentValue).toBe(2500);
+        });
+
+        it('returns 404 for non-existent assetId', async () => {
+            const fakeId = '00000000-0000-0000-0000-000000000000';
+            const res = await request(app)
+                .post(`/api/assets/${fakeId}/snapshot`)
+                .set(authHeader(token))
+                .send({ value: 100, date: '2024-01-01' });
+            expect(res.status).toBe(404);
+        });
+
+        it('returns 400 when value field is missing', async () => {
+            const createRes = await request(app)
+                .post('/api/assets')
+                .set(authHeader(token))
+                .send(validAsset({ name: 'Missing Value Asset' }));
+            const assetId = createRes.body.id;
+
+            const res = await request(app)
+                .post(`/api/assets/${assetId}/snapshot`)
+                .set(authHeader(token))
+                .send({ date: '2024-01-01' });
+            expect(res.status).toBe(400);
+        });
+
+        it('returns 400 for invalid date format', async () => {
+            const createRes = await request(app)
+                .post('/api/assets')
+                .set(authHeader(token))
+                .send(validAsset({ name: 'Bad Date Asset' }));
+            const assetId = createRes.body.id;
+
+            const res = await request(app)
+                .post(`/api/assets/${assetId}/snapshot`)
+                .set(authHeader(token))
+                .send({ value: 100, date: 'not-a-date' });
+            expect(res.status).toBe(400);
+        });
+    });
+
+    describe('POST /api/assets/:id/value (legacy)', () => {
+        let assetId;
+
+        beforeAll(async () => {
+            const res = await request(app)
+                .post('/api/assets')
+                .set(authHeader(token))
+                .send(validAsset({ name: 'Legacy Value Asset', currentValue: 500 }));
+            assetId = res.body.id;
+        });
+
+        it('updates currentValue and returns { assetId, date, value }', async () => {
+            const res = await request(app)
+                .post(`/api/assets/${assetId}/value`)
+                .set(authHeader(token))
+                .send({ value: 750, date: '2024-03-01' });
+            expect(res.status).toBe(200);
+            expect(res.body.assetId).toBe(assetId);
+            expect(res.body.value).toBe(750);
+            // Joi isoDate() normalises the date to a full ISO timestamp
+            expect(res.body.date).toMatch(/^2024-03-01/);
+        });
+
+        it('adds a history entry with investmentChange=0', async () => {
+            await request(app)
+                .post(`/api/assets/${assetId}/value`)
+                .set(authHeader(token))
+                .send({ value: 800, date: '2024-04-01' });
+
+            const listRes = await request(app).get('/api/assets').set(authHeader(token));
+            const asset = listRes.body.find(a => a.id === assetId);
+            // Joi normalises '2024-04-01' → '2024-04-01T00:00:00.000Z'
+            const entry = asset.valueHistory.find(h => h.date.startsWith('2024-04-01'));
+            expect(entry).toBeDefined();
+            expect(entry.investmentChange).toBe(0);
+        });
+
+        it('returns 400 for missing value', async () => {
+            const res = await request(app)
+                .post(`/api/assets/${assetId}/value`)
+                .set(authHeader(token))
+                .send({ date: '2024-05-01' });
+            expect(res.status).toBe(400);
         });
     });
 });

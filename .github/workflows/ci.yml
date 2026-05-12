@@ -62,9 +62,30 @@ jobs:
         env:
           NODE_ENV: test
 
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Update npm
+        run: npm install -g npm@11.7.0
+
+      - name: Install Dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run Frontend Tests
+        run: npm test
+
   build-and-push:
     name: Build and Push Image
-    needs: [quality-check, backend-tests]
+    needs: [quality-check, backend-tests, frontend-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read

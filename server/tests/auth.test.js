@@ -8,6 +8,25 @@ describe('Auth routes', () => {
         ({ app } = await createTestApp());
     });
 
+    describe('GET /api/auth/status', () => {
+        it('reports needsSetup=true before any setup', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).get('/api/auth/status');
+            expect(res.status).toBe(200);
+            expect(res.body.needsSetup).toBe(true);
+            expect(res.body.isAuthenticated).toBe(false);
+        });
+
+        it('reports needsSetup=false after setup', async () => {
+            const freshApp = (await createTestApp()).app;
+            await request(freshApp).post('/api/auth/setup').send({ password: 'StatusTest123!' });
+            const res = await request(freshApp).get('/api/auth/status');
+            expect(res.status).toBe(200);
+            expect(res.body.needsSetup).toBe(false);
+            expect(res.body.isAuthenticated).toBe(false);
+        });
+    });
+
     describe('POST /api/auth/setup', () => {
         it('creates password on first call and returns a token', async () => {
             const res = await request(app).post('/api/auth/setup').send({ password: 'TestPass123!' });
@@ -18,6 +37,30 @@ describe('Auth routes', () => {
         it('rejects a second setup call with 409', async () => {
             const res = await request(app).post('/api/auth/setup').send({ password: 'AnotherPass123!' });
             expect(res.status).toBe(409);
+        });
+
+        it('rejects a password shorter than 12 characters → 400', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).post('/api/auth/setup').send({ password: 'Short1!' });
+            expect(res.status).toBe(400);
+        });
+
+        it('rejects a password with no uppercase letter → 400', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).post('/api/auth/setup').send({ password: 'nouppercase123!' });
+            expect(res.status).toBe(400);
+        });
+
+        it('rejects a password with no digit → 400', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).post('/api/auth/setup').send({ password: 'NoDigitsHereAtAll!' });
+            expect(res.status).toBe(400);
+        });
+
+        it('rejects missing password field → 400', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).post('/api/auth/setup').send({});
+            expect(res.status).toBe(400);
         });
     });
 
@@ -35,6 +78,12 @@ describe('Auth routes', () => {
 
         it('returns 400 for missing password field', async () => {
             const res = await request(app).post('/api/auth/login').send({});
+            expect(res.status).toBe(400);
+        });
+
+        it('returns 400 when no auth record exists yet', async () => {
+            const freshApp = (await createTestApp()).app;
+            const res = await request(freshApp).post('/api/auth/login').send({ password: 'AnyPass123!' });
             expect(res.status).toBe(400);
         });
     });
