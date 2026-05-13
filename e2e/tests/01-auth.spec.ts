@@ -62,7 +62,7 @@ test.describe('01 — Authentication flow', () => {
     test('1.5 — logout redirects to login', async ({ browser }) => {
         // Use storageState for this test (already authenticated)
         const context = await browser.newContext({
-            storageState: require('path').join(__dirname, '..', '.auth', 'state.json'),
+            storageState: path.join(__dirname, '..', '.auth', 'state.json'),
         });
         const page = await context.newPage();
         const settings = new SettingsPage(page);
@@ -116,7 +116,7 @@ test.describe('01 — Authentication flow', () => {
 
     test('1.7 — old token invalidated after password change via API', async ({ browser, request }) => {
         const context = await browser.newContext({
-            storageState: require('path').join(__dirname, '..', '.auth', 'state.json'),
+            storageState: path.join(__dirname, '..', '.auth', 'state.json'),
         });
         const page = await context.newPage();
 
