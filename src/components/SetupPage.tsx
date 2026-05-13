@@ -93,7 +93,12 @@ export default function SetupPage() {
 
                     {error && <div className="auth-error">{error}</div>}
 
-                    <button type="submit" className="auth-button" disabled={isLoading || !isValid} data-testid="setup-submit">
+                    <button
+                        type="submit"
+                        className="auth-button"
+                        disabled={isLoading || !isValid}
+                        data-testid="setup-submit"
+                    >
                         {isLoading ? 'Setting up...' : 'Create Password'}
                     </button>
                 </form>

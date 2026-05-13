@@ -105,7 +105,11 @@ export default function AddAssetModal({
                         </button>
                     </div>
                 ) : (
-                    <form className="modal-body" onSubmit={handleSubmit} data-testid="add-asset-form">
+                    <form
+                        className="modal-body"
+                        onSubmit={handleSubmit}
+                        data-testid="add-asset-form"
+                    >
                         <div className="form-group">
                             <label className="form-label">Asset Name</label>
                             <input
@@ -152,7 +156,11 @@ export default function AddAssetModal({
                             </div>
                         </div>
 
-                        <button type="submit" className="form-submit" data-testid="add-asset-submit">
+                        <button
+                            type="submit"
+                            className="form-submit"
+                            data-testid="add-asset-submit"
+                        >
                             {editAsset ? 'Save Changes' : 'Add Asset'}
                         </button>
                     </form>

@@ -55,9 +55,18 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    {error && <div className="auth-error" data-testid="login-error">{error}</div>}
+                    {error && (
+                        <div className="auth-error" data-testid="login-error">
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" className="auth-button" disabled={isLoading || !password} data-testid="login-submit">
+                    <button
+                        type="submit"
+                        className="auth-button"
+                        disabled={isLoading || !password}
+                        data-testid="login-submit"
+                    >
                         {isLoading ? 'Unlocking...' : 'Unlock'}
                     </button>
                 </form>

@@ -74,7 +74,11 @@ export function SecuritySettings() {
                                 <h3>Sign Out</h3>
                                 <p>End your current session</p>
                             </div>
-                            <button className="btn-logout" onClick={handleLogout} data-testid="logout-btn">
+                            <button
+                                className="btn-logout"
+                                onClick={handleLogout}
+                                data-testid="logout-btn"
+                            >
                                 Logout
                                 <span className="icon-right">→</span>
                             </button>

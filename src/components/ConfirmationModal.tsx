@@ -30,7 +30,12 @@ export default function ConfirmationModal({
                     {typeof message === 'string' ? <p>{message}</p> : message}
                 </div>
                 <div className={styles.actions}>
-                    <button type="button" className={styles.btnSecondary} onClick={onClose} data-testid="confirm-cancel">
+                    <button
+                        type="button"
+                        className={styles.btnSecondary}
+                        onClick={onClose}
+                        data-testid="confirm-cancel"
+                    >
                         {cancelLabel}
                     </button>
                     <button

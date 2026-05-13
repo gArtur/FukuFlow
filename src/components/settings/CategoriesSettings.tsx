@@ -273,7 +273,12 @@ export default function CategoriesSettings({
 
             <div className="settings-items-grid">
                 {categories.map(category => (
-                    <div key={category.id} className="item-card" data-testid="category-item" data-category-label={category.label}>
+                    <div
+                        key={category.id}
+                        className="item-card"
+                        data-testid="category-item"
+                        data-category-label={category.label}
+                    >
                         {editingCategory === category.id ? (
                             <>
                                 <div className="pill-wrapper">

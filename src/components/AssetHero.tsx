@@ -50,7 +50,12 @@ export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: Asset
                     </span>
 
                     <div className="detail-actions" style={{ marginLeft: '16px' }}>
-                        <button className="detail-action-btn" onClick={onEdit} title="Edit Asset" data-testid="asset-edit-btn">
+                        <button
+                            className="detail-action-btn"
+                            onClick={onEdit}
+                            title="Edit Asset"
+                            data-testid="asset-edit-btn"
+                        >
                             <svg
                                 width="18"
                                 height="18"

@@ -354,7 +354,9 @@ export default function TotalWorthChart({
             <div className="chart-header">
                 <div className="chart-header-left">
                     <h3 className="chart-title">{title}</h3>
-                    <div className="chart-value" data-testid="total-worth-value">{formatAmount(currentValue)}</div>
+                    <div className="chart-value" data-testid="total-worth-value">
+                        {formatAmount(currentValue)}
+                    </div>
                     <div className={`chart-change ${displayGain >= 0 ? 'positive' : 'negative'}`}>
                         <span>{isHidden ? '' : formatAmount(Math.abs(displayGain))}</span>
                         <span className="chart-change-percent">

@@ -145,7 +145,11 @@ export default function EditSnapshotModal({
                             >
                                 Delete
                             </button>
-                            <button type="submit" className="btn-primary" data-testid="edit-snapshot-submit">
+                            <button
+                                type="submit"
+                                className="btn-primary"
+                                data-testid="edit-snapshot-submit"
+                            >
                                 Save Changes
                             </button>
                         </div>
