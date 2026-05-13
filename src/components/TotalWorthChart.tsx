@@ -106,12 +106,7 @@ export default function TotalWorthChart({
     const isMax = timeRange === 'MAX';
     const displayGain = isMax && stats ? stats.totalGain : calculatedGain;
 
-    let displayGainPercent = 0;
-    if (isMax && stats) {
-        displayGainPercent = stats.gainPercentage;
-    } else {
-        displayGainPercent = calculatedGainPercent;
-    }
+    const displayGainPercent = isMax && stats ? stats.gainPercentage : calculatedGainPercent;
 
     // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)
     // If Start Invested is 0, fall back to Start Value to avoid divide by zero, or just show 0
