@@ -147,7 +147,12 @@ export default function AssetCard({
     };
 
     return (
-        <div className="mover-card clickable" onClick={() => onCardClick(asset)}>
+        <div
+            className="mover-card clickable"
+            onClick={() => onCardClick(asset)}
+            data-testid="asset-card"
+            data-asset-name={asset.name}
+        >
             <div className="mover-header">
                 <div
                     className="mover-icon"

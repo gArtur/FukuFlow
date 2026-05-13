@@ -33,7 +33,7 @@ export default function LoginPage() {
                 <h1 className="auth-title">FukuFlow</h1>
                 <p className="auth-subtitle">Enter your password to continue</p>
 
-                <form onSubmit={handleSubmit} className="auth-form">
+                <form onSubmit={handleSubmit} className="auth-form" data-testid="login-form">
                     <div className="auth-input-group">
                         <input
                             type={showPassword ? 'text' : 'password'}
@@ -43,6 +43,7 @@ export default function LoginPage() {
                             className="auth-input"
                             autoFocus
                             disabled={isLoading}
+                            data-testid="login-password"
                         />
                         <button
                             type="button"
@@ -54,9 +55,18 @@ export default function LoginPage() {
                         </button>
                     </div>
 
-                    {error && <div className="auth-error">{error}</div>}
+                    {error && (
+                        <div className="auth-error" data-testid="login-error">
+                            {error}
+                        </div>
+                    )}
 
-                    <button type="submit" className="auth-button" disabled={isLoading || !password}>
+                    <button
+                        type="submit"
+                        className="auth-button"
+                        disabled={isLoading || !password}
+                        data-testid="login-submit"
+                    >
                         {isLoading ? 'Unlocking...' : 'Unlock'}
                     </button>
                 </form>

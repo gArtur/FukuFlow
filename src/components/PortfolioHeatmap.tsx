@@ -394,7 +394,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 ))}
             </div>
 
-            <div className="chart-card heatmap-card">
+            <div className="chart-card heatmap-card" data-testid="heatmap-grid">
                 <div className="chart-header">
                     <div className="chart-header-left">
                         <h3 className="chart-title">Portfolio Heatmap</h3>

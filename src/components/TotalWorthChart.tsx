@@ -350,11 +350,13 @@ export default function TotalWorthChart({
     };
 
     return (
-        <div className="chart-card total-worth-card">
+        <div className="chart-card total-worth-card" data-testid="total-worth-chart">
             <div className="chart-header">
                 <div className="chart-header-left">
                     <h3 className="chart-title">{title}</h3>
-                    <div className="chart-value">{formatAmount(currentValue)}</div>
+                    <div className="chart-value" data-testid="total-worth-value">
+                        {formatAmount(currentValue)}
+                    </div>
                     <div className={`chart-change ${displayGain >= 0 ? 'positive' : 'negative'}`}>
                         <span>{isHidden ? '' : formatAmount(Math.abs(displayGain))}</span>
                         <span className="chart-change-percent">
@@ -363,12 +365,14 @@ export default function TotalWorthChart({
                     </div>
                 </div>
                 <div className="chart-header-right">
-                    <div className="time-range-tabs">
+                    <div className="time-range-tabs" data-testid="time-range-tabs">
                         {(['YTD', '1Y', '5Y', 'MAX', 'Custom'] as TimeRange[]).map(range => (
                             <button
                                 key={range}
                                 className={`time-tab ${timeRange === range ? 'active' : ''}`}
                                 onClick={() => setTimeRange(range)}
+                                data-testid={`time-range-${range}`}
+                                aria-pressed={timeRange === range}
                             >
                                 {range}
                             </button>

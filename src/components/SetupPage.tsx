@@ -49,7 +49,7 @@ export default function SetupPage() {
                 <h1 className="auth-title">Welcome to FukuFlow</h1>
                 <p className="auth-subtitle">Create a password to secure your data</p>
 
-                <form onSubmit={handleSubmit} className="auth-form">
+                <form onSubmit={handleSubmit} className="auth-form" data-testid="setup-form">
                     <div className="auth-input-group">
                         <input
                             type={showPassword ? 'text' : 'password'}
@@ -59,6 +59,7 @@ export default function SetupPage() {
                             className="auth-input"
                             autoFocus
                             disabled={isLoading}
+                            data-testid="setup-password"
                         />
                         <button
                             type="button"
@@ -78,6 +79,7 @@ export default function SetupPage() {
                             placeholder="Confirm password"
                             className={`auth-input ${confirmPassword && !passwordsMatch ? 'auth-input-error' : ''}`}
                             disabled={isLoading}
+                            data-testid="setup-confirm-password"
                         />
                     </div>
 
@@ -91,7 +93,12 @@ export default function SetupPage() {
 
                     {error && <div className="auth-error">{error}</div>}
 
-                    <button type="submit" className="auth-button" disabled={isLoading || !isValid}>
+                    <button
+                        type="submit"
+                        className="auth-button"
+                        disabled={isLoading || !isValid}
+                        data-testid="setup-submit"
+                    >
                         {isLoading ? 'Setting up...' : 'Create Password'}
                     </button>
                 </form>

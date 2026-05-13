@@ -77,7 +77,7 @@ export default function AddAssetModal({
     const hasNoPersons = persons.length === 0;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onClick={onClose} data-testid="add-asset-modal">
             <div className="modal" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
                     <h2 className="modal-title">{editAsset ? 'Edit Asset' : 'Add Asset'}</h2>
@@ -105,7 +105,11 @@ export default function AddAssetModal({
                         </button>
                     </div>
                 ) : (
-                    <form className="modal-body" onSubmit={handleSubmit}>
+                    <form
+                        className="modal-body"
+                        onSubmit={handleSubmit}
+                        data-testid="add-asset-form"
+                    >
                         <div className="form-group">
                             <label className="form-label">Asset Name</label>
                             <input
@@ -115,6 +119,7 @@ export default function AddAssetModal({
                                 value={name}
                                 onChange={e => setName(e.target.value)}
                                 required
+                                data-testid="asset-name-input"
                             />
                         </div>
 
@@ -125,6 +130,7 @@ export default function AddAssetModal({
                                     className="form-select"
                                     value={category}
                                     onChange={e => setCategory(e.target.value as AssetCategory)}
+                                    data-testid="asset-category-select"
                                 >
                                     {categories.map(cat => (
                                         <option key={cat.key} value={cat.key}>
@@ -139,6 +145,7 @@ export default function AddAssetModal({
                                     className="form-select"
                                     value={ownerId}
                                     onChange={e => setOwnerId(e.target.value)}
+                                    data-testid="asset-owner-select"
                                 >
                                     {persons.map(person => (
                                         <option key={person.id} value={person.id}>
@@ -149,7 +156,11 @@ export default function AddAssetModal({
                             </div>
                         </div>
 
-                        <button type="submit" className="form-submit">
+                        <button
+                            type="submit"
+                            className="form-submit"
+                            data-testid="add-asset-submit"
+                        >
                             {editAsset ? 'Save Changes' : 'Add Asset'}
                         </button>
                     </form>

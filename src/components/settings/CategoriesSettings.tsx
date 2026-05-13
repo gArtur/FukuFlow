@@ -190,6 +190,7 @@ export default function CategoriesSettings({
                 <button
                     className="add-asset-btn-inline"
                     onClick={() => setAddingCategory(!addingCategory)}
+                    data-testid="add-category-btn"
                 >
                     <span>{addingCategory ? '✕' : '+'}</span>{' '}
                     {addingCategory ? 'Cancel' : 'New Category'}
@@ -214,6 +215,7 @@ export default function CategoriesSettings({
                                     if (e.key === 'Enter') handleAddCategory();
                                     if (e.key === 'Escape') setAddingCategory(false);
                                 }}
+                                data-testid="add-category-input"
                             />
                         </div>
                         <div className="input-group" style={{ flex: 3 }}>
@@ -261,6 +263,7 @@ export default function CategoriesSettings({
                             onClick={handleAddCategory}
                             className="btn-primary"
                             style={{ flex: 'none' }}
+                            data-testid="add-category-submit"
                         >
                             Add
                         </button>
@@ -270,7 +273,12 @@ export default function CategoriesSettings({
 
             <div className="settings-items-grid">
                 {categories.map(category => (
-                    <div key={category.id} className="item-card">
+                    <div
+                        key={category.id}
+                        className="item-card"
+                        data-testid="category-item"
+                        data-category-label={category.label}
+                    >
                         {editingCategory === category.id ? (
                             <>
                                 <div className="pill-wrapper">
@@ -341,6 +349,7 @@ export default function CategoriesSettings({
                                         onClick={() => handleDeleteCategory(category.id)}
                                         className="action-icon-btn delete"
                                         title="Delete"
+                                        data-testid="category-delete-btn"
                                     >
                                         <DeleteIcon />
                                     </button>

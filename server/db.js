@@ -7,7 +7,13 @@ const { v4: uuidv4 } = require('uuid');
 let dbPath;
 const appName = 'FukuFlow';
 
-if (process.env.APPDATA) {
+if (process.env.DATABASE_PATH) {
+    dbPath = path.resolve(__dirname, process.env.DATABASE_PATH);
+    const dbDir = path.dirname(dbPath);
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
+    }
+} else if (process.env.APPDATA) {
     // Windows
     const appDataDir = path.join(process.env.APPDATA, appName);
     if (!fs.existsSync(appDataDir)) {

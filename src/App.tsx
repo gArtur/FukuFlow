@@ -449,7 +449,12 @@ function AssetDetailView({
                 />
             </main>
 
-            <button className="fab" onClick={() => onAddSnapshot(asset)} aria-label="Add snapshot">
+            <button
+                className="fab"
+                onClick={() => onAddSnapshot(asset)}
+                aria-label="Add snapshot"
+                data-testid="add-snapshot-fab"
+            >
                 +
             </button>
 

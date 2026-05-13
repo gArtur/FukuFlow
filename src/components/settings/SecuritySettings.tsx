@@ -63,6 +63,7 @@ export function SecuritySettings() {
                             <button
                                 className="btn-data-action"
                                 onClick={() => setIsChangingPassword(true)}
+                                data-testid="change-password-btn"
                             >
                                 Change Password
                                 <span className="icon-right">🔑</span>
@@ -73,7 +74,11 @@ export function SecuritySettings() {
                                 <h3>Sign Out</h3>
                                 <p>End your current session</p>
                             </div>
-                            <button className="btn-logout" onClick={handleLogout}>
+                            <button
+                                className="btn-logout"
+                                onClick={handleLogout}
+                                data-testid="logout-btn"
+                            >
                                 Logout
                                 <span className="icon-right">→</span>
                             </button>
@@ -98,6 +103,7 @@ export function SecuritySettings() {
                                 onChange={e => setCurrentPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
+                                data-testid="current-password-input"
                             />
                         </div>
                         <div className="input-group">
@@ -113,6 +119,7 @@ export function SecuritySettings() {
                                 required
                                 minLength={4}
                                 disabled={isLoading}
+                                data-testid="new-password-input"
                             />
                         </div>
                         <div className="input-group">
@@ -127,6 +134,7 @@ export function SecuritySettings() {
                                 onChange={e => setConfirmPassword(e.target.value)}
                                 required
                                 disabled={isLoading}
+                                data-testid="confirm-new-password-input"
                             />
                         </div>
 
@@ -157,6 +165,7 @@ export function SecuritySettings() {
                                     !newPassword ||
                                     !confirmPassword
                                 }
+                                data-testid="save-password-btn"
                             >
                                 {isLoading ? 'Saving...' : 'Save Password'}
                             </button>

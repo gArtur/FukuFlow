@@ -131,6 +131,7 @@ export default function Header({ onAddSnapshot }: HeaderProps) {
                         disabled={isHidden}
                         title={isHidden ? 'Disabled in Private Mode' : 'Add Snapshot'}
                         style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                        data-testid="add-snapshot-btn"
                     >
                         <span>+</span>
                         <span>Add Snapshot</span>

@@ -39,7 +39,11 @@ export default function BackupSettings({ onShowRestoreModal }: BackupSettingsPro
                             <h3>Backup Data</h3>
                             <p>Download a JSON file of your portfolio.</p>
                         </div>
-                        <button onClick={handleBackup} className="btn-data-action">
+                        <button
+                            onClick={handleBackup}
+                            className="btn-data-action"
+                            data-testid="backup-download-btn"
+                        >
                             Backup Data
                             <span className="icon-right">↓</span>
                         </button>
@@ -50,7 +54,11 @@ export default function BackupSettings({ onShowRestoreModal }: BackupSettingsPro
                             <h3>Restore Data</h3>
                             <p>Overwrite current data with a backup file.</p>
                         </div>
-                        <button onClick={onShowRestoreModal} className="btn-data-action">
+                        <button
+                            onClick={onShowRestoreModal}
+                            className="btn-data-action"
+                            data-testid="restore-data-btn"
+                        >
                             Restore Data
                             <span className="icon-right">↑</span>
                         </button>
