@@ -160,10 +160,23 @@ export function calculateMaxDrawdown(history: PerformanceDatum[]): number | null
 
 export function calculateVolatilityFromHistory(history: PerformanceDatum[]): number {
     if (history.length < 2) return 0;
+
+    // Resample to monthly (last value per calendar month) — matches heatmap granularity
+    // and gives a stable, comparable number regardless of snapshot frequency.
+    const monthlyMap = new Map<string, number>();
+    for (const point of history) {
+        monthlyMap.set(point.date.slice(0, 7), point.value);
+    }
+    const monthlyValues = [...monthlyMap.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, v]) => v);
+
+    if (monthlyValues.length < 2) return 0;
+
     const returns: number[] = [];
-    for (let i = 1; i < history.length; i++) {
-        const prev = history[i - 1].value;
-        if (prev > 0) returns.push(((history[i].value - prev) / prev) * 100);
+    for (let i = 1; i < monthlyValues.length; i++) {
+        const prev = monthlyValues[i - 1];
+        if (prev > 0) returns.push(((monthlyValues[i] - prev) / prev) * 100);
     }
     if (returns.length === 0) return 0;
     const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;

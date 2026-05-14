@@ -211,7 +211,7 @@ describe('calculateMaxDrawdown', () => {
 // ─── calculateVolatilityFromHistory ──────────────────────────────────────────
 
 describe('calculateVolatilityFromHistory', () => {
-    it('returns 0 for constant values', () => {
+    it('returns 0 for constant monthly values', () => {
         const history = [100, 100, 100].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
         expect(calculateVolatilityFromHistory(history)).toBe(0);
     });
@@ -224,8 +224,30 @@ describe('calculateVolatilityFromHistory', () => {
         expect(calculateVolatilityFromHistory([])).toBe(0);
     });
 
-    it('returns a positive number for varying values', () => {
+    it('returns a positive number for varying monthly values', () => {
         const history = [100, 110, 90, 120].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
         expect(calculateVolatilityFromHistory(history)).toBeGreaterThan(0);
+    });
+
+    it('uses last snapshot per month when multiple snapshots exist in one month', () => {
+        // Two snapshots in Jan: 100 and 150 — only 150 (the last) should count
+        const history = [
+            makeDatum('2024-01-10', 100),
+            makeDatum('2024-01-25', 150),
+            makeDatum('2024-02-01', 150),
+        ];
+        // Returns: Jan→Feb = (150-150)/150 = 0% → volatility = 0
+        expect(calculateVolatilityFromHistory(history)).toBe(0);
+    });
+
+    it('returns same result as heatmap calculateVolatility for monthly snapshots', () => {
+        // Monthly snapshots: volatility must match heatmap's formula applied to same returns
+        const values = [100, 110, 99, 108];
+        const history = values.map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        const returns = [10, -10, 9.09]; // approx — just check they're close
+        const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
+        const variance = returns.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / returns.length;
+        const expected = Math.sqrt(variance);
+        expect(calculateVolatilityFromHistory(history)).toBeCloseTo(expected, 1);
     });
 });

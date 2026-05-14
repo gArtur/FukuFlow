@@ -2969,9 +2969,11 @@
     margin-top: var(--space-xs);
 }
 
-/* Heatmap Stats Row - shares chart-metrics-row style */
+/* Heatmap Stats Row - shares chart-metrics-row style but without the separator line */
 .heatmap-stats-row {
     margin-top: var(--space-lg);
+    border-top: none;
+    padding-top: 0;
 }
 
 /* Time Range Slider Section - Inside chart-card */
