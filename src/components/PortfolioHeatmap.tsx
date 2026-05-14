@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -35,23 +35,22 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const isTouchDevice = useIsTouchDevice();
     const [viewMode, setViewMode] = useState<ViewMode>('percent');
     const [tooltip, setTooltip] = useState<TooltipData | null>(null);
-    const [selectedPersonId, setSelectedPersonId] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>(null);
-    const [showMobileGrid, setShowMobileGrid] = useState(false);
+    // mobileGridToggled tracks the user's toggle; showMobileGrid derives from it + isMobile
+    const [mobileGridToggled, setMobileGridToggled] = useState(false);
+    const showMobileGrid = isMobile && mobileGridToggled;
     const [selectedCardRow, setSelectedCardRow] = useState<HeatmapRow | null>(null);
     const gridRef = useRef<HTMLDivElement>(null);
 
-    // Reset grid toggle when switching to desktop
-    useEffect(() => {
-        if (!isMobile) setShowMobileGrid(false);
-    }, [isMobile]);
-
-    // Sync with default filter from settings
-    useEffect(() => {
-        if (!settingsLoading) {
-            setSelectedPersonId(defaultFilter && defaultFilter !== 'all' ? defaultFilter : null);
-        }
-    }, [defaultFilter, settingsLoading]);
+    // Resolved default person from settings — updates reactively when settings load/change
+    const settingsPersonId = useMemo(
+        () => (!settingsLoading && defaultFilter && defaultFilter !== 'all' ? defaultFilter : null),
+        [defaultFilter, settingsLoading]
+    );
+    // undefined = user hasn't made an explicit selection; fall back to settingsPersonId
+    const [personOverride, setPersonOverride] = useState<string | null | undefined>(undefined);
+    const selectedPersonId = personOverride !== undefined ? personOverride : settingsPersonId;
+    const setSelectedPersonId = (id: string | null) => setPersonOverride(id);
 
     // Filter assets based on selection
     const filteredAssets = useMemo(() => {
@@ -81,14 +80,11 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         return { minMonth: min, maxMonth: max };
     }, [assets]);
 
-    // Time range state
-    const [rangeStart, setRangeStart] = useState(minMonth);
-    const [rangeEnd, setRangeEnd] = useState(maxMonth);
-
-    useEffect(() => {
-        setRangeStart(minMonth);
-        setRangeEnd(maxMonth);
-    }, [minMonth, maxMonth]);
+    // null override = follow live min/max; string override = user/quick-filter selection
+    const [rangeStartOverride, setRangeStartOverride] = useState<string | null>(null);
+    const [rangeEndOverride, setRangeEndOverride] = useState<string | null>(null);
+    const rangeStart = rangeStartOverride ?? minMonth;
+    const rangeEnd = rangeEndOverride ?? maxMonth;
 
     const allMonths = useMemo(() => generateMonthRange(minMonth, maxMonth), [minMonth, maxMonth]);
     const visibleMonths = useMemo(
@@ -333,9 +329,15 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     // ── Quick filter helpers ─────────────────────────────────────────────────
 
     const applyQuickFilter = (filter: QuickFilter) => {
-        const { start, end } = getQuickFilterRange(filter, minMonth, maxMonth);
-        setRangeStart(start);
-        setRangeEnd(end);
+        if (filter === 'MAX') {
+            // null = follow live min/max automatically
+            setRangeStartOverride(null);
+            setRangeEndOverride(null);
+        } else {
+            const { start, end } = getQuickFilterRange(filter, minMonth, maxMonth);
+            setRangeStartOverride(start);
+            setRangeEndOverride(end);
+        }
     };
 
     const activeQuickFilter = useMemo((): QuickFilter | null => {
@@ -444,7 +446,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             value={startIndex}
                             onChange={e => {
                                 const newStart = allMonths[parseInt(e.target.value)];
-                                if (newStart <= rangeEnd) setRangeStart(newStart);
+                                if (newStart <= rangeEnd) setRangeStartOverride(newStart);
                             }}
                             className="range-slider range-slider-start"
                         />
@@ -455,7 +457,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                             value={endIndex}
                             onChange={e => {
                                 const newEnd = allMonths[parseInt(e.target.value)];
-                                if (newEnd >= rangeStart) setRangeEnd(newEnd);
+                                if (newEnd >= rangeStart) setRangeEndOverride(newEnd);
                             }}
                             className="range-slider range-slider-end"
                         />
@@ -636,7 +638,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                     <div className="heatmap-mobile-toggle">
                         <button
                             className="btn-secondary heatmap-mobile-toggle-btn"
-                            onClick={() => setShowMobileGrid(v => !v)}
+                            onClick={() => setMobileGridToggled(v => !v)}
                         >
                             {showMobileGrid ? '← Card view' : 'Show full grid →'}
                         </button>

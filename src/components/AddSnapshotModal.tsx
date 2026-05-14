@@ -49,25 +49,19 @@ export default function AddSnapshotModal({
     useEffect(() => {
         if (isOpen) {
             if (asset) {
+                // Form reset on modal open — intentional synchronous state initialization,
+                // not a cascading update. React 18 batches these into a single render.
                 // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedAssetId(asset.id);
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSearchQuery(asset.name);
             } else {
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedAssetId('');
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSearchQuery('');
             }
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setValue('');
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setInvestmentChange('');
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNotes('');
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDate(new Date().toISOString().split('T')[0]);
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowSuggestions(false);
         }
     }, [isOpen, asset]);

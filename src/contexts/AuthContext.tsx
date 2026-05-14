@@ -21,11 +21,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [needsSetup, setNeedsSetup] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Check auth status on mount
-    useEffect(() => {
-        checkAuthStatus();
-    }, []);
-
     const checkAuthStatus = async () => {
         setIsLoading(true);
         try {
@@ -57,6 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setIsLoading(false);
         }
     };
+
+    // Check auth status on mount
+    useEffect(() => {
+        // checkAuthStatus sets isLoading(true) synchronously for immediate UI feedback before
+        // the async API call resolves. This is intentional — not a cascading state update.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        checkAuthStatus();
+    }, []);
 
     const login = async (password: string): Promise<{ success: boolean; error?: string }> => {
         try {
