@@ -134,50 +134,59 @@ export function calculatePerformance(
 
 export function calculateCAGR(history: PerformanceDatum[], gainPercent: number): number {
     if (history.length < 2) return 0;
-    const startValue = history[0].value;
-    if (startValue <= 0) return 0;
-    const endValue = history[history.length - 1].value;
     const ms =
         new Date(history[history.length - 1].date).getTime() - new Date(history[0].date).getTime();
     const years = ms / (365.25 * 24 * 60 * 60 * 1000);
     if (years < 0.1) return gainPercent;
-    return (Math.pow(endValue / startValue, 1 / years) - 1) * 100;
+    // Annualise the already cash-flow-adjusted gainPercent (Modified Dietz return).
+    // Using raw endValue/startValue would inflate CAGR by treating deposits as returns.
+    return (Math.pow(1 + gainPercent / 100, 1 / years) - 1) * 100;
+}
+
+// Resample PerformanceDatum[] to monthly cash-flow-adjusted sub-period returns (%).
+// Matches the heatmap formula: basis = prevValue + cashFlow, return = (value - basis) / basis.
+function monthlyMarketReturns(history: PerformanceDatum[]): number[] {
+    if (history.length < 2) return [];
+
+    const monthlyMap = new Map<string, { value: number; invested: number }>();
+    for (const point of history) {
+        monthlyMap.set(point.date.slice(0, 7), { value: point.value, invested: point.invested });
+    }
+    const monthly = [...monthlyMap.entries()]
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([, v]) => v);
+
+    const returns: number[] = [];
+    for (let i = 1; i < monthly.length; i++) {
+        const prev = monthly[i - 1];
+        const curr = monthly[i];
+        const cashFlow = curr.invested - prev.invested;
+        const basis = prev.value + cashFlow;
+        if (basis > 0) returns.push(((curr.value - basis) / basis) * 100);
+    }
+    return returns;
 }
 
 export function calculateMaxDrawdown(history: PerformanceDatum[]): number | null {
     if (history.length < 2) return null;
-    let peak = history[0].value;
+    const returns = monthlyMarketReturns(history);
+    if (returns.length === 0) return null;
+
+    // Build a wealth index from cash-flow-adjusted returns, then find peak-to-trough.
+    let peak = 1;
+    let wealth = 1;
     let maxDD = 0;
-    for (const point of history) {
-        if (point.value > peak) peak = point.value;
-        if (peak > 0) {
-            const dd = ((point.value - peak) / peak) * 100;
-            if (dd < maxDD) maxDD = dd;
-        }
+    for (const r of returns) {
+        wealth *= 1 + r / 100;
+        if (wealth > peak) peak = wealth;
+        const dd = ((wealth - peak) / peak) * 100;
+        if (dd < maxDD) maxDD = dd;
     }
     return maxDD;
 }
 
 export function calculateVolatilityFromHistory(history: PerformanceDatum[]): number {
-    if (history.length < 2) return 0;
-
-    // Resample to monthly (last value per calendar month) — matches heatmap granularity
-    // and gives a stable, comparable number regardless of snapshot frequency.
-    const monthlyMap = new Map<string, number>();
-    for (const point of history) {
-        monthlyMap.set(point.date.slice(0, 7), point.value);
-    }
-    const monthlyValues = [...monthlyMap.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([, v]) => v);
-
-    if (monthlyValues.length < 2) return 0;
-
-    const returns: number[] = [];
-    for (let i = 1; i < monthlyValues.length; i++) {
-        const prev = monthlyValues[i - 1];
-        if (prev > 0) returns.push(((monthlyValues[i] - prev) / prev) * 100);
-    }
+    const returns = monthlyMarketReturns(history);
     if (returns.length === 0) return 0;
     const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
     const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
