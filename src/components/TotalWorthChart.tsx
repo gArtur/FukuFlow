@@ -21,7 +21,12 @@ import { useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import type { Chart } from 'chart.js';
 import { getDateRangeFromTimeRange } from '../utils/dateUtils';
-import { calculatePerformance } from '../utils/performance';
+import {
+    calculatePerformance,
+    calculateCAGR,
+    calculateMaxDrawdown,
+    calculateVolatilityFromHistory,
+} from '../utils/performance';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -418,6 +423,56 @@ export default function TotalWorthChart({
                         </p>
                     </div>
                 )}
+            </div>
+            <div className="chart-metrics-row" data-testid="chart-metrics-row">
+                <div className="chart-metric">
+                    <span
+                        className="chart-metric-label"
+                        title="Compound Annual Growth Rate — annualised return"
+                    >
+                        CAGR
+                    </span>
+                    <span
+                        className={`chart-metric-value ${calculateCAGR(history, displayGainPercent) >= 0 ? 'positive' : 'negative'}`}
+                    >
+                        {isHidden
+                            ? '***'
+                            : history.length < 2
+                              ? '—'
+                              : formatPercent(calculateCAGR(history, displayGainPercent))}
+                    </span>
+                </div>
+                <div className="chart-metric">
+                    <span
+                        className="chart-metric-label"
+                        title="Largest peak-to-trough decline in portfolio value"
+                    >
+                        Max Drawdown
+                    </span>
+                    <span className="chart-metric-value negative">
+                        {isHidden
+                            ? '***'
+                            : (() => {
+                                  const dd = calculateMaxDrawdown(history);
+                                  return dd === null ? '—' : `${dd.toFixed(1)}%`;
+                              })()}
+                    </span>
+                </div>
+                <div className="chart-metric">
+                    <span
+                        className="chart-metric-label"
+                        title="Standard deviation of returns — a measure of risk"
+                    >
+                        Volatility
+                    </span>
+                    <span className="chart-metric-value risk">
+                        {isHidden
+                            ? '***'
+                            : history.length < 2
+                              ? '—'
+                              : `${calculateVolatilityFromHistory(history).toFixed(1)}%`}
+                    </span>
+                </div>
             </div>
         </div>
     );

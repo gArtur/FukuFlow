@@ -287,6 +287,55 @@
     min-height: 0;
 }
 
+.chart-metrics-row {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-sm) 0 0;
+    margin-top: var(--space-sm);
+    border-top: 1px solid var(--border-color);
+    flex-wrap: wrap;
+}
+
+.chart-metric {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    flex: 1;
+    min-width: 80px;
+}
+
+.chart-metric-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    cursor: default;
+}
+
+.chart-metric-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.chart-metric-value.positive {
+    color: var(--accent-green);
+}
+
+.chart-metric-value.negative {
+    color: var(--accent-red);
+}
+
+.chart-metric-value.risk {
+    color: var(--accent-amber);
+}
+
+.chart-metric:not(:last-child) {
+    border-right: 1px solid var(--border-color);
+    padding-right: var(--space-md);
+}
+
 .custom-date-range {
     display: flex;
     gap: var(--space-md);
@@ -2920,28 +2969,11 @@
     margin-top: var(--space-xs);
 }
 
-/* Heatmap Stats Row - Uses dashboard stat-card pattern */
-.heatmap-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+/* Heatmap Stats Row - shares chart-metrics-row style but without the separator line */
+.heatmap-stats-row {
     margin-top: var(--space-lg);
-}
-
-@media (min-width: 768px) {
-    .heatmap-stats {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-.heatmap-stats .stat-card {
-    text-align: center;
-}
-
-.heatmap-stats .stat-percent {
-    font-size: 12px;
-    font-weight: 500;
-    opacity: 0.8;
+    border-top: none;
+    padding-top: 0;
 }
 
 /* Time Range Slider Section - Inside chart-card */

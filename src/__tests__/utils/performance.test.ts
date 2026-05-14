@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { calculatePerformance } from '../../utils/performance';
+import {
+    calculatePerformance,
+    calculateCAGR,
+    calculateMaxDrawdown,
+    calculateVolatilityFromHistory,
+} from '../../utils/performance';
+import type { PerformanceDatum } from '../../utils/performance';
 import type { Asset } from '../../types';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -134,5 +140,114 @@ describe('calculatePerformance — binary search boundary', () => {
         ]);
         const result = calculatePerformance([asset], START, END);
         expect(result.currentValue).toBeLessThan(9999);
+    });
+});
+
+// ─── Helpers for metric tests ─────────────────────────────────────────────────
+
+function makeDatum(date: string, value: number): PerformanceDatum {
+    return { date, value, invested: 0 };
+}
+
+// ─── calculateCAGR ────────────────────────────────────────────────────────────
+
+describe('calculateCAGR', () => {
+    it('returns ~10% for 100→121 over 2 years', () => {
+        const history = [makeDatum('2022-01-01', 100), makeDatum('2024-01-01', 121)];
+        expect(calculateCAGR(history, 21)).toBeCloseTo(10, 0);
+    });
+
+    it('returns ~-10% for 100→81 over 2 years', () => {
+        const history = [makeDatum('2022-01-01', 100), makeDatum('2024-01-01', 81)];
+        expect(calculateCAGR(history, -19)).toBeCloseTo(-10, 0);
+    });
+
+    it('falls back to gainPercent when period < 0.1 year', () => {
+        const history = [makeDatum('2024-01-01', 100), makeDatum('2024-01-10', 105)];
+        expect(calculateCAGR(history, 5)).toBe(5);
+    });
+
+    it('returns 0 when history has one point', () => {
+        expect(calculateCAGR([makeDatum('2024-01-01', 100)], 0)).toBe(0);
+    });
+
+    it('returns 0 when history is empty', () => {
+        expect(calculateCAGR([], 0)).toBe(0);
+    });
+
+    it('returns 0 when start value is 0', () => {
+        const history = [makeDatum('2022-01-01', 0), makeDatum('2024-01-01', 100)];
+        expect(calculateCAGR(history, 0)).toBe(0);
+    });
+});
+
+// ─── calculateMaxDrawdown ─────────────────────────────────────────────────────
+
+describe('calculateMaxDrawdown', () => {
+    it('returns -25% for [100, 120, 90, 110]', () => {
+        const history = [100, 120, 90, 110].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        expect(calculateMaxDrawdown(history)).toBeCloseTo(-25, 1);
+    });
+
+    it('returns 0% for monotonically increasing values', () => {
+        const history = [100, 110, 120].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        expect(calculateMaxDrawdown(history)).toBe(0);
+    });
+
+    it('returns -40% for monotonically decreasing [100, 80, 60]', () => {
+        const history = [100, 80, 60].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        expect(calculateMaxDrawdown(history)).toBeCloseTo(-40, 1);
+    });
+
+    it('returns null when history has one point', () => {
+        expect(calculateMaxDrawdown([makeDatum('2024-01-01', 100)])).toBeNull();
+    });
+
+    it('returns null when history is empty', () => {
+        expect(calculateMaxDrawdown([])).toBeNull();
+    });
+});
+
+// ─── calculateVolatilityFromHistory ──────────────────────────────────────────
+
+describe('calculateVolatilityFromHistory', () => {
+    it('returns 0 for constant monthly values', () => {
+        const history = [100, 100, 100].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        expect(calculateVolatilityFromHistory(history)).toBe(0);
+    });
+
+    it('returns 0 when history has one point', () => {
+        expect(calculateVolatilityFromHistory([makeDatum('2024-01-01', 100)])).toBe(0);
+    });
+
+    it('returns 0 when history is empty', () => {
+        expect(calculateVolatilityFromHistory([])).toBe(0);
+    });
+
+    it('returns a positive number for varying monthly values', () => {
+        const history = [100, 110, 90, 120].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        expect(calculateVolatilityFromHistory(history)).toBeGreaterThan(0);
+    });
+
+    it('uses last snapshot per month when multiple snapshots exist in one month', () => {
+        // Two snapshots in Jan: 100 and 150 — only 150 (the last) should count
+        const history = [
+            makeDatum('2024-01-10', 100),
+            makeDatum('2024-01-25', 150),
+            makeDatum('2024-02-01', 150),
+        ];
+        // Returns: Jan→Feb = (150-150)/150 = 0% → volatility = 0
+        expect(calculateVolatilityFromHistory(history)).toBe(0);
+    });
+
+    it('returns same result as heatmap calculateVolatility for monthly snapshots', () => {
+        // Monthly snapshots: volatility must match heatmap's formula applied to same returns
+        const values = [100, 110, 99, 108];
+        const history = values.map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
+        const returns = [10, -10, 9.09]; // approx — just check they're close
+        const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
+        const variance = returns.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / returns.length;
+        const expected = Math.sqrt(variance);
+        expect(calculateVolatilityFromHistory(history)).toBeCloseTo(expected, 1);
     });
 });
