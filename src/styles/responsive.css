@@ -287,13 +287,6 @@
         height: 12px;
     }
 
-    .heatmap-stats {
-        grid-template-columns: repeat(2, 1fr);
-        margin-top: var(--space-md);
-        padding-top: var(--space-md);
-        gap: var(--space-md);
-    }
-
     /* Larger slider thumbs for touch — easier to grab */
     .range-slider::-webkit-slider-thumb {
         width: 26px;

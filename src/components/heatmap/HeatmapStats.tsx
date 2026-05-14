@@ -6,47 +6,59 @@ interface HeatmapStatsProps {
 }
 
 export default function HeatmapStats({ portfolioRow }: HeatmapStatsProps) {
-    // Calculate Volatility (Std Dev of monthly returns)
     const monthlyReturns = portfolioRow.cells.filter(c => c.exists).map(c => c.changePercent);
 
     const volatility = calculateVolatility(monthlyReturns);
     const bestMonth = monthlyReturns.length > 0 ? Math.max(...monthlyReturns) : 0;
     const worstMonth = monthlyReturns.length > 0 ? Math.min(...monthlyReturns) : 0;
 
+    const totalReturn = portfolioRow.totalChangePercent;
+
     return (
-        <div className="stats-row heatmap-stats">
-            <div className="stat-card">
-                <div className="stat-card-label">Total Return</div>
-                <div
-                    className="stat-card-value"
-                    style={{
-                        color:
-                            portfolioRow.totalChange >= 0
-                                ? 'var(--accent-green)'
-                                : 'var(--accent-red)',
-                    }}
+        <div className="chart-metrics-row heatmap-stats-row">
+            <div className="chart-metric">
+                <span
+                    className="chart-metric-label"
+                    title="Percentage return on investment for the selected period"
                 >
-                    {portfolioRow.totalChangePercent >= 0 ? '+' : ''}
-                    {portfolioRow.totalChangePercent.toFixed(1)}%
-                </div>
+                    Total Return
+                </span>
+                <span
+                    className={`chart-metric-value ${totalReturn >= 0 ? 'positive' : 'negative'}`}
+                >
+                    {totalReturn >= 0 ? '+' : ''}
+                    {totalReturn.toFixed(1)}%
+                </span>
             </div>
-            <div className="stat-card">
-                <div className="stat-card-label">Volatility</div>
-                <div className="stat-card-value">{volatility.toFixed(1)}%</div>
+            <div className="chart-metric">
+                <span
+                    className="chart-metric-label"
+                    title="Standard deviation of monthly returns — a measure of risk"
+                >
+                    Volatility
+                </span>
+                <span className="chart-metric-value risk">{volatility.toFixed(1)}%</span>
             </div>
-            <div className="stat-card">
-                <div className="stat-card-label">Best Month</div>
-                <div className="stat-card-value" style={{ color: 'var(--accent-green)' }}>
+            <div className="chart-metric">
+                <span className="chart-metric-label" title="Best single-month return in the period">
+                    Best Month
+                </span>
+                <span className="chart-metric-value positive">
                     {bestMonth >= 0 ? '+' : ''}
                     {bestMonth.toFixed(1)}%
-                </div>
+                </span>
             </div>
-            <div className="stat-card">
-                <div className="stat-card-label">Worst Month</div>
-                <div className="stat-card-value" style={{ color: 'var(--accent-red)' }}>
+            <div className="chart-metric">
+                <span
+                    className="chart-metric-label"
+                    title="Worst single-month return in the period"
+                >
+                    Worst Month
+                </span>
+                <span className="chart-metric-value negative">
                     {worstMonth >= 0 ? '+' : ''}
                     {worstMonth.toFixed(1)}%
-                </div>
+                </span>
             </div>
         </div>
     );

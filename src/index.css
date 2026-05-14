@@ -2969,28 +2969,9 @@
     margin-top: var(--space-xs);
 }
 
-/* Heatmap Stats Row - Uses dashboard stat-card pattern */
-.heatmap-stats {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-md);
+/* Heatmap Stats Row - shares chart-metrics-row style */
+.heatmap-stats-row {
     margin-top: var(--space-lg);
-}
-
-@media (min-width: 768px) {
-    .heatmap-stats {
-        grid-template-columns: repeat(4, 1fr);
-    }
-}
-
-.heatmap-stats .stat-card {
-    text-align: center;
-}
-
-.heatmap-stats .stat-percent {
-    font-size: 12px;
-    font-weight: 500;
-    opacity: 0.8;
 }
 
 /* Time Range Slider Section - Inside chart-card */
