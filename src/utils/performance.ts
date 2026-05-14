@@ -131,3 +131,42 @@ export function calculatePerformance(
         gainPercent,
     };
 }
+
+export function calculateCAGR(history: PerformanceDatum[], gainPercent: number): number {
+    if (history.length < 2) return 0;
+    const startValue = history[0].value;
+    if (startValue <= 0) return 0;
+    const endValue = history[history.length - 1].value;
+    const ms =
+        new Date(history[history.length - 1].date).getTime() - new Date(history[0].date).getTime();
+    const years = ms / (365.25 * 24 * 60 * 60 * 1000);
+    if (years < 0.1) return gainPercent;
+    return (Math.pow(endValue / startValue, 1 / years) - 1) * 100;
+}
+
+export function calculateMaxDrawdown(history: PerformanceDatum[]): number | null {
+    if (history.length < 2) return null;
+    let peak = history[0].value;
+    let maxDD = 0;
+    for (const point of history) {
+        if (point.value > peak) peak = point.value;
+        if (peak > 0) {
+            const dd = ((point.value - peak) / peak) * 100;
+            if (dd < maxDD) maxDD = dd;
+        }
+    }
+    return maxDD;
+}
+
+export function calculateVolatilityFromHistory(history: PerformanceDatum[]): number {
+    if (history.length < 2) return 0;
+    const returns: number[] = [];
+    for (let i = 1; i < history.length; i++) {
+        const prev = history[i - 1].value;
+        if (prev > 0) returns.push(((history[i].value - prev) / prev) * 100);
+    }
+    if (returns.length === 0) return 0;
+    const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+    const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
+    return Math.sqrt(variance);
+}

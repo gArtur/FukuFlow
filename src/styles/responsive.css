@@ -95,6 +95,14 @@
         gap: 4px;
     }
 
+    .chart-metrics-row {
+        gap: var(--space-sm);
+    }
+
+    .chart-metric {
+        min-width: calc(50% - var(--space-sm));
+    }
+
     .time-tab {
         padding: var(--space-xs) 8px;
         font-size: 11px;

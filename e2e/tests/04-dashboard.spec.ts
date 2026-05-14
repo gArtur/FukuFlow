@@ -12,16 +12,34 @@ test.beforeAll(async ({ request }) => {
     const bob = await seedPerson(request, token, 'Dashboard Bob');
     persons.push(alice, bob);
 
-    const etfId = await seedAsset(request, token, { name: 'Dashboard ETF', ownerId: alice, category: 'etf', currentValue: 10000, purchaseAmount: 8000 });
-    const cryptoId = await seedAsset(request, token, { name: 'Dashboard Crypto', ownerId: alice, category: 'crypto', currentValue: 5000, purchaseAmount: 3000 });
-    const bondId = await seedAsset(request, token, { name: 'Dashboard Bond', ownerId: bob, category: 'bonds', currentValue: 7000, purchaseAmount: 7000 });
+    const etfId = await seedAsset(request, token, {
+        name: 'Dashboard ETF',
+        ownerId: alice,
+        category: 'etf',
+        currentValue: 10000,
+        purchaseAmount: 8000,
+    });
+    const cryptoId = await seedAsset(request, token, {
+        name: 'Dashboard Crypto',
+        ownerId: alice,
+        category: 'crypto',
+        currentValue: 5000,
+        purchaseAmount: 3000,
+    });
+    const bondId = await seedAsset(request, token, {
+        name: 'Dashboard Bond',
+        ownerId: bob,
+        category: 'bonds',
+        currentValue: 7000,
+        purchaseAmount: 7000,
+    });
 
     // Add snapshots so charts have data
     const dates = ['2024-06-01', '2024-09-01', '2025-01-01'];
     for (const [assetId, values] of [
-        [etfId,   [8500, 9000, 10000]],
-        [cryptoId,[3500, 4000, 5000]],
-        [bondId,  [7000, 7000, 7000]],
+        [etfId, [8500, 9000, 10000]],
+        [cryptoId, [3500, 4000, 5000]],
+        [bondId, [7000, 7000, 7000]],
     ] as [string, number[]][]) {
         for (let i = 0; i < dates.length; i++) {
             await seedSnapshot(request, token, assetId, { value: values[i], date: dates[i] });
@@ -49,11 +67,20 @@ test.describe('04 — Dashboard display', () => {
         await dashboard.goto();
 
         await dashboard.selectTimeRange('YTD');
-        await expect(dashboard.page.getByTestId('time-range-YTD')).toHaveAttribute('aria-pressed', 'true');
+        await expect(dashboard.page.getByTestId('time-range-YTD')).toHaveAttribute(
+            'aria-pressed',
+            'true'
+        );
 
         await dashboard.selectTimeRange('5Y');
-        await expect(dashboard.page.getByTestId('time-range-5Y')).toHaveAttribute('aria-pressed', 'true');
-        await expect(dashboard.page.getByTestId('time-range-YTD')).toHaveAttribute('aria-pressed', 'false');
+        await expect(dashboard.page.getByTestId('time-range-5Y')).toHaveAttribute(
+            'aria-pressed',
+            'true'
+        );
+        await expect(dashboard.page.getByTestId('time-range-YTD')).toHaveAttribute(
+            'aria-pressed',
+            'false'
+        );
     });
 
     test('4.3 — AllocationChart is visible', async ({ dashboard }) => {
@@ -74,5 +101,23 @@ test.describe('04 — Dashboard display', () => {
     test('4.5 — navigate to heatmap page', async ({ dashboard, heatmap }) => {
         await dashboard.goToHeatmap();
         await heatmap.expectGridVisible();
+    });
+
+    test('4.6 — performance metrics row is visible with expected labels', async ({ dashboard }) => {
+        await dashboard.goto();
+        const metricsRow = dashboard.page.getByTestId('chart-metrics-row');
+        await expect(metricsRow).toBeVisible();
+        const text = await metricsRow.textContent();
+        expect(text).toContain('CAGR');
+        expect(text).toContain('Max Drawdown');
+        expect(text).toContain('Volatility');
+    });
+
+    test('4.7 — metrics row remains visible after time range change', async ({ dashboard }) => {
+        await dashboard.goto();
+        await dashboard.selectTimeRange('YTD');
+        await expect(dashboard.page.getByTestId('chart-metrics-row')).toBeVisible();
+        await dashboard.selectTimeRange('MAX');
+        await expect(dashboard.page.getByTestId('chart-metrics-row')).toBeVisible();
     });
 });
