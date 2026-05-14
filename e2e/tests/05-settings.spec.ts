@@ -12,9 +12,15 @@ import * as path from 'path';
 import * as os from 'os';
 
 let token: string;
+let settingsPersonId: string;
 
 test.beforeAll(async ({ request }) => {
     token = await getToken(request);
+    settingsPersonId = await seedPerson(request, token, 'Settings E2E Person');
+});
+
+test.afterAll(async ({ request }) => {
+    await deletePerson(request, token, settingsPersonId);
 });
 
 test.describe('05 — Settings', () => {

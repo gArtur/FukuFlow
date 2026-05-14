@@ -30,7 +30,7 @@ export default function MyMovers({
                         <h2 className="movers-title">My Assets</h2>
                         <span className="movers-count">0 assets</span>
                     </div>
-                    <button className="add-asset-btn-inline" onClick={onAddAsset}>
+                    <button className="add-asset-btn-inline" onClick={onAddAsset} data-testid="add-asset-btn">
                         <span>+</span> Add Asset
                     </button>
                 </div>
