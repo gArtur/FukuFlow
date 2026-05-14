@@ -152,12 +152,12 @@ function makeDatum(date: string, value: number): PerformanceDatum {
 // ─── calculateCAGR ────────────────────────────────────────────────────────────
 
 describe('calculateCAGR', () => {
-    it('returns ~10% for 100→121 over 2 years', () => {
+    it('returns ~10% for a 21% gain over 2 years', () => {
         const history = [makeDatum('2022-01-01', 100), makeDatum('2024-01-01', 121)];
         expect(calculateCAGR(history, 21)).toBeCloseTo(10, 0);
     });
 
-    it('returns ~-10% for 100→81 over 2 years', () => {
+    it('returns ~-10% for a -19% gain over 2 years', () => {
         const history = [makeDatum('2022-01-01', 100), makeDatum('2024-01-01', 81)];
         expect(calculateCAGR(history, -19)).toBeCloseTo(-10, 0);
     });
@@ -175,16 +175,30 @@ describe('calculateCAGR', () => {
         expect(calculateCAGR([], 0)).toBe(0);
     });
 
-    it('returns 0 when start value is 0', () => {
-        const history = [makeDatum('2022-01-01', 0), makeDatum('2024-01-01', 100)];
+    it('returns 0 when gainPercent is 0', () => {
+        const history = [makeDatum('2022-01-01', 100), makeDatum('2024-01-01', 100)];
         expect(calculateCAGR(history, 0)).toBe(0);
+    });
+
+    it('is not inflated by deposits — uses gainPercent not raw value ratio', () => {
+        // Start with 1K, add 99K after 1 year, end at 110K after 2 years.
+        // Raw value ratio: 110K/1K = 110x → would give ~949% CAGR (wrong).
+        // gainPercent (Modified Dietz): gain=10K, avgCapital=100K → 10% total → ~4.9% CAGR.
+        const history = [
+            { date: '2022-01-01', value: 1000, invested: 1000 },
+            { date: '2023-01-01', value: 100000, invested: 100000 },
+            { date: '2024-01-01', value: 110000, invested: 100000 },
+        ];
+        const cagr = calculateCAGR(history, 10);
+        expect(cagr).toBeCloseTo(4.88, 1);
+        expect(cagr).toBeLessThan(20); // sanity: not inflated to hundreds of percent
     });
 });
 
 // ─── calculateMaxDrawdown ─────────────────────────────────────────────────────
 
 describe('calculateMaxDrawdown', () => {
-    it('returns -25% for [100, 120, 90, 110]', () => {
+    it('returns -25% for pure market decline [100, 120, 90, 110] (no cash flows)', () => {
         const history = [100, 120, 90, 110].map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
         expect(calculateMaxDrawdown(history)).toBeCloseTo(-25, 1);
     });
@@ -205,6 +219,21 @@ describe('calculateMaxDrawdown', () => {
 
     it('returns null when history is empty', () => {
         expect(calculateMaxDrawdown([])).toBeNull();
+    });
+
+    it('does not treat a large deposit as a market peak', () => {
+        // Jan: 100K value, 100K invested
+        // Feb: 200K value, 200K invested (added 100K — not a market gain)
+        // Mar: 195K value, 200K invested (market dropped 2.5%)
+        // Old formula: peak=200K, trough=195K → -2.5% (OK here, but peak was set by deposit)
+        // New formula: wealth index r_Feb = (200-100-100)/100 = 0%, r_Mar = (195-200)/200 = -2.5%
+        // → max drawdown = -2.5% (correct — reflects only market movement)
+        const history = [
+            { date: '2024-01-01', value: 100000, invested: 100000 },
+            { date: '2024-02-01', value: 200000, invested: 200000 },
+            { date: '2024-03-01', value: 195000, invested: 200000 },
+        ];
+        expect(calculateMaxDrawdown(history)).toBeCloseTo(-2.5, 1);
     });
 });
 
@@ -238,6 +267,20 @@ describe('calculateVolatilityFromHistory', () => {
         ];
         // Returns: Jan→Feb = (150-150)/150 = 0% → volatility = 0
         expect(calculateVolatilityFromHistory(history)).toBe(0);
+    });
+
+    it('does not treat a large deposit as a high-return month', () => {
+        // Jan→Feb: value 100→200, but 100 of that is a deposit (not market return)
+        // Market return = (200 - 100 - 100) / 100 = 0% → should not inflate volatility
+        // Feb→Mar: value 200→202, no deposit → market return = 1%
+        const history = [
+            { date: '2024-01-01', value: 100, invested: 100 },
+            { date: '2024-02-01', value: 200, invested: 200 },
+            { date: '2024-03-01', value: 202, invested: 200 },
+        ];
+        // returns: [0%, 1%] → std dev ≈ 0.5, not inflated by the deposit
+        expect(calculateVolatilityFromHistory(history)).toBeCloseTo(0.5, 1);
+        expect(calculateVolatilityFromHistory(history)).toBeLessThan(5);
     });
 
     it('returns same result as heatmap calculateVolatility for monthly snapshots', () => {
