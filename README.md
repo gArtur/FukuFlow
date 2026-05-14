@@ -25,6 +25,7 @@ Dark | Light | High Contrast Themes
 ### Dashboard & Visualization
 - 📊 **Dashboard** - Visualize total worth and performance with interactive charts.
 - 📈 **Sparklines** - Performance graphs on investment cards for trend analysis.
+- 📉 **Performance Metrics** - CAGR, Max Drawdown, and Volatility displayed below each chart, calculated net of cash flows.
 - 🗺️ **Portfolio Heatmap** - Monthly performance heatmap showing percentage changes across assets.
 - 🍰 **Asset Allocation** - View allocation by Category or Individual Investment.
 
@@ -40,7 +41,7 @@ Dark | Light | High Contrast Themes
 
 ### User Experience
 - ⚙️ **Settings** - Centralized management for General, People, Categories, and Backups.
-- 🎨 **User Interface** - Dark theme with responsive design for mobile and desktop.
+- 🎨 **Themes** - Light, Dark, and High Contrast themes with responsive design for mobile and desktop.
 
 ## Why "FukuFlow"?
 
@@ -118,9 +119,9 @@ docker-compose up -d --build
 
 **Continuous Integration (CI)**
 This project uses GitHub Actions for CI/CD:
-- **Triggers**: Pushes to `main`.
-- **Checks**: Linting (ESLint), Formatting (Prettier), Type Checking (TypeScript).
-- **Artifacts**: Automatically builds and pushes a Docker image to **GitHub Container Registry (GHCR)**: `ghcr.io/<owner>/fukuflow:latest`.
+- **Triggers**: Pull requests to `main`, pushes to `main`, and version tags (`v*.*.*`).
+- **Checks**: Linting (ESLint), Formatting (Prettier), Type Checking (TypeScript), Frontend unit tests (Vitest), Backend integration tests (Vitest + Supertest).
+- **Artifacts**: Automatically builds and pushes a Docker image to **GitHub Container Registry (GHCR)**: `ghcr.io/<owner>/fukuflow:latest` on merge to `main` or tag push.
 
 ### Local Development (Manual)
 
@@ -175,6 +176,12 @@ npm run dev
 The app opens at `http://localhost:5173`
 
 ### Testing
+
+#### Unit Tests (Frontend)
+```bash
+npm test
+```
+Runs Vitest against React components, hooks, and utility functions. No server required.
 
 #### Unit & Integration Tests (Backend)
 ```bash
@@ -283,24 +290,38 @@ FukuFlow/
 │   │   ├── snapshots.js  # Snapshot operations
 │   │   ├── settings.js   # App settings
 │   │   └── backup.js     # Backup & restore
-│   ├── seed.js           # Sample data seeder
+│   ├── middleware/       # Auth middleware
+│   ├── tests/            # Backend integration tests
 │   └── db/wealth.db      # SQLite database (auto-created)
 ├── src/
 │   ├── components/       # React components
+│   │   ├── heatmap/      # Heatmap sub-components
 │   │   ├── settings/     # Settings sub-components
 │   │   └── ...           # Dashboard, Charts, Modals
-│   ├── contexts/         # React contexts (Privacy)
-│   ├── hooks/            # Custom hooks (usePortfolio)
+│   ├── contexts/         # React contexts (Auth, Settings, Privacy)
+│   ├── hooks/            # Custom hooks (usePortfolio, usePersons, ...)
 │   ├── lib/              # API client
-│   ├── styles/           # Modular CSS files
+│   ├── styles/           # Modular CSS files and themes
 │   ├── types/            # TypeScript definitions
-│   ├── utils/            # Utility functions
+│   ├── utils/            # Utility functions (performance, heatmap, ...)
 │   └── App.tsx           # Main application
+├── e2e/                  # Playwright E2E tests
+├── scripts/              # Sample data generation scripts
+├── .github/              # CI workflow and PR template
 ├── package.json
 └── README.md
 ```
 
 ## API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/auth/status` | Check setup and auth status |
+| POST | `/api/auth/setup` | Initial password setup |
+| POST | `/api/auth/login` | Login and receive JWT token |
+| POST | `/api/auth/logout` | Invalidate current token |
+| POST | `/api/auth/change-password` | Change password |
 
 ### Persons
 | Method | Endpoint | Description |
