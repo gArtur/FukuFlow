@@ -195,6 +195,36 @@
     margin-bottom: var(--space-xs);
 }
 
+/* Performance / Total Worth view toggle (replaces the static chart title) */
+.view-toggle {
+    display: inline-flex;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+}
+
+.view-tab {
+    padding: 2px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.view-tab:hover {
+    color: var(--text-secondary);
+}
+
+.view-tab.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--accent-green);
+}
+
 .chart-value {
     font-size: 32px;
     font-weight: 700;

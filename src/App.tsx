@@ -241,7 +241,6 @@ function AppContent() {
                                 <div className="charts-row">
                                     <TotalWorthChart
                                         assets={filteredAssets}
-                                        stats={stats}
                                         timeRange={timeRange}
                                         setTimeRange={setTimeRange}
                                         customStartDate={customStartDate}
