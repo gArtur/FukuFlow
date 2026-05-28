@@ -4,10 +4,6 @@ import type { TimeRange, Asset } from '../types';
 
 interface TotalWorthChartProps {
     assets: Asset[];
-    stats?: {
-        totalGain: number;
-        gainPercentage: number;
-    };
     timeRange: TimeRange;
     setTimeRange: (range: TimeRange) => void;
     customStartDate: string;
@@ -42,7 +38,6 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, 
 
 export default function TotalWorthChart({
     assets,
-    stats,
     timeRange,
     setTimeRange,
     customStartDate,
@@ -107,11 +102,15 @@ export default function TotalWorthChart({
         gainPercent: calculatedGainPercent,
     } = calculatePerformance(assets, startDate, endDate, timeRange !== 'MAX');
 
-    // Fallback for MAX to use stats if available (for precise All-Time numbers), otherwise calculated
-    const isMax = timeRange === 'MAX';
-    const displayGain = isMax && stats ? stats.totalGain : calculatedGain;
+    // Header gain/% come from the same snapshot-history computation the chart plots,
+    // in every range (incl. MAX), so the Performance line always lands on the header.
+    const displayGain = calculatedGain;
+    const displayGainPercent = calculatedGainPercent;
 
-    const displayGainPercent = isMax && stats ? stats.gainPercentage : calculatedGainPercent;
+    const formatPercent = (value: number) => {
+        const sign = value >= 0 ? '+' : '';
+        return `${sign}${value.toFixed(2)}%`;
+    };
 
     // Performance view: value line = period return rebased to 0% at the range start,
     // invested line = flat 0% baseline. Total Worth view: both lines in absolute
@@ -279,8 +278,16 @@ export default function TotalWorthChart({
                         if (!item) return '';
 
                         // Performance view is period-relative: gain since the range start.
+                        // Gate the amount on the same basis as toPeriodReturnSeries so the
+                        // amount and % never disagree at a non-positive period-start basis.
+                        const periodBasis =
+                            history.length > 0
+                                ? history[0].value + (item.invested - history[0].invested)
+                                : 0;
                         const gainLoss = isPerformance
-                            ? item.value - item.invested - baseGain
+                            ? periodBasis > 0
+                                ? item.value - item.invested - baseGain
+                                : 0
                             : item.value - item.invested;
                         const gainLossPercent = isPerformance
                             ? performanceData[index]
@@ -352,11 +359,6 @@ export default function TotalWorthChart({
                 border: { display: false },
             },
         },
-    };
-
-    const formatPercent = (value: number) => {
-        const sign = value >= 0 ? '+' : '';
-        return `${sign}${value.toFixed(2)}%`;
     };
 
     return (
@@ -462,11 +464,9 @@ export default function TotalWorthChart({
                     <span
                         className={`chart-metric-value ${calculateCAGR(history, displayGainPercent) >= 0 ? 'positive' : 'negative'}`}
                     >
-                        {isHidden
-                            ? '***'
-                            : history.length < 2
-                              ? '—'
-                              : formatPercent(calculateCAGR(history, displayGainPercent))}
+                        {history.length < 2
+                            ? '—'
+                            : formatPercent(calculateCAGR(history, displayGainPercent))}
                     </span>
                 </div>
                 <div className="chart-metric">
@@ -477,12 +477,10 @@ export default function TotalWorthChart({
                         Max Drawdown
                     </span>
                     <span className="chart-metric-value negative">
-                        {isHidden
-                            ? '***'
-                            : (() => {
-                                  const dd = calculateMaxDrawdown(history);
-                                  return dd === null ? '—' : `${dd.toFixed(1)}%`;
-                              })()}
+                        {(() => {
+                            const dd = calculateMaxDrawdown(history);
+                            return dd === null ? '—' : `${dd.toFixed(1)}%`;
+                        })()}
                     </span>
                 </div>
                 <div className="chart-metric">
@@ -493,11 +491,9 @@ export default function TotalWorthChart({
                         Volatility
                     </span>
                     <span className="chart-metric-value risk">
-                        {isHidden
-                            ? '***'
-                            : history.length < 2
-                              ? '—'
-                              : `${calculateVolatilityFromHistory(history).toFixed(1)}%`}
+                        {history.length < 2
+                            ? '—'
+                            : `${calculateVolatilityFromHistory(history).toFixed(1)}%`}
                     </span>
                 </div>
             </div>

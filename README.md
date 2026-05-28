@@ -2,9 +2,6 @@
 
 A modern, elegant personal wealth management dashboard for tracking investments across multiple asset categories and family members.
 
-> [!NOTE]
-> This application was vibe-coded with Antigravity. 🛸✨
-
 ![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-7-purple) ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
 
 ## Screenshots
@@ -24,6 +21,7 @@ Dark | Light | High Contrast Themes
 
 ### Dashboard & Visualization
 - 📊 **Dashboard** - Visualize total worth and performance with interactive charts.
+- 🔀 **Performance / Total Worth Views** - Toggle the main chart between absolute portfolio value and period return (rebased to 0% at the start of the selected range); your choice is remembered.
 - 📈 **Sparklines** - Performance graphs on investment cards for trend analysis.
 - 📉 **Performance Metrics** - CAGR, Max Drawdown, and Volatility displayed below each chart, calculated net of cash flows.
 - 🗺️ **Portfolio Heatmap** - Monthly performance heatmap showing percentage changes across assets.

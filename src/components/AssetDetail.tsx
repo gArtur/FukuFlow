@@ -35,8 +35,6 @@ export default function AssetDetail({
     const [customEndDate, setCustomEndDate] = useState<string>('');
 
     const owner = persons.find(p => p.id === asset.ownerId);
-    const gain = asset.currentValue - asset.purchaseAmount;
-    const gainPercent = asset.purchaseAmount > 0 ? (gain / asset.purchaseAmount) * 100 : 0;
 
     const handleDelete = () => {
         onDelete();
@@ -56,7 +54,6 @@ export default function AssetDetail({
             <div className="mb-8">
                 <TotalWorthChart
                     assets={[asset]}
-                    stats={{ totalGain: gain, gainPercentage: gainPercent }}
                     timeRange={timeRange}
                     setTimeRange={setTimeRange}
                     customStartDate={customStartDate}

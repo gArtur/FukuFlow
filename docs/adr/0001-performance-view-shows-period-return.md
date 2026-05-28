@@ -5,7 +5,7 @@ The Total Worth chart's **Performance** view plots a **Period Return**: the mone
 ## Why
 
 - **Rebasing to the period start** answers the question a user actually asks when they pick a range — "how did my portfolio do *during this period*?" An all-time cumulative line that starts mid-air (e.g. at +40%) for a 1-year window is confusing and buries the period's movement.
-- **Money-weighted (Modified-Dietz)** is the same return the app already computes for the headline figure, so the line and the big number agree — the chart is internally consistent, and every point is a genuine cumulative period return.
+- **Money-weighted (Modified-Dietz)** is the same return the app already computes for the headline figure, so the line and the big number agree — the chart is internally consistent, and every point is a genuine cumulative period return. The header is derived from this snapshot-history computation in **every** range, including MAX (it does not fall back to the asset-level cost-basis stats), so the line always lands on the headline number.
 
 ## Rejected alternatives
 

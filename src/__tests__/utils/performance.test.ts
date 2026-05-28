@@ -177,15 +177,21 @@ describe('toPeriodReturnSeries', () => {
         expect(s[1]).toBeCloseTo(10);
     });
 
-    it('endpoint equals the money-weighted period return (matches the header)', () => {
-        // V0=I0=1000 (start gain 0); end V=1300, I=1000.
-        // periodGain=300, basis=1000 -> +30%, same as calculatePerformance gainPercent.
-        const history = [
-            { date: '2026-01-02', value: 1000, invested: 1000 },
-            { date: '2026-05-07', value: 1300, invested: 1000 },
-        ];
-        const s = toPeriodReturnSeries(history);
-        expect(s[s.length - 1]).toBeCloseTo(30);
+    it('endpoint equals calculatePerformance gainPercent for the same window (header invariant)', () => {
+        // Cross-function invariant: the Performance line must land on the header %.
+        // Use a window with a mid-period deposit so Modified-Dietz != simple ROI.
+        const asset = makeAsset([
+            { date: '2024-01-15', value: 1000, investmentChange: 1000 },
+            { date: '2024-06-15', value: 1600, investmentChange: 400 },
+            { date: '2024-11-15', value: 1800, investmentChange: 0 },
+        ]);
+        const result = calculatePerformance(
+            [asset],
+            new Date('2024-01-01'),
+            new Date('2024-12-31')
+        );
+        const series = toPeriodReturnSeries(result.history);
+        expect(series[series.length - 1]).toBeCloseTo(result.gainPercent, 6);
     });
 
     it('accounts for mid-period deposits in the capital basis', () => {
