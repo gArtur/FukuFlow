@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ValueEntry, Asset, Person } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import AssetHistoryTable from './AssetHistoryTable';
 import MobileAssetHistory from './MobileAssetHistory';
 import PaginationControls from './PaginationControls';
 import { useSnapshotHistory } from '../hooks/useSnapshotHistory';
+import { sortSnapshots, type SnapshotSortColumn, type SortDirection } from '../utils/snapshotSort';
 import { exportSnapshotsToCsv } from '../utils/csvExport';
 import ConfirmationModal from './ConfirmationModal';
 
@@ -29,20 +30,35 @@ export default function SnapshotHistory({
     const [currentPage, setCurrentPage] = useState(1);
     const ITEMS_PER_PAGE = 10;
 
+    // Sort state (defaults to most-recent-first, matching the raw history order)
+    const [sortBy, setSortBy] = useState<SnapshotSortColumn>('date');
+    const [sortDir, setSortDir] = useState<SortDirection>('desc');
+
     // Delete confirmation state
     const [snapshotToDelete, setSnapshotToDelete] = useState<number | null>(null);
 
     // Process history to add derived fields (extracted to hook)
     const enhancedHistory = useSnapshotHistory(asset.valueHistory);
 
+    const sortedHistory = useMemo(
+        () => sortSnapshots(enhancedHistory, sortBy, sortDir),
+        [enhancedHistory, sortBy, sortDir]
+    );
+
+    const handleSort = (column: SnapshotSortColumn) => {
+        if (column === sortBy) {
+            setSortDir(prev => (prev === 'asc' ? 'desc' : 'asc'));
+        } else {
+            setSortBy(column);
+            setSortDir('desc');
+        }
+        setCurrentPage(1);
+    };
+
     // Pagination logic
-    const totalPages = Math.ceil(enhancedHistory.length / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(sortedHistory.length / ITEMS_PER_PAGE);
 
-    // Reset page if needed (though simplified here as we mount new component for new asset usually)
-    // If asset changes, we might want to reset, but React key on parent usually handles this.
-    // We'll keep it simple.
-
-    const paginatedHistory = enhancedHistory.slice(
+    const paginatedHistory = sortedHistory.slice(
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
@@ -64,12 +80,12 @@ export default function SnapshotHistory({
     };
 
     return (
-        <div className="chart-card">
-            <div className="chart-header">
-                <div className="chart-header-left">
-                    <h3 className="chart-title">Snapshot History</h3>
+        <section className="movers-section snapshot-history-section">
+            <div className="movers-header">
+                <div className="movers-header-left">
+                    <h2 className="movers-title">Snapshot History</h2>
                 </div>
-                <div className="chart-header-right">
+                <div className="movers-header-right">
                     <div className="history-actions-group">
                         <button
                             onClick={handleExportCSV}
@@ -93,29 +109,30 @@ export default function SnapshotHistory({
                 </div>
             </div>
 
-            <div className="history-content" style={{ padding: '0 1rem 1rem' }}>
-                <AssetHistoryTable
-                    history={paginatedHistory}
-                    isHidden={isHidden}
-                    formatAmount={formatAmount}
-                    onEditSnapshot={onEditSnapshot}
-                    onDeleteSnapshot={handleDeleteClick}
-                />
+            <AssetHistoryTable
+                history={paginatedHistory}
+                isHidden={isHidden}
+                formatAmount={formatAmount}
+                sortBy={sortBy}
+                sortDir={sortDir}
+                onSort={handleSort}
+                onEditSnapshot={onEditSnapshot}
+                onDeleteSnapshot={handleDeleteClick}
+            />
 
-                <MobileAssetHistory
-                    history={paginatedHistory}
-                    isHidden={isHidden}
-                    formatAmount={formatAmount}
-                    onEditSnapshot={onEditSnapshot}
-                    onDeleteSnapshot={handleDeleteClick}
-                />
+            <MobileAssetHistory
+                history={paginatedHistory}
+                isHidden={isHidden}
+                formatAmount={formatAmount}
+                onEditSnapshot={onEditSnapshot}
+                onDeleteSnapshot={handleDeleteClick}
+            />
 
-                <PaginationControls
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={setCurrentPage}
-                />
-            </div>
+            <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+            />
 
             <ConfirmationModal
                 isOpen={snapshotToDelete !== null}
@@ -126,6 +143,6 @@ export default function SnapshotHistory({
                 confirmLabel="Delete"
                 isDangerous={true}
             />
-        </div>
+        </section>
     );
 }

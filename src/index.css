@@ -205,7 +205,7 @@
 .view-tab {
     padding: 2px 0;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--text-muted);
     background: none;
     border: none;
@@ -223,6 +223,7 @@
 .view-tab.active {
     color: var(--text-primary);
     border-bottom-color: var(--accent-green);
+    font-weight: 600;
 }
 
 .chart-value {
@@ -341,6 +342,21 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     cursor: default;
+}
+
+/* Responsive metric label: show the abbreviated form on phones so it fits one row. */
+.metric-label-short {
+    display: none;
+}
+
+@media (max-width: 640px) {
+    .metric-label-full {
+        display: none;
+    }
+
+    .metric-label-short {
+        display: inline;
+    }
 }
 
 .chart-metric-value {
@@ -1513,6 +1529,17 @@
     border-color: var(--border-color-light);
 }
 
+.snapshot-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.snapshot-btn:disabled:hover {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
+}
+
 /* ===== INVESTMENT DETAIL VIEW ===== */
 .investment-detail {
     /* Padding and layout are handled by parent .main-content container */
@@ -2486,65 +2513,51 @@
     gap: var(--space-sm);
 }
 
-.compact-table-container {
-    overflow-x: auto;
+/* Snapshot History blends like the dashboard's My Assets: header on the page
+   background above a single framed table (no surrounding card). */
+.snapshot-history-section {
+    margin-top: 0;
+}
+
+.history-table-wrap {
+    margin-bottom: var(--space-md);
     -webkit-overflow-scrolling: touch;
-    /* Smooth scroll on iOS */
 }
 
-.compact-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-}
-
-.compact-table th {
-    text-align: left;
-    padding: var(--space-sm) var(--space-lg);
-    color: var(--text-muted);
-    font-weight: 500;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+/* Action column hugs its content on the right rather than a fixed narrow width. */
+.history-table-wrap .asset-th--action {
+    width: 1%;
     white-space: nowrap;
+    text-align: right;
 }
 
-.compact-table td {
-    padding: var(--space-sm) var(--space-lg);
-    border-bottom: 1px solid var(--border-color);
-    color: var(--text-primary);
-    vertical-align: middle;
-}
-
-.compact-table tr:hover {
-    background: var(--bg-card-hover);
-}
-
-.compact-table tr:last-child td {
-    border-bottom: none;
+.history-row-actions {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    justify-content: flex-end;
 }
 
 .text-right {
     text-align: right;
 }
 
-/* Show edit button always on touch devices or hover */
 .table-action-btn {
-    opacity: 0;
-    transition: opacity 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: var(--radius-sm);
     background: none;
     border: none;
-    color: var(--accent-primary);
-    font-weight: 500;
+    color: var(--text-muted);
     cursor: pointer;
-    font-size: 12px;
-}
-
-.compact-table tr:hover .table-action-btn {
-    opacity: 1;
+    transition: all 0.15s ease;
 }
 
 .table-action-btn:hover {
-    text-decoration: underline;
+    color: var(--text-primary);
+    background: var(--bg-card);
 }
 
 .table-action-btn.danger {
@@ -2553,13 +2566,7 @@
 
 .table-action-btn.danger:hover {
     color: var(--accent-red);
-    text-decoration: underline;
-}
-
-@media (hover: none) {
-    .table-action-btn {
-        opacity: 1;
-    }
+    background: var(--accent-red-glow);
 }
 
 .btn-small-outline {

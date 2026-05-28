@@ -120,6 +120,16 @@ export default function TotalWorthChart({
     const valueData = isPerformance ? performanceData : history.map(h => h.value);
     const investedData = isPerformance ? history.map(() => 0) : history.map(h => h.invested);
 
+    // Gain/loss coloring: green where the Value line sits at/above the baseline,
+    // red where it dips below. Baseline = the Invested dataset (flat 0% in
+    // Performance view, the moving Invested line in Total Worth view).
+    const positiveLine = isHighContrast ? '#00FFFF' : '#00D9A5';
+    const negativeLine = isHighContrast ? '#00FFFF' : '#FF6B6B';
+    const positiveFill = 'rgba(0, 217, 165, 0.25)';
+    const negativeFill = 'rgba(255, 107, 107, 0.25)';
+    const isBelowBaseline = (index: number | undefined) =>
+        index != null && index >= 0 && valueData[index] < investedData[index];
+
     const data = {
         labels: history.map(h => {
             const d = new Date(h.date);
@@ -133,40 +143,20 @@ export default function TotalWorthChart({
             {
                 label: 'Value',
                 data: valueData,
-                borderColor: isHighContrast ? '#00FFFF' : '#00D9A5', // Cyan in HC
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const chartArea = context.chart.chartArea;
-                    if (!chartArea) return 'transparent';
-
-                    if (isHighContrast) return 'transparent'; // No fill in HC for clarity
-
-                    const { top, bottom } = chartArea;
-                    const yAxis = context.chart.scales.y;
-
-                    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
-
-                    if (!yAxis) {
-                        gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                        gradient.addColorStop(1, 'rgba(0, 217, 165, 0)');
-                        return gradient;
-                    }
-
-                    const zeroPixel = yAxis.getPixelForValue(0);
-                    const totalHeight = bottom - top;
-                    let zeroStop = (zeroPixel - top) / totalHeight;
-
-                    // Clamp to 0-1 range to handle cases where 0 is off-chart
-                    zeroStop = Math.max(0, Math.min(1, zeroStop));
-
-                    gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                    gradient.addColorStop(zeroStop, 'rgba(0, 217, 165, 0)');
-                    gradient.addColorStop(1, 'rgba(0, 217, 165, 0.3)');
-
-                    return gradient;
-                },
-                fill: !isHighContrast ? 'origin' : false,
+                borderColor: positiveLine, // Cyan in HC; per-segment green/red below
+                segment: isHighContrast
+                    ? undefined
+                    : {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          borderColor: (ctx: any) =>
+                              isBelowBaseline(ctx.p1DataIndex) ? negativeLine : positiveLine,
+                      },
+                backgroundColor: positiveFill,
+                // Shade the gain/loss band between Value and the Invested line (index 1):
+                // green where Value is above the baseline, red where below. No fill in HC.
+                fill: isHighContrast
+                    ? false
+                    : { target: 1, above: positiveFill, below: negativeFill },
                 tension: 0.1,
                 pointRadius: isHighContrast ? 4 : 0,
                 pointBackgroundColor: isHighContrast ? '#000' : undefined,
@@ -474,7 +464,8 @@ export default function TotalWorthChart({
                         className="chart-metric-label"
                         title="Largest peak-to-trough decline in portfolio value"
                     >
-                        Max Drawdown
+                        <span className="metric-label-full">Max Drawdown</span>
+                        <span className="metric-label-short">Max DD</span>
                     </span>
                     <span className="chart-metric-value negative">
                         {(() => {

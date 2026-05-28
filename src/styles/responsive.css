@@ -131,8 +131,7 @@
     }
 
     .detail-title-row {
-        flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: var(--space-sm);
     }
 
@@ -418,16 +417,11 @@
         min-height: 48px;
     }
 
-    /* Table scrolling */
-    .compact-table-container {
-        overflow-x: auto;
-    }
-
-    /* Always show action buttons on touch */
+    /* Larger touch targets for the snapshot-row action icons */
     .table-action-btn {
-        opacity: 1;
-        padding: 8px 12px;
+        padding: 8px;
         min-height: 36px;
+        min-width: 36px;
     }
 
     .btn-small,
