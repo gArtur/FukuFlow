@@ -571,6 +571,149 @@
     }
 }
 
+/* ===== ASSET TABLE VIEW ===== */
+.movers-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.asset-table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow-x: auto;
+}
+
+.asset-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.asset-table thead th {
+    background: var(--bg-tertiary);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.asset-th--num {
+    text-align: right;
+}
+
+.asset-th--action {
+    width: 44px;
+}
+
+.asset-th-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s ease;
+}
+
+.asset-th--num .asset-th-btn {
+    justify-content: flex-end;
+}
+
+.asset-th-btn:hover {
+    color: var(--text-primary);
+}
+
+.asset-th-btn.active {
+    color: var(--text-primary);
+}
+
+.asset-sort-arrow {
+    font-size: 9px;
+    color: var(--accent-green);
+}
+
+.asset-table tbody td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+.asset-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.asset-row.clickable {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.asset-row.clickable:hover {
+    background: var(--bg-card-hover);
+}
+
+.asset-cell-name {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.asset-cell-value {
+    font-weight: 600;
+}
+
+.asset-table .positive {
+    color: var(--accent-green);
+}
+
+.asset-table .negative {
+    color: var(--accent-red);
+}
+
+.asset-table .asset-th--action .snapshot-btn {
+    margin: 0 auto;
+}
+
+/* Priority columns: progressively reveal as the viewport widens.
+   Base (phone) shows only Name / Value / % (+ action). */
+.asset-col--xs,
+.asset-col--sm,
+.asset-col--md,
+.asset-col--lg {
+    display: none;
+}
+
+@media (min-width: 480px) {
+    .asset-col--xs {
+        display: table-cell;
+    }
+}
+
+@media (min-width: 640px) {
+    .asset-col--sm {
+        display: table-cell;
+    }
+}
+
+@media (min-width: 820px) {
+    .asset-col--md {
+        display: table-cell;
+    }
+}
+
+@media (min-width: 980px) {
+    .asset-col--lg {
+        display: table-cell;
+    }
+}
+
 /* ===== MOVER CARD ===== */
 .mover-card {
     background: var(--bg-card);

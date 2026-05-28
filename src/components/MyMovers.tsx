@@ -1,5 +1,12 @@
+import { useMemo } from 'react';
 import type { Asset, Person, TimeRange } from '../types';
+import { usePrivacy } from '../contexts/PrivacyContext';
+import { useSettings } from '../contexts/SettingsContext';
+import { useAssetView } from '../hooks/useAssetView';
+import { computeAssetGain } from '../utils/assetGain';
+import { sortAssetRows, type AssetRow } from '../utils/assetSort';
 import AssetCard from './AssetCard';
+import AssetTable from './AssetTable';
 
 interface MyMoversProps {
     assets: Asset[];
@@ -22,6 +29,46 @@ export default function MyMovers({
     customStartDate,
     customEndDate,
 }: MyMoversProps) {
+    const { categories, assetsFollowGeneral } = useSettings();
+    const { formatAmount, isHidden } = usePrivacy();
+    const { view, setView, sortBy, sortDir, setSort } = useAssetView();
+
+    const rows = useMemo<AssetRow[]>(() => {
+        if (view !== 'table') return [];
+        return assets.map(asset => {
+            const { gain, gainPercent, isPositive } = computeAssetGain(asset, {
+                assetsFollowGeneral,
+                timeRange,
+                customStartDate,
+                customEndDate,
+            });
+            const owner = persons.find(p => p.id === asset.ownerId);
+            return {
+                asset,
+                name: asset.name,
+                categoryLabel:
+                    categories.find(c => c.key === asset.category)?.label || asset.category,
+                ownerName: owner?.name || 'Unknown',
+                invested: asset.purchaseAmount,
+                value: asset.currentValue,
+                gain,
+                gainPercent,
+                isPositive,
+            };
+        });
+    }, [
+        view,
+        assets,
+        persons,
+        categories,
+        assetsFollowGeneral,
+        timeRange,
+        customStartDate,
+        customEndDate,
+    ]);
+
+    const sortedRows = useMemo(() => sortAssetRows(rows, sortBy, sortDir), [rows, sortBy, sortDir]);
+
     if (assets.length === 0) {
         return (
             <section className="movers-section">
@@ -54,9 +101,7 @@ export default function MyMovers({
         );
     }
 
-    const sortedAssets = [...assets].sort((a, b) => {
-        return a.name.localeCompare(b.name);
-    });
+    const sortedAssets = [...assets].sort((a, b) => a.name.localeCompare(b.name));
 
     return (
         <section className="movers-section">
@@ -65,28 +110,60 @@ export default function MyMovers({
                     <h2 className="movers-title">My Assets</h2>
                     <span className="movers-count">{assets.length} assets</span>
                 </div>
-                <button
-                    className="add-asset-btn-inline"
-                    onClick={onAddAsset}
-                    data-testid="add-asset-btn"
-                >
-                    <span>+</span> Add Asset
-                </button>
+                <div className="movers-header-right">
+                    <div className="view-toggle" role="group" aria-label="Asset view">
+                        <button
+                            className={`view-tab ${view === 'cards' ? 'active' : ''}`}
+                            onClick={() => setView('cards')}
+                            aria-pressed={view === 'cards'}
+                        >
+                            Cards
+                        </button>
+                        <button
+                            className={`view-tab ${view === 'table' ? 'active' : ''}`}
+                            onClick={() => setView('table')}
+                            aria-pressed={view === 'table'}
+                        >
+                            Table
+                        </button>
+                    </div>
+                    <button
+                        className="add-asset-btn-inline"
+                        onClick={onAddAsset}
+                        data-testid="add-asset-btn"
+                    >
+                        <span>+</span> Add Asset
+                    </button>
+                </div>
             </div>
-            <div className="movers-grid">
-                {sortedAssets.map(asset => (
-                    <AssetCard
-                        key={asset.id}
-                        asset={asset}
-                        persons={persons}
-                        onCardClick={onCardClick}
-                        onAddSnapshot={onAddSnapshot}
-                        timeRange={timeRange}
-                        customStartDate={customStartDate}
-                        customEndDate={customEndDate}
-                    />
-                ))}
-            </div>
+
+            {view === 'cards' ? (
+                <div className="movers-grid">
+                    {sortedAssets.map(asset => (
+                        <AssetCard
+                            key={asset.id}
+                            asset={asset}
+                            persons={persons}
+                            onCardClick={onCardClick}
+                            onAddSnapshot={onAddSnapshot}
+                            timeRange={timeRange}
+                            customStartDate={customStartDate}
+                            customEndDate={customEndDate}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <AssetTable
+                    rows={sortedRows}
+                    sortBy={sortBy}
+                    sortDir={sortDir}
+                    onSort={setSort}
+                    onRowClick={onCardClick}
+                    onAddSnapshot={onAddSnapshot}
+                    formatAmount={formatAmount}
+                    isHidden={isHidden}
+                />
+            )}
         </section>
     );
 }

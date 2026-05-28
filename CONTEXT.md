@@ -36,6 +36,20 @@ _Avoid_: value mode, absolute view, portfolio value.
 An independent toggle that masks the actual monetary figures (header amount, axis labels, tooltips) while leaving the chart shape and the active view unchanged.
 _Avoid_: blur mode, incognito.
 
+### Asset views
+
+**My Assets**:
+The dashboard section listing every asset, shown as either the Cards View or the Table View.
+_Avoid_: holdings, positions, movers.
+
+**Cards View**:
+The default My Assets layout — one card per asset showing its value, Gain/Loss and a sparkline.
+_Avoid_: tiles, grid view.
+
+**Table View**:
+The alternative My Assets layout — a sortable table with one row per asset, showing the same data in orderable columns. On narrow screens only the highest-priority columns (name, value, percentage) are shown.
+_Avoid_: list view, grid.
+
 ### Time series
 
 **Snapshot**:
@@ -52,6 +66,7 @@ _Avoid_: flow, contribution, deposit (as the field name).
 - **Performance** plots **Period Return**, rebased to 0% at the start of the selected time range.
 - **Invested Capital** at a date = running sum of every **Investment Change** up to that date.
 - **Privacy** is orthogonal to the active view — it hides figures in either view.
+- The **My Assets** section offers two **views**: **Cards** (default) and **Table**. Sorting applies to the **Table View** only; **Cards View** stays ordered by name.
 
 ## Example dialogue
 
@@ -62,3 +77,5 @@ _Avoid_: flow, contribution, deposit (as the field name).
 
 - "Total Worth" names both the chart card and its currency view. Resolved as intentional: the currency view *is* the total worth, so the toggle label and card concept coincide. The percentage view is the only one needing a distinct name — **Performance**.
 - "Invested capital" vs "cost basis" — use **Invested Capital** everywhere; it is the running sum of Investment Changes, not a per-lot accounting cost basis.
+- "view" labels two distinct toggles: **chart views** (Performance / Total Worth) and **asset views** (Cards / Table). They live in different sections and are unrelated.
+- "list or table" — resolved to a single **Table View** (sortable rows). "List" is an avoided alias, not a separate view.
