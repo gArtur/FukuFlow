@@ -175,6 +175,18 @@
     }
 }
 
+@media (max-width: 640px) {
+    .chart-card {
+        margin-left: calc(-1 * var(--space-md));
+        margin-right: calc(-1 * var(--space-md));
+        margin-bottom: var(--space-sm);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+}
+
 .chart-header {
     display: flex;
     justify-content: space-between;
@@ -308,6 +320,12 @@
     width: 100%;
     position: relative;
     overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .line-chart-container {
+        min-height: 320px;
+    }
 }
 
 .total-worth-card {
@@ -516,6 +534,12 @@
 /* ===== MY MOVERS SECTION ===== */
 .movers-section {
     margin-top: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+    .movers-section {
+        margin-top: var(--space-md);
+    }
 }
 
 .movers-header {
@@ -2361,7 +2385,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-    padding: var(--space-md);
+    padding: 0;
 }
 
 .mobile-history-card {
@@ -2369,12 +2393,6 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-md);
-    margin-bottom: var(--space-md);
-    /* Add margin between cards */
-}
-
-.mobile-history-card:last-child {
-    margin-bottom: 0;
 }
 
 .mobile-history-header {
@@ -2598,6 +2616,12 @@
 
 .mb-8 {
     margin-bottom: var(--space-xl);
+}
+
+@media (max-width: 640px) {
+    .mb-8 {
+        margin-bottom: var(--space-md);
+    }
 }
 
 /* Settings Page */

@@ -207,38 +207,10 @@
 }
 
 /* ===== MOBILE: FULL-BLEED GRAPH CARDS (640px and below) =====
-   Graph cards break out of the page inset to span the full viewport width,
-   maximising chart area. Text/control sections keep the .main-content inset. */
-@media (max-width: 640px) {
-    /* Break the graph cards out to the screen edges; square the corners and drop
-       the side borders so they read as edge-to-edge sections rather than floating
-       cards. The top/bottom hairline stays as a thin divider between sections. */
-    .chart-card {
-        margin-left: calc(-1 * var(--space-md));
-        margin-right: calc(-1 * var(--space-md));
-        margin-bottom: var(--space-sm);
-        padding-left: var(--space-md);
-        padding-right: var(--space-md);
-        border-radius: 0;
-        border-left: none;
-        border-right: none;
-    }
-
-    /* Maximise the hero line chart. */
-    .line-chart-container {
-        min-height: 320px;
-    }
-
-    /* Snapshot history shares .movers-section with the dashboard's My Assets, so
-       its cards line up with the dashboard once this list drops its extra padding. */
-    .mobile-history-list {
-        padding: 0;
-    }
-
-    .mobile-history-card {
-        margin-bottom: 0;
-    }
-}
+   Rules that override base definitions in index.css are placed directly after
+   those base rules in index.css (after the @import block) so they win the cascade.
+   See: .chart-card, .line-chart-container, .mobile-history-list, .movers-section,
+   and .mb-8 in index.css for the mobile overrides. */
 
 /* ===== MOBILE HEATMAP (640px and below) ===== */
 @media (max-width: 640px) {
