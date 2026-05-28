@@ -165,7 +165,6 @@ export default function AssetCard({
                     onClick={!isHidden ? handleAddSnapshot : undefined}
                     title={isHidden ? 'Disabled in Private Mode' : 'Add Snapshot'}
                     disabled={isHidden}
-                    style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                 >
                     +
                 </button>

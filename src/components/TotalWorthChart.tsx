@@ -120,6 +120,15 @@ export default function TotalWorthChart({
     const valueData = isPerformance ? performanceData : history.map(h => h.value);
     const investedData = isPerformance ? history.map(() => 0) : history.map(h => h.invested);
 
+    // Gain/loss coloring: green where the Value line sits at/above the baseline,
+    // red where it dips below. Baseline = the Invested dataset (flat 0% in
+    // Performance view, the moving Invested line in Total Worth view).
+    // One colour for the whole series, decided by the headline gain/loss: green
+    // when up over the selected period, red when down (cyan in high-contrast).
+    const isPositiveOverall = displayGain >= 0;
+    const lineColor = isHighContrast ? '#00FFFF' : isPositiveOverall ? '#00D9A5' : '#FF6B6B';
+    const fillRgb = isPositiveOverall ? '0, 217, 165' : '255, 107, 107';
+
     const data = {
         labels: history.map(h => {
             const d = new Date(h.date);
@@ -133,46 +142,32 @@ export default function TotalWorthChart({
             {
                 label: 'Value',
                 data: valueData,
-                borderColor: isHighContrast ? '#00FFFF' : '#00D9A5', // Cyan in HC
+                borderColor: lineColor, // Cyan in HC; green/red by overall result
+                // Gradient fill from the line down to the bottom of the chart:
+                // strongest at the top, fading to transparent at the bottom.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const chartArea = context.chart.chartArea;
+                    if (isHighContrast) return 'transparent';
+                    const { ctx, chartArea } = context.chart;
                     if (!chartArea) return 'transparent';
-
-                    if (isHighContrast) return 'transparent'; // No fill in HC for clarity
-
-                    const { top, bottom } = chartArea;
-                    const yAxis = context.chart.scales.y;
-
-                    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
-
-                    if (!yAxis) {
-                        gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                        gradient.addColorStop(1, 'rgba(0, 217, 165, 0)');
-                        return gradient;
-                    }
-
-                    const zeroPixel = yAxis.getPixelForValue(0);
-                    const totalHeight = bottom - top;
-                    let zeroStop = (zeroPixel - top) / totalHeight;
-
-                    // Clamp to 0-1 range to handle cases where 0 is off-chart
-                    zeroStop = Math.max(0, Math.min(1, zeroStop));
-
-                    gradient.addColorStop(0, 'rgba(0, 217, 165, 0.3)');
-                    gradient.addColorStop(zeroStop, 'rgba(0, 217, 165, 0)');
-                    gradient.addColorStop(1, 'rgba(0, 217, 165, 0.3)');
-
+                    const gradient = ctx.createLinearGradient(
+                        0,
+                        chartArea.top,
+                        0,
+                        chartArea.bottom
+                    );
+                    gradient.addColorStop(0, `rgba(${fillRgb}, 0.3)`);
+                    gradient.addColorStop(1, `rgba(${fillRgb}, 0)`);
                     return gradient;
                 },
-                fill: !isHighContrast ? 'origin' : false,
+                // Fill from the line down to the bottom of the chart area.
+                fill: isHighContrast ? false : 'start',
                 tension: 0.1,
                 pointRadius: isHighContrast ? 4 : 0,
                 pointBackgroundColor: isHighContrast ? '#000' : undefined,
                 pointBorderWidth: isHighContrast ? 2 : 0,
                 pointHoverRadius: 6,
-                pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : '#00D9A5',
+                pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : lineColor,
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
                 borderWidth: isHighContrast ? 3 : 2,
@@ -474,7 +469,8 @@ export default function TotalWorthChart({
                         className="chart-metric-label"
                         title="Largest peak-to-trough decline in portfolio value"
                     >
-                        Max Drawdown
+                        <span className="metric-label-full">Max Drawdown</span>
+                        <span className="metric-label-short">Max DD</span>
                     </span>
                     <span className="chart-metric-value negative">
                         {(() => {
