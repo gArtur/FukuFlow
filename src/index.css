@@ -2393,6 +2393,11 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
     padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.mobile-history-card:last-child {
+    margin-bottom: 0;
 }
 
 .mobile-history-header {
