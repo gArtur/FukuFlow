@@ -11,8 +11,7 @@ import {
 import type { Asset, Person, TimeRange } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { getDateRangeFromTimeRange } from '../utils/dateUtils';
-import { calculatePerformance } from '../utils/performance';
+import { computeAssetGain } from '../utils/assetGain';
 import PersonBadge from './PersonBadge';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);
@@ -40,28 +39,18 @@ export default function AssetCard({
     const { categories, theme, assetsFollowGeneral } = useSettings();
     const [copied, setCopied] = useState(false);
 
-    let gain = asset.currentValue - asset.purchaseAmount;
-    let gainPercent =
-        asset.purchaseAmount > 0 ? ((gain / asset.purchaseAmount) * 100).toFixed(1) : '0';
-    let historyToUse = asset.valueHistory || [];
-
-    if (assetsFollowGeneral && timeRange && timeRange !== 'MAX') {
-        const { startDate, endDate } = getDateRangeFromTimeRange(
-            timeRange,
-            customStartDate,
-            customEndDate
-        );
-        const perf = calculatePerformance([asset], startDate, endDate, true);
-        gain = perf.calculatedGain;
-        gainPercent = perf.gainPercent.toFixed(1);
-        historyToUse = perf.history.map(h => ({
-            date: h.date,
-            value: h.value,
-            investmentChange: 0,
-        }));
-    }
-
-    const isPositive = gain >= 0;
+    const {
+        gain,
+        gainPercent: gainPercentValue,
+        isPositive,
+        history: historyToUse,
+    } = computeAssetGain(asset, {
+        assetsFollowGeneral,
+        timeRange,
+        customStartDate,
+        customEndDate,
+    });
+    const gainPercent = gainPercentValue.toFixed(1);
 
     const owner = persons.find(p => p.id === asset.ownerId);
     const ownerName = owner?.name || 'Unknown';

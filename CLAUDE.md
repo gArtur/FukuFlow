@@ -21,16 +21,26 @@ npm run format        # Prettier
 npm run format:check  # Check formatting without writing
 npm run typecheck     # TypeScript type check only
 
-# Backend tests
-npm test --prefix server      # Run all backend tests (vitest)
-npm run test:server           # Same, from repo root
+# Frontend tests (vitest + Testing Library, jsdom)
+npm test              # Run frontend unit/component tests (src/**/*.{test,spec}.{ts,tsx})
+npm run test:watch    # Watch mode
+npm run test:ui       # Vitest UI
+
+# Backend tests (vitest + supertest, in-memory SQLite)
+npm run test:server           # Run backend tests from repo root
+npm test --prefix server      # Same, run directly in server/
+
+# End-to-end tests (Playwright)
+npm run test:e2e              # Headless; also :e2e:ui, :e2e:headed, :e2e:debug
 
 # Utilities
 node scripts/generate_sample_data.cjs   # Seed sample portfolio data
 node scripts/clear_sample_data.cjs      # Remove sample data
 ```
 
-Frontend verification is `typecheck` + `lint`. Backend has an integration test suite in `server/tests/` (vitest + supertest, in-memory SQLite).
+Full verification is `typecheck` + `lint` + `npm test`. The frontend has a vitest test suite (Testing Library + jsdom, config in `vite.config.ts`, shared setup in `src/test/setup.ts`) under `src/__tests__/`, covering utilities, hooks, and components. The backend has an integration test suite in `server/tests/` (vitest + supertest, in-memory SQLite). Playwright drives end-to-end tests (`playwright.config.ts`).
+
+> The backend (`server/`) has its own `package.json`; run `npm install --prefix server` once before using the backend dev server or its tests.
 
 ## Architecture
 
@@ -38,7 +48,7 @@ Frontend verification is `typecheck` + `lint`. Backend has an integration test s
 
 ### Stack
 
-- **Frontend**: React 18 + TypeScript + Vite, React Router, Chart.js (via react-chartjs-2)
+- **Frontend**: React 19 + TypeScript + Vite, React Router, Chart.js (via react-chartjs-2)
 - **Backend**: Express 5, Node.js 18+, SQLite3
 - **Auth**: Single-user JWT (the auth table enforces `CHECK id=1`); tokens invalidated server-side via `tokenVersion`
 - **Security**: Helmet, CORS, rate limiting (express-rate-limit)
