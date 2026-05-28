@@ -188,7 +188,9 @@ export default function AssetHistoryTable({
                                 <td>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         <span
-                                            className={entry.ytdROI >= 0 ? 'text-green' : 'text-red'}
+                                            className={
+                                                entry.ytdROI >= 0 ? 'text-green' : 'text-red'
+                                            }
                                             style={{ fontWeight: 600, fontSize: '14px' }}
                                         >
                                             {entry.ytdROI >= 0 ? '+' : ''}

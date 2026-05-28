@@ -3,13 +3,7 @@ import type { SortDirection } from './assetSort';
 
 export type { SortDirection } from './assetSort';
 
-export type SnapshotSortColumn =
-    | 'date'
-    | 'value'
-    | 'invested'
-    | 'periodGL'
-    | 'ytd'
-    | 'cumulative';
+export type SnapshotSortColumn = 'date' | 'value' | 'invested' | 'periodGL' | 'ytd' | 'cumulative';
 
 const ACCESSOR: Record<SnapshotSortColumn, (s: EnhancedSnapshot) => number> = {
     date: s => new Date(s.date).getTime(),
