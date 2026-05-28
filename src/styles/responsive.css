@@ -31,7 +31,7 @@
     }
 
     .chart-value {
-        font-size: 22px;
+        font-size: 26px;
     }
 
     .detail-title {
@@ -75,7 +75,7 @@
 
     /* Chart layout */
     .chart-value {
-        font-size: 26px;
+        font-size: 32px;
     }
 
     .chart-header {
@@ -153,7 +153,7 @@
 
     /* Allocation chart */
     .doughnut-container {
-        height: 180px;
+        height: 200px;
     }
 
     .doughnut-center-value {
@@ -205,6 +205,12 @@
         font-size: 16px;
     }
 }
+
+/* ===== MOBILE: FULL-BLEED GRAPH CARDS (640px and below) =====
+   Rules that override base definitions in index.css are placed directly after
+   those base rules in index.css (after the @import block) so they win the cascade.
+   See: .chart-card, .line-chart-container, .mobile-history-list, .movers-section,
+   and .mb-8 in index.css for the mobile overrides. */
 
 /* ===== MOBILE HEATMAP (640px and below) ===== */
 @media (max-width: 640px) {
