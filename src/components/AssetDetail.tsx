@@ -57,7 +57,6 @@ export default function AssetDetail({
                 <TotalWorthChart
                     assets={[asset]}
                     stats={{ totalGain: gain, gainPercentage: gainPercent }}
-                    title="Performance History"
                     timeRange={timeRange}
                     setTimeRange={setTimeRange}
                     customStartDate={customStartDate}

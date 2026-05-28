@@ -8,7 +8,6 @@ interface TotalWorthChartProps {
         totalGain: number;
         gainPercentage: number;
     };
-    title?: string;
     timeRange: TimeRange;
     setTimeRange: (range: TimeRange) => void;
     customStartDate: string;
@@ -26,7 +25,9 @@ import {
     calculateCAGR,
     calculateMaxDrawdown,
     calculateVolatilityFromHistory,
+    toPerformanceSeries,
 } from '../utils/performance';
+import { useChartView } from '../hooks/useChartView';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -42,7 +43,6 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, 
 export default function TotalWorthChart({
     assets,
     stats,
-    title = 'Total Worth',
     timeRange,
     setTimeRange,
     customStartDate,
@@ -52,6 +52,8 @@ export default function TotalWorthChart({
 }: TotalWorthChartProps) {
     const { theme } = useSettings();
     const { isHidden, formatAmount } = usePrivacy();
+    const [view, setView] = useChartView();
+    const isPerformance = view === 'performance';
     const chartRef = useRef<Chart<'line'>>(null);
 
     // Theme-based colors
@@ -100,8 +102,6 @@ export default function TotalWorthChart({
 
     const {
         history,
-        startValue,
-        startInvested,
         currentValue,
         calculatedGain,
         gainPercent: calculatedGainPercent,
@@ -113,16 +113,11 @@ export default function TotalWorthChart({
 
     const displayGainPercent = isMax && stats ? stats.gainPercentage : calculatedGainPercent;
 
-    // For privacy mode, normalize data to percentage changes from Start lnvested (to show ROI comparison)
-    // If Start Invested is 0, fall back to Start Value to avoid divide by zero, or just show 0
-    const baseline = startInvested > 0 ? startInvested : startValue > 0 ? startValue : 1;
-
-    const normalize = (val: number) => {
-        return ((val - baseline) / baseline) * 100;
-    };
-
-    const normalizedValueData = history.map(h => normalize(h.value));
-    const normalizedInvestedData = history.map(h => normalize(h.invested));
+    // Performance view: value line = per-date ROI %, invested line = flat 0% baseline.
+    // Total Worth view: both lines in absolute currency. Privacy masks figures separately.
+    const performanceData = toPerformanceSeries(history);
+    const valueData = isPerformance ? performanceData : history.map(h => h.value);
+    const investedData = isPerformance ? history.map(() => 0) : history.map(h => h.invested);
 
     const data = {
         labels: history.map(h => {
@@ -136,7 +131,7 @@ export default function TotalWorthChart({
         datasets: [
             {
                 label: 'Value',
-                data: isHidden ? normalizedValueData : history.map(h => h.value),
+                data: valueData,
                 borderColor: isHighContrast ? '#00FFFF' : '#00D9A5', // Cyan in HC
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 backgroundColor: (context: any) => {
@@ -183,7 +178,7 @@ export default function TotalWorthChart({
             },
             {
                 label: 'Invested',
-                data: isHidden ? normalizedInvestedData : history.map(h => h.invested),
+                data: investedData,
                 borderColor: isHighContrast ? '#FFFF00' : '#3B82F6', // Yellow in HC
                 backgroundColor: 'transparent',
                 fill: false,
@@ -245,16 +240,17 @@ export default function TotalWorthChart({
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     label: (context: any) => {
                         // Only show Value and Invested in labels
+                        const index = context.dataIndex;
+                        const item = history[index];
+                        if (!item) return '';
                         if (context.datasetIndex === 0) {
-                            const index = context.dataIndex;
-                            const item = history[index];
-                            if (!item) return '';
-                            return `Value: ${formatAmount(item.value)}`;
+                            return isPerformance
+                                ? `Value: ${formatPercent(performanceData[index])}`
+                                : `Value: ${formatAmount(item.value)}`;
                         } else if (context.datasetIndex === 1) {
-                            const index = context.dataIndex;
-                            const item = history[index];
-                            if (!item) return '';
-                            return `Invested: ${formatAmount(item.invested)}`;
+                            return isPerformance
+                                ? `Invested: ${formatPercent(0)}`
+                                : `Invested: ${formatAmount(item.invested)}`;
                         }
                         return '';
                     },
@@ -329,14 +325,15 @@ export default function TotalWorthChart({
                     font: { size: 10 },
                     callback: (value: number | string) => {
                         const num = typeof value === 'string' ? parseFloat(value) : value;
-                        if (isHidden) {
+                        if (isPerformance) {
                             const sign = num >= 0 ? '+' : '';
                             return `${sign}${num.toFixed(0)}%`;
-                        } else {
-                            if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-                            if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
-                            return num;
                         }
+                        // Total Worth view shows currency; privacy masks the scale.
+                        if (isHidden) return '•••';
+                        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+                        if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+                        return num;
                     },
                 },
                 border: { display: false },
@@ -353,15 +350,36 @@ export default function TotalWorthChart({
         <div className="chart-card total-worth-card" data-testid="total-worth-chart">
             <div className="chart-header">
                 <div className="chart-header-left">
-                    <h3 className="chart-title">{title}</h3>
+                    <div className="view-toggle" role="group" aria-label="Chart view">
+                        <button
+                            className={`view-tab ${!isPerformance ? 'active' : ''}`}
+                            onClick={() => setView('totalWorth')}
+                            aria-pressed={!isPerformance}
+                            data-testid="view-total-worth"
+                        >
+                            Total Worth
+                        </button>
+                        <button
+                            className={`view-tab ${isPerformance ? 'active' : ''}`}
+                            onClick={() => setView('performance')}
+                            aria-pressed={isPerformance}
+                            data-testid="view-performance"
+                        >
+                            Performance
+                        </button>
+                    </div>
                     <div className="chart-value" data-testid="total-worth-value">
-                        {formatAmount(currentValue)}
+                        {isPerformance
+                            ? formatPercent(displayGainPercent)
+                            : formatAmount(currentValue)}
                     </div>
                     <div className={`chart-change ${displayGain >= 0 ? 'positive' : 'negative'}`}>
-                        <span>{isHidden ? '' : formatAmount(Math.abs(displayGain))}</span>
-                        <span className="chart-change-percent">
-                            {formatPercent(displayGainPercent)}
-                        </span>
+                        <span>{formatAmount(Math.abs(displayGain))}</span>
+                        {!isPerformance && (
+                            <span className="chart-change-percent">
+                                {formatPercent(displayGainPercent)}
+                            </span>
+                        )}
                     </div>
                 </div>
                 <div className="chart-header-right">

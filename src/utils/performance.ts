@@ -132,6 +132,15 @@ export function calculatePerformance(
     };
 }
 
+// Per-date cumulative return as a percentage of invested capital (simple ROI).
+// See docs/adr/0001-performance-view-uses-simple-roi.md. When no capital has been
+// deployed yet (invested <= 0) the return is 0%, so the line sits on the baseline.
+export function toPerformanceSeries(history: PerformanceDatum[]): number[] {
+    return history.map(({ value, invested }) =>
+        invested > 0 ? ((value - invested) / invested) * 100 : 0
+    );
+}
+
 export function calculateCAGR(history: PerformanceDatum[], gainPercent: number): number {
     if (history.length < 2) return 0;
     const ms =

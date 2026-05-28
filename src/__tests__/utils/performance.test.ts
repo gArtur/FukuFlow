@@ -4,6 +4,7 @@ import {
     calculateCAGR,
     calculateMaxDrawdown,
     calculateVolatilityFromHistory,
+    toPerformanceSeries,
 } from '../../utils/performance';
 import type { PerformanceDatum } from '../../utils/performance';
 import type { Asset } from '../../types';
@@ -148,6 +149,39 @@ describe('calculatePerformance — binary search boundary', () => {
 function makeDatum(date: string, value: number): PerformanceDatum {
     return { date, value, invested: 0 };
 }
+
+// ─── toPerformanceSeries ──────────────────────────────────────────────────────
+
+describe('toPerformanceSeries', () => {
+    it('returns per-date ROI = (value - invested) / invested * 100', () => {
+        const history = [{ date: '2024-01-01', value: 1200, invested: 1000 }];
+        expect(toPerformanceSeries(history)).toEqual([20]);
+    });
+
+    it('returns 0% when no capital is deployed yet (invested = 0)', () => {
+        const history = [{ date: '2024-01-01', value: 0, invested: 0 }];
+        expect(toPerformanceSeries(history)).toEqual([0]);
+    });
+
+    it('returns 0% for negative invested (guards divide-by-negative)', () => {
+        const history = [{ date: '2024-01-01', value: 500, invested: -100 }];
+        expect(toPerformanceSeries(history)).toEqual([0]);
+    });
+
+    it('returns a negative ROI when value is below invested', () => {
+        const history = [{ date: '2024-01-01', value: 800, invested: 1000 }];
+        expect(toPerformanceSeries(history)).toEqual([-20]);
+    });
+
+    it('maps each point of a multi-point series independently', () => {
+        const history = [
+            { date: '2024-01-01', value: 1000, invested: 1000 }, // 0%
+            { date: '2024-06-01', value: 1100, invested: 1000 }, // +10%
+            { date: '2024-12-01', value: 1650, invested: 1500 }, // +10% on more capital
+        ];
+        expect(toPerformanceSeries(history)).toEqual([0, 10, 10]);
+    });
+});
 
 // ─── calculateCAGR ────────────────────────────────────────────────────────────
 
