@@ -25,7 +25,7 @@ import {
     calculateCAGR,
     calculateMaxDrawdown,
     calculateVolatilityFromHistory,
-    toPerformanceSeries,
+    toPeriodReturnSeries,
 } from '../utils/performance';
 import { useChartView } from '../hooks/useChartView';
 import {
@@ -113,9 +113,11 @@ export default function TotalWorthChart({
 
     const displayGainPercent = isMax && stats ? stats.gainPercentage : calculatedGainPercent;
 
-    // Performance view: value line = per-date ROI %, invested line = flat 0% baseline.
-    // Total Worth view: both lines in absolute currency. Privacy masks figures separately.
-    const performanceData = toPerformanceSeries(history);
+    // Performance view: value line = period return rebased to 0% at the range start,
+    // invested line = flat 0% baseline. Total Worth view: both lines in absolute
+    // currency. Privacy masks figures separately.
+    const performanceData = toPeriodReturnSeries(history);
+    const baseGain = history.length > 0 ? history[0].value - history[0].invested : 0;
     const valueData = isPerformance ? performanceData : history.map(h => h.value);
     const investedData = isPerformance ? history.map(() => 0) : history.map(h => h.invested);
 
@@ -226,6 +228,10 @@ export default function TotalWorthChart({
                 padding: 12,
                 cornerRadius: 8,
                 displayColors: false,
+                // In Performance view the Invested line is a flat 0% baseline — hide its
+                // tooltip row so it doesn't show a redundant "Invested: 0%" every time.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                filter: (item: any) => !(isPerformance && item.datasetIndex === 1),
                 callbacks: {
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     title: (tooltipItems: any) => {
@@ -248,9 +254,8 @@ export default function TotalWorthChart({
                                 ? `Value: ${formatPercent(performanceData[index])}`
                                 : `Value: ${formatAmount(item.value)}`;
                         } else if (context.datasetIndex === 1) {
-                            return isPerformance
-                                ? `Invested: ${formatPercent(0)}`
-                                : `Invested: ${formatAmount(item.invested)}`;
+                            // Filtered out in Performance view; only reached in Total Worth.
+                            return `Invested: ${formatAmount(item.invested)}`;
                         }
                         return '';
                     },
@@ -273,9 +278,15 @@ export default function TotalWorthChart({
                         const item = history[index];
                         if (!item) return '';
 
-                        const gainLoss = item.value - item.invested;
-                        const gainLossPercent =
-                            item.invested > 0 ? (gainLoss / item.invested) * 100 : 0;
+                        // Performance view is period-relative: gain since the range start.
+                        const gainLoss = isPerformance
+                            ? item.value - item.invested - baseGain
+                            : item.value - item.invested;
+                        const gainLossPercent = isPerformance
+                            ? performanceData[index]
+                            : item.invested > 0
+                              ? (gainLoss / item.invested) * 100
+                              : 0;
                         const sign = gainLoss >= 0 ? '+' : '';
 
                         if (isHidden) {
@@ -292,7 +303,9 @@ export default function TotalWorthChart({
                     const item = history[index];
                     if (!item) return '#fff';
 
-                    const isPositive = item.value >= item.invested;
+                    const isPositive = isPerformance
+                        ? item.value - item.invested - baseGain >= 0
+                        : item.value >= item.invested;
                     if (isHighContrast) {
                         return isPositive ? '#00FF00' : '#FF0000'; // Neon Green/Red
                     }
@@ -369,17 +382,13 @@ export default function TotalWorthChart({
                         </button>
                     </div>
                     <div className="chart-value" data-testid="total-worth-value">
-                        {isPerformance
-                            ? formatPercent(displayGainPercent)
-                            : formatAmount(currentValue)}
+                        {formatAmount(currentValue)}
                     </div>
                     <div className={`chart-change ${displayGain >= 0 ? 'positive' : 'negative'}`}>
                         <span>{formatAmount(Math.abs(displayGain))}</span>
-                        {!isPerformance && (
-                            <span className="chart-change-percent">
-                                {formatPercent(displayGainPercent)}
-                            </span>
-                        )}
+                        <span className="chart-change-percent">
+                            {formatPercent(displayGainPercent)}
+                        </span>
                     </div>
                 </div>
                 <div className="chart-header-right">

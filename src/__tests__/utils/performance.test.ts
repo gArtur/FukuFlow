@@ -4,7 +4,7 @@ import {
     calculateCAGR,
     calculateMaxDrawdown,
     calculateVolatilityFromHistory,
-    toPerformanceSeries,
+    toPeriodReturnSeries,
 } from '../../utils/performance';
 import type { PerformanceDatum } from '../../utils/performance';
 import type { Asset } from '../../types';
@@ -150,36 +150,71 @@ function makeDatum(date: string, value: number): PerformanceDatum {
     return { date, value, invested: 0 };
 }
 
-// ─── toPerformanceSeries ──────────────────────────────────────────────────────
+// ─── toPeriodReturnSeries ─────────────────────────────────────────────────────
 
-describe('toPerformanceSeries', () => {
-    it('returns per-date ROI = (value - invested) / invested * 100', () => {
-        const history = [{ date: '2024-01-01', value: 1200, invested: 1000 }];
-        expect(toPerformanceSeries(history)).toEqual([20]);
+describe('toPeriodReturnSeries', () => {
+    it('returns [] for empty history', () => {
+        expect(toPeriodReturnSeries([])).toEqual([]);
     });
 
-    it('returns 0% when no capital is deployed yet (invested = 0)', () => {
-        const history = [{ date: '2024-01-01', value: 0, invested: 0 }];
-        expect(toPerformanceSeries(history)).toEqual([0]);
-    });
-
-    it('returns 0% for negative invested (guards divide-by-negative)', () => {
-        const history = [{ date: '2024-01-01', value: 500, invested: -100 }];
-        expect(toPerformanceSeries(history)).toEqual([0]);
-    });
-
-    it('returns a negative ROI when value is below invested', () => {
-        const history = [{ date: '2024-01-01', value: 800, invested: 1000 }];
-        expect(toPerformanceSeries(history)).toEqual([-20]);
-    });
-
-    it('maps each point of a multi-point series independently', () => {
+    it('always starts at 0% for the first point of the period', () => {
         const history = [
-            { date: '2024-01-01', value: 1000, invested: 1000 }, // 0%
-            { date: '2024-06-01', value: 1100, invested: 1000 }, // +10%
-            { date: '2024-12-01', value: 1650, invested: 1500 }, // +10% on more capital
+            { date: '2026-01-02', value: 1200, invested: 1000 }, // already +20% all-time
+            { date: '2026-05-07', value: 1300, invested: 1000 },
         ];
-        expect(toPerformanceSeries(history)).toEqual([0, 10, 10]);
+        expect(toPeriodReturnSeries(history)[0]).toBe(0);
+    });
+
+    it('rebases away an elevated starting ROI (YTD starting mid-air -> 0)', () => {
+        // Start already +20% all-time (V0=1200, I0=1000); value then rises to 1320, no new capital.
+        // periodGain_end = (1320-1000) - (1200-1000) = 120; basis = 1200 + 0 = 1200 -> +10%
+        const history = [
+            { date: '2026-01-02', value: 1200, invested: 1000 },
+            { date: '2026-05-07', value: 1320, invested: 1000 },
+        ];
+        const s = toPeriodReturnSeries(history);
+        expect(s[0]).toBe(0);
+        expect(s[1]).toBeCloseTo(10);
+    });
+
+    it('endpoint equals the money-weighted period return (matches the header)', () => {
+        // V0=I0=1000 (start gain 0); end V=1300, I=1000.
+        // periodGain=300, basis=1000 -> +30%, same as calculatePerformance gainPercent.
+        const history = [
+            { date: '2026-01-02', value: 1000, invested: 1000 },
+            { date: '2026-05-07', value: 1300, invested: 1000 },
+        ];
+        const s = toPeriodReturnSeries(history);
+        expect(s[s.length - 1]).toBeCloseTo(30);
+    });
+
+    it('accounts for mid-period deposits in the capital basis', () => {
+        // V0=I0=1000; deposit 500 mid-period; end V=1650, I=1500.
+        // periodGain=(1650-1500)-0=150; basis=1000+(1500-1000)=1500 -> +10%
+        const history = [
+            { date: '2026-01-02', value: 1000, invested: 1000 },
+            { date: '2026-03-01', value: 1550, invested: 1500 },
+            { date: '2026-05-07', value: 1650, invested: 1500 },
+        ];
+        const s = toPeriodReturnSeries(history);
+        expect(s[0]).toBe(0);
+        expect(s[s.length - 1]).toBeCloseTo(10);
+    });
+
+    it('goes negative when the portfolio loses value during the period', () => {
+        const history = [
+            { date: '2026-01-02', value: 1000, invested: 1000 },
+            { date: '2026-05-07', value: 900, invested: 1000 },
+        ];
+        expect(toPeriodReturnSeries(history)[1]).toBeCloseTo(-10);
+    });
+
+    it('returns 0% when the period-start basis is non-positive', () => {
+        const history = [
+            { date: '2026-01-02', value: 0, invested: 0 },
+            { date: '2026-05-07', value: 0, invested: 0 },
+        ];
+        expect(toPeriodReturnSeries(history)).toEqual([0, 0]);
     });
 });
 

@@ -21,8 +21,12 @@ _Avoid_: profit, return amount, P&L.
 ### Chart views
 
 **Performance** (view):
-The chart view that plots Gain/Loss as a percentage of Invested Capital at each date — `(value − invested) / invested × 100`. The Invested Capital line is drawn flat at 0%, so the gap between it and the value line is the return %.
+The chart view that plots **Period Return** — the return accumulated *within the selected time range*, rebased so the first point of the range is 0%. The Invested Capital line is drawn flat at 0% as that starting baseline, so the line shows how the portfolio moved during the period, independent of where it stood before.
 _Avoid_: returns view, ROI chart, percentage mode.
+
+**Period Return**:
+The money-weighted (Modified-Dietz) return measured from the start of the selected time range to a given date — period gain divided by the capital at work during the period. Starts at 0% at the range start and ends at the headline percentage.
+_Avoid_: ROI (which implies an all-time figure), TWR.
 
 **Total Worth** (view):
 The chart view that plots actual currency values: the Total Worth line plus the Invested Capital line, which steps upward as capital is deposited over time.
@@ -45,14 +49,14 @@ _Avoid_: flow, contribution, deposit (as the field name).
 ## Relationships
 
 - The **Total Worth** chart card offers two **views**: **Performance** (percentage) and **Total Worth** (currency).
-- **Performance** % at a date = (Total Worth − Invested Capital) / Invested Capital × 100.
+- **Performance** plots **Period Return**, rebased to 0% at the start of the selected time range.
 - **Invested Capital** at a date = running sum of every **Investment Change** up to that date.
 - **Privacy** is orthogonal to the active view — it hides figures in either view.
 
 ## Example dialogue
 
-> **Dev:** "In the Performance view, why does the invested line sit flat at zero?"
-> **Domain expert:** "Because Performance shows return *relative to* Invested Capital — the invested line is the baseline you're measuring against, so it's 0% by definition. In the Total Worth view that same line becomes wavy, since there it's the actual capital deployed in currency."
+> **Dev:** "In the Performance view, why does the line always start at zero, even for a 1-year window?"
+> **Domain expert:** "Because Performance shows **Period Return** — how the portfolio moved *during the selected range*, not since inception. The start of the range is the 0% baseline (that's the flat Invested Capital line), so you read off how much you're up or down for this period. Switch to the Total Worth view and that same baseline becomes the wavy capital-deployed line in currency."
 
 ## Flagged ambiguities
 
