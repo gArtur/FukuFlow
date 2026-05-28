@@ -123,12 +123,11 @@ export default function TotalWorthChart({
     // Gain/loss coloring: green where the Value line sits at/above the baseline,
     // red where it dips below. Baseline = the Invested dataset (flat 0% in
     // Performance view, the moving Invested line in Total Worth view).
-    const positiveLine = isHighContrast ? '#00FFFF' : '#00D9A5';
-    const negativeLine = isHighContrast ? '#00FFFF' : '#FF6B6B';
-    const positiveFill = 'rgba(0, 217, 165, 0.25)';
-    const negativeFill = 'rgba(255, 107, 107, 0.25)';
-    const isBelowBaseline = (index: number | undefined) =>
-        index != null && index >= 0 && valueData[index] < investedData[index];
+    // One colour for the whole series, decided by the headline gain/loss: green
+    // when up over the selected period, red when down (cyan in high-contrast).
+    const isPositiveOverall = displayGain >= 0;
+    const lineColor = isHighContrast ? '#00FFFF' : isPositiveOverall ? '#00D9A5' : '#FF6B6B';
+    const fillRgb = isPositiveOverall ? '0, 217, 165' : '255, 107, 107';
 
     const data = {
         labels: history.map(h => {
@@ -143,26 +142,32 @@ export default function TotalWorthChart({
             {
                 label: 'Value',
                 data: valueData,
-                borderColor: positiveLine, // Cyan in HC; per-segment green/red below
-                segment: isHighContrast
-                    ? undefined
-                    : {
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          borderColor: (ctx: any) =>
-                              isBelowBaseline(ctx.p1DataIndex) ? negativeLine : positiveLine,
-                      },
-                backgroundColor: positiveFill,
-                // Shade the gain/loss band between Value and the Invested line (index 1):
-                // green where Value is above the baseline, red where below. No fill in HC.
-                fill: isHighContrast
-                    ? false
-                    : { target: 1, above: positiveFill, below: negativeFill },
+                borderColor: lineColor, // Cyan in HC; green/red by overall result
+                // Gradient fill from the line down to the bottom of the chart:
+                // strongest at the top, fading to transparent at the bottom.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                backgroundColor: (context: any) => {
+                    if (isHighContrast) return 'transparent';
+                    const { ctx, chartArea } = context.chart;
+                    if (!chartArea) return 'transparent';
+                    const gradient = ctx.createLinearGradient(
+                        0,
+                        chartArea.top,
+                        0,
+                        chartArea.bottom
+                    );
+                    gradient.addColorStop(0, `rgba(${fillRgb}, 0.3)`);
+                    gradient.addColorStop(1, `rgba(${fillRgb}, 0)`);
+                    return gradient;
+                },
+                // Fill from the line down to the bottom of the chart area.
+                fill: isHighContrast ? false : 'start',
                 tension: 0.1,
                 pointRadius: isHighContrast ? 4 : 0,
                 pointBackgroundColor: isHighContrast ? '#000' : undefined,
                 pointBorderWidth: isHighContrast ? 2 : 0,
                 pointHoverRadius: 6,
-                pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : '#00D9A5',
+                pointHoverBackgroundColor: isHighContrast ? '#00FFFF' : lineColor,
                 pointHoverBorderColor: '#fff',
                 pointHoverBorderWidth: 2,
                 borderWidth: isHighContrast ? 3 : 2,

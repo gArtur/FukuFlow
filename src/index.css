@@ -608,9 +608,9 @@
 }
 
 .asset-table thead th {
-    background: var(--bg-tertiary);
+    background: transparent;
     text-align: left;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--text-muted);
     white-space: nowrap;
