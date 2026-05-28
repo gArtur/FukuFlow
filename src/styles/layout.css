@@ -15,16 +15,18 @@
     padding-bottom: 100px;
 }
 
-/* Phones: reclaim the wasted side gutters so content uses the full width. */
+/* Phones: a single comfortable side inset shared by the filter tabs, hero, mover
+   cards and snapshot history. Graph cards break out of this to reach the screen
+   edge (see .chart-card in responsive.css). */
 @media (max-width: 480px) {
     .main-content {
-        padding-left: var(--space-sm);
-        padding-right: var(--space-sm);
+        padding-left: var(--space-md);
+        padding-right: var(--space-md);
     }
 
     .dashboard-container {
-        padding-left: var(--space-sm);
-        padding-right: var(--space-sm);
+        padding-left: var(--space-md);
+        padding-right: var(--space-md);
     }
 }
 

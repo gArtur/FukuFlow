@@ -1,4 +1,5 @@
 import type { ValueEntry } from '../types';
+import SnapshotActions from './SnapshotActions';
 
 interface ProcessedHistoryEntry extends ValueEntry {
     cumInvested: number;
@@ -39,37 +40,13 @@ export default function MobileAssetHistory({
                                 year: 'numeric',
                             })}
                         </span>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                                className="mobile-action-btn"
-                                onClick={() =>
-                                    onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })
-                                }
-                                disabled={isHidden}
-                                title={isHidden ? 'Disabled in Private Mode' : 'Edit'}
-                                style={isHidden ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
-                                data-testid="snapshot-row-edit"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                className="mobile-action-btn"
-                                onClick={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
-                                disabled={isHidden}
-                                title={isHidden ? 'Disabled in Private Mode' : 'Delete'}
-                                style={
-                                    isHidden
-                                        ? {
-                                              opacity: 0.5,
-                                              cursor: 'not-allowed',
-                                              color: 'var(--accent-red)',
-                                          }
-                                        : { color: 'var(--accent-red)' }
-                                }
-                            >
-                                Delete
-                            </button>
-                        </div>
+                        <SnapshotActions
+                            isHidden={isHidden}
+                            onEdit={() =>
+                                onEditSnapshot({ ...entry, id: entry.id || entry.actualIndex })
+                            }
+                            onDelete={() => onDeleteSnapshot(entry.id || entry.actualIndex)}
+                        />
                     </div>
 
                     <div className="mobile-history-row">

@@ -2391,20 +2391,6 @@
     color: var(--text-primary);
 }
 
-.mobile-history-actions {
-    display: flex;
-    gap: var(--space-md);
-}
-
-.mobile-action-btn {
-    background: none;
-    border: none;
-    color: var(--accent-primary);
-    font-size: 13px;
-    font-weight: 500;
-    padding: 0;
-}
-
 .mobile-history-row {
     display: flex;
     justify-content: space-between;
