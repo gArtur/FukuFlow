@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { validateAsset, validateAssetUpdate, validateSnapshot, validateUuidParam } = require('../validation/schemas');
+const { promisifyDb, withTransaction, reconcileAsset } = require('../db-helpers');
 
 const ALLOWED_ASSET_UPDATE_FIELDS = Object.freeze(new Set(['name', 'category', 'ownerId', 'symbol']));
 
@@ -85,47 +86,27 @@ router.put('/:id', validateUuidParam, validateAssetUpdate, (req, res) => {
 });
 
 // POST add snapshot
-router.post('/:id/snapshot', validateUuidParam, validateSnapshot, (req, res) => {
-    const db = req.app.locals.db;
+router.post('/:id/snapshot', validateUuidParam, validateSnapshot, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
     const { id } = req.params;
     const { value, date = new Date().toISOString(), investmentChange = 0, notes = '' } = req.body;
 
-    db.serialize(() => {
-        db.get('SELECT purchaseAmount FROM assets WHERE id = ?', [id], (err, row) => {
-            if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-            if (!row) return res.status(404).json({ error: 'Asset not found' });
+    try {
+        const asset = await adb.get('SELECT id FROM assets WHERE id = ?', [id]);
+        if (!asset) return res.status(404).json({ error: 'Asset not found' });
 
-            const newPurchaseAmount = row.purchaseAmount + investmentChange;
-
-            db.run('UPDATE assets SET purchaseAmount = ? WHERE id = ?', [newPurchaseAmount, id], (err) => {
-                if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-
-                db.run(
-                    'INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
-                    [id, date, value, investmentChange, notes],
-                    function (err) {
-                        if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-
-                        db.get(
-                            'SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1',
-                            [id],
-                            (err, latestSnapshot) => {
-                                if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-                                if (latestSnapshot) {
-                                    db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [latestSnapshot.value, id], (err) => {
-                                        if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-                                        res.json({ assetId: id, date, value, investmentChange, notes });
-                                    });
-                                } else {
-                                    res.json({ assetId: id, date, value, investmentChange, notes });
-                                }
-                            }
-                        );
-                    }
-                );
-            });
+        await withTransaction(adb, async () => {
+            await adb.run(
+                'INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
+                [id, date, value, investmentChange, notes]
+            );
+            await reconcileAsset(adb, id);
         });
-    });
+
+        res.json({ assetId: id, date, value, investmentChange, notes });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to add snapshot' });
+    }
 });
 
 // POST legacy value update

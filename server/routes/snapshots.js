@@ -1,65 +1,48 @@
 const express = require('express');
 const router = express.Router();
 const { validateSnapshotUpdate, validateIntegerIdParam } = require('../validation/schemas');
+const { promisifyDb, withTransaction, reconcileAsset } = require('../db-helpers');
 
 // DELETE snapshot
-router.delete('/:id', validateIntegerIdParam, (req, res) => {
-    const db = req.app.locals.db;
+router.delete('/:id', validateIntegerIdParam, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
     const snapshotId = req.params.id;
 
-    db.get('SELECT assetId, investmentChange FROM asset_history WHERE id = ?', [snapshotId], (err, snapshot) => {
-        if (err) return res.status(500).json({ error: 'Failed to delete snapshot' });
+    try {
+        const snapshot = await adb.get('SELECT assetId FROM asset_history WHERE id = ?', [snapshotId]);
         if (!snapshot) return res.status(404).json({ error: 'Snapshot not found' });
 
-        db.run('UPDATE assets SET purchaseAmount = purchaseAmount - ? WHERE id = ?',
-            [snapshot.investmentChange || 0, snapshot.assetId], (err) => {
-                if (err) return res.status(500).json({ error: 'Failed to delete snapshot' });
+        await withTransaction(adb, async () => {
+            await adb.run('DELETE FROM asset_history WHERE id = ?', [snapshotId]);
+            await reconcileAsset(adb, snapshot.assetId);
+        });
 
-                db.run('DELETE FROM asset_history WHERE id = ?', [snapshotId], (err) => {
-                    if (err) return res.status(500).json({ error: 'Failed to delete snapshot' });
-
-                    db.get('SELECT value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1',
-                        [snapshot.assetId], (err, latest) => {
-                            if (latest) {
-                                db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [latest.value, snapshot.assetId]);
-                            }
-                            res.status(204).send();
-                        });
-                });
-            });
-    });
+        res.status(204).send();
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete snapshot' });
+    }
 });
 
 // PUT update snapshot
-router.put('/:id', validateIntegerIdParam, validateSnapshotUpdate, (req, res) => {
-    const db = req.app.locals.db;
+router.put('/:id', validateIntegerIdParam, validateSnapshotUpdate, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
     const snapshotId = req.params.id;
     const { date, value, investmentChange, notes } = req.body;
 
-    db.get('SELECT assetId, investmentChange as oldInvestmentChange FROM asset_history WHERE id = ?', [snapshotId], (err, oldSnapshot) => {
-        if (err) return res.status(500).json({ error: 'Failed to update snapshot' });
-        if (!oldSnapshot) return res.status(404).json({ error: 'Snapshot not found' });
+    try {
+        const snapshot = await adb.get('SELECT assetId FROM asset_history WHERE id = ?', [snapshotId]);
+        if (!snapshot) return res.status(404).json({ error: 'Snapshot not found' });
 
-        const investmentDiff = (investmentChange || 0) - (oldSnapshot.oldInvestmentChange || 0);
+        await withTransaction(adb, async () => {
+            await adb.run('UPDATE asset_history SET date = ?, value = ?, investmentChange = ?, notes = ? WHERE id = ?',
+                [date, value, investmentChange, notes, snapshotId]);
+            await reconcileAsset(adb, snapshot.assetId);
+        });
 
-        db.run('UPDATE asset_history SET date = ?, value = ?, investmentChange = ?, notes = ? WHERE id = ?',
-            [date, value, investmentChange, notes, snapshotId], (err) => {
-                if (err) return res.status(500).json({ error: 'Failed to update snapshot' });
-
-                db.run('UPDATE assets SET purchaseAmount = purchaseAmount + ? WHERE id = ?',
-                    [investmentDiff, oldSnapshot.assetId], (err) => {
-                        if (err) return res.status(500).json({ error: 'Failed to update snapshot' });
-
-                        db.get('SELECT id, value FROM asset_history WHERE assetId = ? ORDER BY date DESC, id DESC LIMIT 1',
-                            [oldSnapshot.assetId], (err, latest) => {
-                                if (latest && latest.id == snapshotId) {
-                                    db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, oldSnapshot.assetId]);
-                                }
-                                res.json({ id: snapshotId, date, value, investmentChange, notes });
-                            });
-                    });
-            });
-    });
+        res.json({ id: snapshotId, date, value, investmentChange, notes });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to update snapshot' });
+    }
 });
 
 module.exports = router;
