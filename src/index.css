@@ -616,7 +616,7 @@
 /* ===== ASSET TABLE VIEW ===== */
 .movers-header-right {
     display: flex;
-    align-items: center;
+    align-items: end;
     gap: var(--space-md);
 }
 
