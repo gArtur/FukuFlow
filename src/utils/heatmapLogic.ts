@@ -1,5 +1,6 @@
 import type { Asset } from '../types';
 import { generateMonthRange } from './dateUtils';
+import { subPeriodReturn } from './subPeriodReturn';
 
 export interface HeatmapCell {
     month: string;
@@ -139,9 +140,11 @@ export const calculateHeatmapData = (asset: Asset): HeatmapYearRow[] => {
 
             const flow = currentData.flow;
             const value = currentData.value;
-            const basis = prevValue + flow;
-            const changeValue = value - basis;
-            const changePercent = basis !== 0 ? (changeValue / basis) * 100 : 0;
+            const { change: changeValue, returnPercent: changePercent } = subPeriodReturn(
+                prevValue,
+                value,
+                flow
+            );
 
             if (currentData.realDataExists) hasDataInYear = true;
 
@@ -184,9 +187,11 @@ export const calculateHeatmapData = (asset: Asset): HeatmapYearRow[] => {
             }
         }
 
-        const yearBasis = yearStartValue + yearTotalFlow;
-        const yearChange = yearEndValue - yearBasis;
-        const yearTotalReturn = yearBasis !== 0 ? (yearChange / yearBasis) * 100 : 0;
+        const { change: yearChange, returnPercent: yearTotalReturn } = subPeriodReturn(
+            yearStartValue,
+            yearEndValue,
+            yearTotalFlow
+        );
 
         const hasHolding = yearStartValue > 0 || yearEndValue > 0 || yearTotalFlow !== 0;
 
