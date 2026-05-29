@@ -118,7 +118,9 @@ export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: Asset
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
                         </svg>
-                        <span style={{ color: 'var(--text-primary)' }}>{owner?.name || 'Unknown'}</span>
+                        <span style={{ color: 'var(--text-primary)' }}>
+                            {owner?.name || 'Unknown'}
+                        </span>
                     </span>
                     <span className="detail-pill">{categoryLabel}</span>
                 </div>
@@ -151,7 +153,9 @@ export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: Asset
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <span style={{ color: 'var(--text-primary)' }}>{owner?.name || 'Unknown'}</span>
+                        <span style={{ color: 'var(--text-primary)' }}>
+                            {owner?.name || 'Unknown'}
+                        </span>
                     </span>
                 </div>
                 <div className="detail-actions" style={{ marginLeft: 'auto', flexShrink: 0 }}>
