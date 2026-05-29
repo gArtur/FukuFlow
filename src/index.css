@@ -126,10 +126,12 @@
 .filter-tabs {
     display: flex;
     gap: var(--space-sm);
-    padding: var(--space-sm) 0;
+    padding: 0;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    margin-bottom: var(--space-md);
+    margin-top: var(--space-md);
 }
 
 .filter-tabs::-webkit-scrollbar {
@@ -533,7 +535,7 @@
 
 /* ===== MY MOVERS SECTION ===== */
 .movers-section {
-    margin-top: var(--space-xl);
+    margin-top: var(--space-md);
 }
 
 @media (max-width: 640px) {
@@ -2290,7 +2292,8 @@
 }
 
 .detail-hero {
-    margin-bottom: var(--space-xl);
+    margin-top: var(--space-md);
+    margin-bottom: var(--space-md);
 }
 
 .detail-title-row {
@@ -2620,7 +2623,7 @@
 }
 
 .mb-8 {
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-md);
 }
 
 @media (max-width: 640px) {

@@ -14,7 +14,7 @@ export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: Asset
     const categoryLabel = categories.find(c => c.key === asset.category)?.label || asset.category;
 
     return (
-        <div className="detail-hero" style={{ marginBottom: '24px' }}>
+        <div className="detail-hero">
             <div className="detail-title-row" style={{ alignItems: 'center', marginBottom: 0 }}>
                 <div
                     className="detail-title-main"
