@@ -60,6 +60,11 @@ _Avoid_: entry, update, transaction, reading.
 The net cash flow into or out of an asset recorded on a snapshot (deposit positive, withdrawal negative). Summed over time it produces Invested Capital.
 _Avoid_: flow, contribution, deposit (as the field name).
 
+**Sub-period Return**:
+The cash-flow-adjusted return over a single sub-period (typically one month). Computed as `change / basis × 100` where `change = endValue − (startValue + netFlow)` and `basis = startValue + netFlow`; guarded to 0% when the basis is non-positive. It is the building block that **Period Return** accumulates, and from which volatility and max-drawdown derive. Distinct from the range-cumulative `toPeriodReturnSeries`.
+_Avoid_: sub-period gain, raw monthly change.
+
+
 ## Relationships
 
 - The **Total Worth** chart card offers two **views**: **Performance** (percentage) and **Total Worth** (currency).

@@ -1,4 +1,6 @@
 import type { Asset } from '../types';
+import { monthlyReturns } from './subPeriodReturn';
+
 
 export interface PerformanceDatum {
     date: string;
@@ -159,33 +161,9 @@ export function calculateCAGR(history: PerformanceDatum[], gainPercent: number):
     return (Math.pow(1 + gainPercent / 100, 1 / years) - 1) * 100;
 }
 
-// Resample PerformanceDatum[] to monthly cash-flow-adjusted sub-period returns (%).
-// Matches the heatmap formula: basis = prevValue + cashFlow, return = (value - basis) / basis.
-function monthlyMarketReturns(history: PerformanceDatum[]): number[] {
-    if (history.length < 2) return [];
-
-    const monthlyMap = new Map<string, { value: number; invested: number }>();
-    for (const point of history) {
-        monthlyMap.set(point.date.slice(0, 7), { value: point.value, invested: point.invested });
-    }
-    const monthly = [...monthlyMap.entries()]
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([, v]) => v);
-
-    const returns: number[] = [];
-    for (let i = 1; i < monthly.length; i++) {
-        const prev = monthly[i - 1];
-        const curr = monthly[i];
-        const cashFlow = curr.invested - prev.invested;
-        const basis = prev.value + cashFlow;
-        if (basis > 0) returns.push(((curr.value - basis) / basis) * 100);
-    }
-    return returns;
-}
-
 export function calculateMaxDrawdown(history: PerformanceDatum[]): number | null {
     if (history.length < 2) return null;
-    const returns = monthlyMarketReturns(history);
+    const returns = monthlyReturns(history);
     if (returns.length === 0) return null;
 
     // Build a wealth index from cash-flow-adjusted returns, then find peak-to-trough.
@@ -202,7 +180,7 @@ export function calculateMaxDrawdown(history: PerformanceDatum[]): number | null
 }
 
 export function calculateVolatilityFromHistory(history: PerformanceDatum[]): number {
-    const returns = monthlyMarketReturns(history);
+    const returns = monthlyReturns(history);
     if (returns.length === 0) return 0;
     const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
     const variance = returns.reduce((sum, r) => sum + Math.pow(r - mean, 2), 0) / returns.length;
