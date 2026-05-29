@@ -1,7 +1,6 @@
 import type { Asset } from '../types';
 import { monthlyReturns } from './subPeriodReturn';
 
-
 export interface PerformanceDatum {
     date: string;
     value: number;

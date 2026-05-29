@@ -2,7 +2,7 @@ import type { PerformanceDatum } from './performance';
 
 /**
  * Calculates the cash-flow-adjusted change and return percentage over a single sub-period.
- * 
+ *
  * change = endValue − (startValue + netFlow)
  * returnPercent = change / basis * 100, guarded to 0% when basis ≤ 0 (ADR-0001)
  */
@@ -33,7 +33,7 @@ export function monthlyReturns(history: PerformanceDatum[]): number[] {
         // Dedup to the last point per month
         monthlyMap.set(point.date.slice(0, 7), { value: point.value, invested: point.invested });
     }
-    
+
     const monthly = [...monthlyMap.entries()]
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([, v]) => v);

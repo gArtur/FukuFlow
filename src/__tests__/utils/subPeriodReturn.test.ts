@@ -54,16 +54,14 @@ describe('monthlyReturns', () => {
     });
 
     it('returns empty array for single-point history', () => {
-        const history: PerformanceDatum[] = [
-            { date: '2024-01-15', value: 1000, invested: 1000 }
-        ];
+        const history: PerformanceDatum[] = [{ date: '2024-01-15', value: 1000, invested: 1000 }];
         expect(monthlyReturns(history)).toEqual([]);
     });
 
     it('calculates returns for consecutive months (two points)', () => {
         const history: PerformanceDatum[] = [
             { date: '2024-01-15', value: 1000, invested: 1000 },
-            { date: '2024-02-15', value: 1200, invested: 1000 }
+            { date: '2024-02-15', value: 1200, invested: 1000 },
         ];
         // Jan -> Feb: basis=1000, change=200 -> return=20%
         expect(monthlyReturns(history)).toEqual([20]);
@@ -74,7 +72,7 @@ describe('monthlyReturns', () => {
             { date: '2024-01-05', value: 800, invested: 800 },
             { date: '2024-01-25', value: 1000, invested: 1000 }, // Jan last snapshot
             { date: '2024-02-10', value: 1100, invested: 1000 },
-            { date: '2024-02-28', value: 1200, invested: 1000 }  // Feb last snapshot
+            { date: '2024-02-28', value: 1200, invested: 1000 }, // Feb last snapshot
         ];
         // Jan last: 1000 value, 1000 invested
         // Feb last: 1200 value, 1000 invested
@@ -85,7 +83,7 @@ describe('monthlyReturns', () => {
     it('pairs adjacent months in history even if they are non-consecutive chronologically', () => {
         const history: PerformanceDatum[] = [
             { date: '2024-01-15', value: 1000, invested: 1000 },
-            { date: '2024-03-15', value: 1200, invested: 1000 }
+            { date: '2024-03-15', value: 1200, invested: 1000 },
         ];
         // Jan -> Mar: basis=1000, change=200 -> return=20%
         expect(monthlyReturns(history)).toEqual([20]);
@@ -94,7 +92,7 @@ describe('monthlyReturns', () => {
     it('skips periods where basis <= 0', () => {
         const history: PerformanceDatum[] = [
             { date: '2024-01-15', value: -100, invested: 0 },
-            { date: '2024-02-15', value: 50, invested: 50 }
+            { date: '2024-02-15', value: 50, invested: 50 },
         ];
         expect(monthlyReturns(history)).toEqual([]);
     });
@@ -102,12 +100,10 @@ describe('monthlyReturns', () => {
     it('handles unsorted history input chronologically', () => {
         const history: PerformanceDatum[] = [
             { date: '2024-02-15', value: 1200, invested: 1000 },
-            { date: '2024-01-15', value: 1000, invested: 1000 }
+            { date: '2024-01-15', value: 1000, invested: 1000 },
         ];
         // Even though Feb comes first in the array, it should be sorted chronologically:
         // Jan -> Feb: basis=1000, change=200 -> return=20%
         expect(monthlyReturns(history)).toEqual([20]);
     });
 });
-
-
