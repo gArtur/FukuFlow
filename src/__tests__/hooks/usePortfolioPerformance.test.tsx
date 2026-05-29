@@ -63,9 +63,7 @@ describe('usePortfolioPerformance — portfolio series', () => {
         const assets = [makeAsset()];
         const { startDate, endDate } = getDateRangeFromTimeRange('MAX');
         const expected = calculatePerformance(assets, startDate, endDate, false);
-        const { result } = renderHook(() =>
-            usePortfolioPerformance(assets, { timeRange: 'MAX' })
-        );
+        const { result } = renderHook(() => usePortfolioPerformance(assets, { timeRange: 'MAX' }));
         expect(result.current.portfolio).toEqual(expected);
     });
 });

@@ -89,12 +89,7 @@ export default function TotalWorthChart({
 
     // Performance comes from the shared PortfolioPerformance source, computed once
     // per (assets, window) and reused by the cards, the table, and this chart.
-    const {
-        history,
-        currentValue,
-        calculatedGain,
-        gainPercent: calculatedGainPercent,
-    } = portfolio;
+    const { history, currentValue, calculatedGain, gainPercent: calculatedGainPercent } = portfolio;
 
     // Header gain/% come from the same snapshot-history computation the chart plots,
     // in every range (incl. MAX), so the Performance line always lands on the header.
