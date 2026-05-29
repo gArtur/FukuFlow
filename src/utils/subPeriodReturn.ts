@@ -26,7 +26,7 @@ export function monthlyReturns(history: PerformanceDatum[]): number[] {
     if (history.length < 2) return [];
 
     // Ensure history is chronologically ordered to protect against unsorted inputs
-    const sortedHistory = [...history].sort((a, b) => a.date.localeCompare(b));
+    const sortedHistory = [...history].sort((a, b) => a.date.localeCompare(b.date));
 
     const monthlyMap = new Map<string, { value: number; invested: number }>();
     for (const point of sortedHistory) {
