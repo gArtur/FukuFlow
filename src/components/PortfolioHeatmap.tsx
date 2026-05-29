@@ -6,6 +6,7 @@ import { useIsMobile, useIsTouchDevice } from '../hooks/useMediaQuery';
 import { formatMonthLabel, generateMonthRange } from '../utils/dateUtils';
 import { generateAssetUrl } from '../utils/navigation';
 import { getAssetTimeline } from '../utils/heatmapLogic';
+import { subPeriodReturn } from '../utils/subPeriodReturn';
 import {
     getColorClass,
     formatCompactValue,
@@ -120,9 +121,11 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
 
                 if (entry) {
                     const flow = entry.flow;
-                    const basis = prevValue + flow;
-                    const change = entry.value - basis;
-                    const changePercent = basis !== 0 ? (change / basis) * 100 : 0;
+                    const { change, returnPercent: changePercent } = subPeriodReturn(
+                        prevValue,
+                        entry.value,
+                        flow
+                    );
 
                     return {
                         month,
@@ -154,8 +157,12 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             const totalFlow = cells.reduce((sum, c) => sum + (c.monthlyFlow ?? 0), 0);
             const startValueBasis =
                 cells.length > 0 && !cells[0].isInception ? cells[0].previousValue : 0;
-            const basis = startValueBasis + totalFlow;
-            const totalChangePercent = basis > 0 ? (totalChange / basis) * 100 : 0;
+            const endValue = cells.length > 0 ? cells[cells.length - 1].value : asset.currentValue;
+            const { returnPercent: totalChangePercent } = subPeriodReturn(
+                startValueBasis,
+                endValue,
+                totalFlow
+            );
 
             return {
                 id: asset.id,
@@ -166,7 +173,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 totalChange,
                 totalChangePercent,
                 startValue: cells.length > 0 ? cells[0].previousValue : 0,
-                endValue: cells.length > 0 ? cells[cells.length - 1].value : asset.currentValue,
+                endValue,
             };
         },
         [visibleMonths, maxMonth, getPersonName]
@@ -200,8 +207,11 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
                 }
             });
 
-            const basis = totalPreviousValue + totalFlow;
-            const changePercent = basis !== 0 ? (totalChange / basis) * 100 : 0;
+            const { returnPercent: changePercent } = subPeriodReturn(
+                totalPreviousValue,
+                totalValue,
+                totalFlow
+            );
 
             return {
                 month,
@@ -231,8 +241,12 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             }
         });
 
-        const basis = initialPortfolioBasis + totalFlowInRange;
-        const totalChangePercent = basis > 0 ? (totalChange / basis) * 100 : 0;
+        const endValue = cells.length > 0 ? cells[cells.length - 1].value : 0;
+        const { returnPercent: totalChangePercent } = subPeriodReturn(
+            initialPortfolioBasis,
+            endValue,
+            totalFlowInRange
+        );
 
         return {
             id: 'portfolio-total',
@@ -243,7 +257,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
             totalChange,
             totalChangePercent,
             startValue: initialPortfolioBasis,
-            endValue: cells.length > 0 ? cells[cells.length - 1].value : 0,
+            endValue,
         };
     }, [heatmapData, visibleMonths]);
 
