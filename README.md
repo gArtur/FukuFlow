@@ -70,6 +70,15 @@ docker run -d -p 3001:3001 -v fukuflow-data:/app/server/db -e JWT_SECRET=change_
 *Note: Replace `change_me_to_something_secret` with a real secret string.*
 The application will be available at `http://localhost:3001`.
 
+**Available image tags**
+
+| Tag | Points to | Use it for |
+|---|---|---|
+| `:latest` | Newest **stable release** | Most users — pull this. |
+| `:edge` | Latest build off `main` | Trying unreleased changes (may be unstable). |
+| `:1.2.3` / `:1.2` / `:1` | A specific release / rolling major or minor | Pinning a deployment for reproducibility. |
+| `:sha-<short>` | An exact commit build | Debugging / pinning to one precise build. |
+
 **Updating to the Latest Version**
 To update the container to the newest version:
 ```bash
@@ -119,7 +128,8 @@ docker-compose up -d --build
 This project uses GitHub Actions for CI/CD:
 - **Triggers**: Pull requests to `main`, pushes to `main`, and version tags (`v*.*.*`).
 - **Checks**: Linting (ESLint), Formatting (Prettier), Type Checking (TypeScript), Frontend unit tests (Vitest), Backend integration tests (Vitest + Supertest).
-- **Artifacts**: Automatically builds and pushes a Docker image to **GitHub Container Registry (GHCR)**: `ghcr.io/<owner>/fukuflow:latest` on merge to `main` or tag push.
+- **Artifacts**: Builds a Docker image on every run and pushes it to **GitHub Container Registry (GHCR)** (`ghcr.io/<owner>/fukuflow`) on pushes to `main` and on version tags. Pushes to `main` publish `:edge` (plus `:sha-<short>`); a `v*.*.*` tag publishes the matching semver tags and moves `:latest` to that release (see the image-tags table above). Pushed images carry SBOM and build-provenance attestations.
+- **Image retention**: A weekly scheduled workflow prunes untagged manifests and old `:sha-<short>` builds from GHCR; `:latest`, `:edge`, and semver tags are never deleted.
 
 ### Local Development (Manual)
 

@@ -1,0 +1,43 @@
+name: Cleanup Container Images
+
+# Prune the GHCR package so per-commit (:sha-) builds and orphaned manifests
+# don't accumulate forever. Floating and release tags are never touched.
+on:
+  schedule:
+    # Weekly, Sundays at 04:00 UTC
+    - cron: '0 4 * * 0'
+  workflow_dispatch: {}
+
+jobs:
+  cleanup:
+    name: Prune old image versions
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      # Remove orphaned manifests left behind when a tag is moved/overwritten.
+      # NOTE: the first run (before any image has been published) will error
+      # because the package does not exist yet — that is expected. Verify this
+      # workflow manually (Run workflow) once the package exists; if the default
+      # GITHUB_TOKEN is rejected for this user-owned package, supply a PAT with
+      # the `delete:packages` scope instead.
+      - name: Delete untagged versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: fukuflow
+          package-type: container
+          delete-only-untagged-versions: true
+
+      # Age out old per-commit (:sha-<short>) builds, keeping the most recent.
+      # This step operates on ALL versions, so `ignore-versions` below is the
+      # SOLE protection for tagged versions — any new floating/release tag
+      # pattern (e.g. a future date or channel tag) MUST be added to the regex
+      # or it will be eligible for deletion. Current regex protects:
+      #   :latest, :edge, and semver tags (1, 1.2, 1.2.3, optional leading v).
+      - name: Prune old commit builds
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: fukuflow
+          package-type: container
+          min-versions-to-keep: 20
+          ignore-versions: '^(latest|edge|v?\d+(\.\d+){0,2})$'
