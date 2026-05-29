@@ -1321,7 +1321,7 @@
 .icon-btn {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
@@ -1535,7 +1535,7 @@
 .snapshot-btn {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
+    border-radius: var(--radius-sm);
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
@@ -2298,18 +2298,99 @@
 
 .detail-title-row {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: var(--space-md);
-    margin-bottom: var(--space-lg);
+    margin-bottom: 0;
     flex-wrap: wrap;
 }
 
-@media (max-width: 640px) {
-    .detail-title-row {
-        align-items: center;
-        gap: var(--space-sm);
-    }
+.detail-title-main {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+}
 
+/* ===== ASSET DETAIL — MOBILE HEADER ===== */
+.detail-mobile-top-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.detail-title--mobile {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.detail-mobile-meta-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding-left: calc(40px + 12px + var(--space-sm));
+}
+
+.detail-kebab-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.detail-kebab-btn {
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-muted);
+}
+
+.detail-kebab-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    min-width: 140px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 200;
+    overflow: hidden;
+}
+
+.detail-kebab-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+    text-align: left;
+}
+
+.detail-kebab-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.detail-kebab-item--danger {
+    color: var(--accent-red);
+}
+
+.detail-kebab-item--danger:hover {
+    background: var(--accent-red-glow);
+}
+
+@media (max-width: 640px) {
     .detail-owner-text {
         margin-top: 0;
     }
