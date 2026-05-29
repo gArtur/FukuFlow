@@ -8,10 +8,10 @@ import {
     LineElement,
     Filler,
 } from 'chart.js';
-import type { Asset, Person, TimeRange } from '../types';
+import type { Asset, Person } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
-import { computeAssetGain } from '../utils/assetGain';
+import { usePortfolioPerformanceContext } from '../contexts/PortfolioPerformanceContext';
 import PersonBadge from './PersonBadge';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);
@@ -21,22 +21,12 @@ interface AssetCardProps {
     persons: Person[];
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
-    timeRange?: TimeRange;
-    customStartDate?: string;
-    customEndDate?: string;
 }
 
-export default function AssetCard({
-    asset,
-    persons,
-    onCardClick,
-    onAddSnapshot,
-    timeRange,
-    customStartDate,
-    customEndDate,
-}: AssetCardProps) {
+export default function AssetCard({ asset, persons, onCardClick, onAddSnapshot }: AssetCardProps) {
     const { formatAmount, isHidden } = usePrivacy();
-    const { categories, theme, assetsFollowGeneral } = useSettings();
+    const { categories, theme } = useSettings();
+    const { getAssetGain } = usePortfolioPerformanceContext();
     const [copied, setCopied] = useState(false);
 
     const {
@@ -44,12 +34,7 @@ export default function AssetCard({
         gainPercent: gainPercentValue,
         isPositive,
         history: historyToUse,
-    } = computeAssetGain(asset, {
-        assetsFollowGeneral,
-        timeRange,
-        customStartDate,
-        customEndDate,
-    });
+    } = getAssetGain(asset);
     const gainPercent = gainPercentValue.toFixed(1);
 
     const owner = persons.find(p => p.id === asset.ownerId);
