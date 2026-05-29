@@ -9,7 +9,7 @@ The Total Worth chart's **Performance** view plots a **Period Return**: the mone
 
 ## Rejected alternatives
 
-- **Time-weighted return (TWR):** the "truest" measure of investment skill and fully deposit-neutral, but more complex and its endpoint would not equal the headline. The heatmap's cash-flow-adjusted period returns (`monthlyMarketReturns` in `performance.ts`) are the building block to revisit this if deposit-neutral performance is ever needed.
+- **Time-weighted return (TWR):** the "truest" measure of investment skill and fully deposit-neutral, but more complex and its endpoint would not equal the headline. The heatmap's cash-flow-adjusted period returns (`monthlyReturns` in `subPeriodReturn.ts`) are the building block to revisit this if deposit-neutral performance is ever needed.
 - **Naive index `(value / valueₛₜₐᵣₜ − 1)`:** ignores capital flows and double-counts deposits as returns.
 - **Subtracting the start ROI (`roiₜ − roiₛₜₐᵣₜ`):** mixes two ratios with different denominators, isn't a real return, and wouldn't match the headline.
 
