@@ -67,6 +67,7 @@ _Avoid_: sub-period gain, raw monthly change.
 
 ## Relationships
 
+- An asset's derived columns are always re-derived from its **Snapshot** history, never nudged incrementally. `currentValue` holds the asset's latest **Total Worth** (the latest snapshot's value, by `date DESC, id DESC`); `purchaseAmount` holds its **Invested Capital** (`SUM(investmentChange)`). A single `reconcileAsset` operation (`server/db-helpers.js`) enforces this invariant; every snapshot add/update/delete calls it inside a transaction, and the startup `syncAssets` is just that operation looped over all assets. The column names are historical and are not renamed.
 - The **Total Worth** chart card offers two **views**: **Performance** (percentage) and **Total Worth** (currency).
 - **Performance** plots **Period Return**, rebased to 0% at the start of the selected time range.
 - **Invested Capital** at a date = running sum of every **Investment Change** up to that date.

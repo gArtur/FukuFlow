@@ -124,4 +124,114 @@ describe('Snapshots routes', () => {
             expect(res.status).toBe(404);
         });
     });
+
+    describe('reconciliation invariant', () => {
+        let invariantAssetId;
+
+        async function freshAsset() {
+            const personRes = await request(app)
+                .post('/api/persons')
+                .set(authHeader(token))
+                .send({ name: 'Reconcile Owner' });
+            const assetRes = await request(app)
+                .post('/api/assets')
+                .set(authHeader(token))
+                .send({
+                    name: 'Reconcile Asset',
+                    category: 'stocks',
+                    ownerId: personRes.body.id,
+                    purchaseAmount: 0,
+                    purchaseDate: '2024-01-01',
+                    currentValue: 0,
+                });
+            return assetRes.body.id;
+        }
+
+        async function snap(id, value, date, investmentChange = 0) {
+            return request(app)
+                .post(`/api/assets/${id}/snapshot`)
+                .set(authHeader(token))
+                .send({ value, date, investmentChange });
+        }
+
+        async function fetchAsset(id) {
+            const res = await request(app).get('/api/assets').set(authHeader(token));
+            return res.body.find(a => a.id === id);
+        }
+
+        beforeEach(async () => {
+            invariantAssetId = await freshAsset();
+        });
+
+        it('editing a snapshot date so it is no longer the latest moves currentValue to the new latest', async () => {
+            await snap(invariantAssetId, 100, '2024-02-01');
+            await snap(invariantAssetId, 200, '2024-03-01'); // latest -> currentValue 200
+
+            const asset = await fetchAsset(invariantAssetId);
+            const marchSnap = asset.valueHistory.find(h => h.value === 200);
+
+            // Re-date the latest snapshot into the past; the 100 snapshot becomes latest.
+            await request(app)
+                .put(`/api/snapshots/${marchSnap.id}`)
+                .set(authHeader(token))
+                .send({ date: '2024-01-15', value: 200, investmentChange: 0, notes: '' });
+
+            const updated = await fetchAsset(invariantAssetId);
+            expect(updated.currentValue).toBe(100);
+        });
+
+        it('deleting a NON-latest snapshot leaves currentValue at the latest', async () => {
+            await snap(invariantAssetId, 100, '2024-02-01');
+            await snap(invariantAssetId, 200, '2024-03-01'); // latest
+
+            const asset = await fetchAsset(invariantAssetId);
+            const febSnap = asset.valueHistory.find(h => h.value === 100);
+
+            await request(app).delete(`/api/snapshots/${febSnap.id}`).set(authHeader(token));
+
+            const updated = await fetchAsset(invariantAssetId);
+            expect(updated.currentValue).toBe(200);
+        });
+
+        it('deleting the latest snapshot falls currentValue back to the previous snapshot', async () => {
+            await snap(invariantAssetId, 100, '2024-02-01');
+            await snap(invariantAssetId, 200, '2024-03-01'); // latest
+
+            const asset = await fetchAsset(invariantAssetId);
+            const marchSnap = asset.valueHistory.find(h => h.value === 200);
+
+            await request(app).delete(`/api/snapshots/${marchSnap.id}`).set(authHeader(token));
+
+            const updated = await fetchAsset(invariantAssetId);
+            expect(updated.currentValue).toBe(100);
+        });
+
+        it('purchaseAmount stays equal to SUM(investmentChange) across add/update/delete', async () => {
+            await snap(invariantAssetId, 1000, '2024-02-01', 1000);
+            await snap(invariantAssetId, 1500, '2024-03-01', 400);
+            await snap(invariantAssetId, 1800, '2024-04-01', 300);
+
+            let asset = await fetchAsset(invariantAssetId);
+            expect(asset.purchaseAmount).toBe(1700); // 1000 + 400 + 300
+
+            // Edit a non-latest snapshot's investmentChange.
+            const marchSnap = asset.valueHistory.find(h => h.value === 1500);
+            await request(app)
+                .put(`/api/snapshots/${marchSnap.id}`)
+                .set(authHeader(token))
+                .send({ date: '2024-03-01', value: 1500, investmentChange: 900, notes: '' });
+
+            asset = await fetchAsset(invariantAssetId);
+            expect(asset.purchaseAmount).toBe(2200); // 1000 + 900 + 300
+            expect(asset.currentValue).toBe(1800); // latest unchanged
+
+            // Delete a snapshot and confirm the sum follows.
+            const aprilSnap = asset.valueHistory.find(h => h.value === 1800);
+            await request(app).delete(`/api/snapshots/${aprilSnap.id}`).set(authHeader(token));
+
+            asset = await fetchAsset(invariantAssetId);
+            expect(asset.purchaseAmount).toBe(1900); // 1000 + 900
+            expect(asset.currentValue).toBe(1500); // new latest
+        });
+    });
 });

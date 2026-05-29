@@ -2,6 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
+const { promisifyDb, reconcileAsset } = require('./db-helpers');
 
 // Determine database path based on environment
 let dbPath;
@@ -152,38 +153,21 @@ function seedSettings() {
 }
 
 /**
- * Sync asset values from history - Optimized: Single aggregation query instead of N+1
+ * Sync every asset's derived columns from history at startup, by running the
+ * same per-asset reconciliation used after each snapshot mutation.
  */
-function syncAssets() {
+async function syncAssets() {
     console.log('Starting asset synchronization...');
-    // Single query: get latest value and total invested for all assets at once
-    db.all(`
-        SELECT 
-            a.id,
-            (SELECT h.value FROM asset_history h 
-             WHERE h.assetId = a.id 
-             ORDER BY h.date DESC, h.id DESC LIMIT 1) as latestValue,
-            COALESCE(SUM(ah.investmentChange), 0) as totalInvested
-        FROM assets a
-        LEFT JOIN asset_history ah ON a.id = ah.assetId
-        GROUP BY a.id
-    `, [], (err, results) => {
-        if (err) return console.error('Error fetching sync data:', err);
-
-        // Batch update using prepared statement
-        const stmt = db.prepare('UPDATE assets SET currentValue = ?, purchaseAmount = ? WHERE id = ?');
-        let updateCount = 0;
-        results.forEach(r => {
-            if (r.latestValue !== null) {
-                stmt.run(r.latestValue, r.totalInvested, r.id);
-                updateCount++;
-            }
-        });
-        stmt.finalize((err) => {
-            if (err) console.error('Error finalizing sync statement:', err);
-            else console.log(`Asset synchronization complete. Updated ${updateCount} assets.`);
-        });
-    });
+    const adb = promisifyDb(db);
+    try {
+        const assets = await adb.all('SELECT id FROM assets');
+        for (const asset of assets) {
+            await reconcileAsset(adb, asset.id);
+        }
+        console.log(`Asset synchronization complete. Reconciled ${assets.length} assets.`);
+    } catch (err) {
+        console.error('Error synchronizing assets:', err);
+    }
 }
 
 module.exports = {
