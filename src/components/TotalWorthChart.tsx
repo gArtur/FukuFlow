@@ -1,9 +1,8 @@
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
-import type { TimeRange, Asset } from '../types';
+import type { TimeRange } from '../types';
 
 interface TotalWorthChartProps {
-    assets: Asset[];
     timeRange: TimeRange;
     setTimeRange: (range: TimeRange) => void;
     customStartDate: string;
@@ -15,14 +14,13 @@ interface TotalWorthChartProps {
 import { useRef, useEffect } from 'react';
 import { Line } from 'react-chartjs-2';
 import type { Chart } from 'chart.js';
-import { getDateRangeFromTimeRange } from '../utils/dateUtils';
 import {
-    calculatePerformance,
     calculateCAGR,
     calculateMaxDrawdown,
     calculateVolatilityFromHistory,
     toPeriodReturnSeries,
 } from '../utils/performance';
+import { usePortfolioPerformanceContext } from '../contexts/PortfolioPerformanceContext';
 import { useChartView } from '../hooks/useChartView';
 import {
     Chart as ChartJS,
@@ -37,7 +35,6 @@ import {
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 export default function TotalWorthChart({
-    assets,
     timeRange,
     setTimeRange,
     customStartDate,
@@ -47,6 +44,7 @@ export default function TotalWorthChart({
 }: TotalWorthChartProps) {
     const { theme } = useSettings();
     const { isHidden, formatAmount } = usePrivacy();
+    const { portfolio } = usePortfolioPerformanceContext();
     const [view, setView] = useChartView();
     const isPerformance = view === 'performance';
     const chartRef = useRef<Chart<'line'>>(null);
@@ -89,18 +87,9 @@ export default function TotalWorthChart({
 
     // ... (logic remains same until options) ...
 
-    const { startDate, endDate } = getDateRangeFromTimeRange(
-        timeRange,
-        customStartDate,
-        customEndDate
-    );
-
-    const {
-        history,
-        currentValue,
-        calculatedGain,
-        gainPercent: calculatedGainPercent,
-    } = calculatePerformance(assets, startDate, endDate, timeRange !== 'MAX');
+    // Performance comes from the shared PortfolioPerformance source, computed once
+    // per (assets, window) and reused by the cards, the table, and this chart.
+    const { history, currentValue, calculatedGain, gainPercent: calculatedGainPercent } = portfolio;
 
     // Header gain/% come from the same snapshot-history computation the chart plots,
     // in every range (incl. MAX), so the Performance line always lands on the header.

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import type { Asset, Person, TimeRange } from '../types';
+import type { Asset, Person } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { usePortfolioPerformanceContext } from '../contexts/PortfolioPerformanceContext';
 import { useAssetView } from '../hooks/useAssetView';
-import { computeAssetGain } from '../utils/assetGain';
 import { sortAssetRows, type AssetRow } from '../utils/assetSort';
 import AssetCard from './AssetCard';
 import AssetTable from './AssetTable';
@@ -14,9 +14,6 @@ interface MyMoversProps {
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
     onAddAsset: () => void;
-    timeRange?: TimeRange;
-    customStartDate?: string;
-    customEndDate?: string;
 }
 
 export default function MyMovers({
@@ -25,23 +22,16 @@ export default function MyMovers({
     onCardClick,
     onAddSnapshot,
     onAddAsset,
-    timeRange,
-    customStartDate,
-    customEndDate,
 }: MyMoversProps) {
-    const { categories, assetsFollowGeneral } = useSettings();
+    const { categories } = useSettings();
     const { formatAmount, isHidden } = usePrivacy();
+    const { getAssetGain } = usePortfolioPerformanceContext();
     const { view, setView, sortBy, sortDir, setSort } = useAssetView();
 
     const rows = useMemo<AssetRow[]>(() => {
         if (view !== 'table') return [];
         return assets.map(asset => {
-            const { gain, gainPercent, isPositive } = computeAssetGain(asset, {
-                assetsFollowGeneral,
-                timeRange,
-                customStartDate,
-                customEndDate,
-            });
+            const { gain, gainPercent, isPositive } = getAssetGain(asset);
             const owner = persons.find(p => p.id === asset.ownerId);
             return {
                 asset,
@@ -56,16 +46,7 @@ export default function MyMovers({
                 isPositive,
             };
         });
-    }, [
-        view,
-        assets,
-        persons,
-        categories,
-        assetsFollowGeneral,
-        timeRange,
-        customStartDate,
-        customEndDate,
-    ]);
+    }, [view, assets, persons, categories, getAssetGain]);
 
     const sortedRows = useMemo(() => sortAssetRows(rows, sortBy, sortDir), [rows, sortBy, sortDir]);
 
@@ -146,9 +127,6 @@ export default function MyMovers({
                             persons={persons}
                             onCardClick={onCardClick}
                             onAddSnapshot={onAddSnapshot}
-                            timeRange={timeRange}
-                            customStartDate={customStartDate}
-                            customEndDate={customEndDate}
                         />
                     ))}
                 </div>

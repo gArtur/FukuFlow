@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import ConfirmationModal from './ConfirmationModal';
 import type { Asset, Person, ValueEntry, TimeRange } from '../types';
 import TotalWorthChart from './TotalWorthChart';
 import AssetHeatmap from './AssetHeatmap';
 import { useSettings } from '../contexts/SettingsContext';
+import { PortfolioPerformanceProvider } from '../contexts/PortfolioPerformanceContext';
 import SnapshotHistory from './SnapshotHistory';
 import AssetHero from './AssetHero';
 
@@ -26,13 +27,16 @@ export default function AssetDetail({
     onDeleteSnapshot,
     onOpenImportModal,
 }: AssetDetailProps) {
-    const { showAssetHeatmap, defaultDateRange } = useSettings();
+    const { showAssetHeatmap, defaultDateRange, assetsFollowGeneral } = useSettings();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     // Local time range state for this specific asset's chart
     const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
     const [customStartDate, setCustomStartDate] = useState<string>('');
     const [customEndDate, setCustomEndDate] = useState<string>('');
+
+    // Stable single-asset array so the shared performance source memoizes across renders.
+    const chartAssets = useMemo(() => [asset], [asset]);
 
     const owner = persons.find(p => p.id === asset.ownerId);
 
@@ -52,15 +56,24 @@ export default function AssetDetail({
 
             {/* Main Chart */}
             <div className="mb-8">
-                <TotalWorthChart
-                    assets={[asset]}
-                    timeRange={timeRange}
-                    setTimeRange={setTimeRange}
-                    customStartDate={customStartDate}
-                    setCustomStartDate={setCustomStartDate}
-                    customEndDate={customEndDate}
-                    setCustomEndDate={setCustomEndDate}
-                />
+                <PortfolioPerformanceProvider
+                    assets={chartAssets}
+                    window={{
+                        assetsFollowGeneral,
+                        timeRange,
+                        customStartDate,
+                        customEndDate,
+                    }}
+                >
+                    <TotalWorthChart
+                        timeRange={timeRange}
+                        setTimeRange={setTimeRange}
+                        customStartDate={customStartDate}
+                        setCustomStartDate={setCustomStartDate}
+                        customEndDate={customEndDate}
+                        setCustomEndDate={setCustomEndDate}
+                    />
+                </PortfolioPerformanceProvider>
             </div>
 
             {/* Monthly Returns Heatmap */}

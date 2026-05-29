@@ -7,6 +7,7 @@ import { usePersons } from './hooks/usePersons';
 import type { Asset, Person, ValueEntry, TimeRange } from './types';
 import { PrivacyProvider } from './contexts/PrivacyContext';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
+import { PortfolioPerformanceProvider } from './contexts/PortfolioPerformanceContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Header';
 import type { HeaderProps } from './components/Header';
@@ -33,7 +34,12 @@ import { generateAssetUrl, resolveAssetFromSlug } from './utils/navigation';
  * Shared logic and state for the application
  */
 function AppContent() {
-    const { defaultFilter, defaultDateRange, isLoading: settingsLoading } = useSettings();
+    const {
+        defaultFilter,
+        defaultDateRange,
+        assetsFollowGeneral,
+        isLoading: settingsLoading,
+    } = useSettings();
     const {
         filteredAssets,
         selectedOwner,
@@ -238,33 +244,39 @@ function AppContent() {
                                     onSelect={setSelectedOwner}
                                 />
 
-                                <div className="charts-row">
-                                    <TotalWorthChart
-                                        assets={filteredAssets}
-                                        timeRange={timeRange}
-                                        setTimeRange={setTimeRange}
-                                        customStartDate={customStartDate}
-                                        setCustomStartDate={setCustomStartDate}
-                                        customEndDate={customEndDate}
-                                        setCustomEndDate={setCustomEndDate}
-                                    />
-                                    <AllocationChart
-                                        stats={stats}
+                                <PortfolioPerformanceProvider
+                                    assets={filteredAssets}
+                                    window={{
+                                        assetsFollowGeneral,
+                                        timeRange,
+                                        customStartDate,
+                                        customEndDate,
+                                    }}
+                                >
+                                    <div className="charts-row">
+                                        <TotalWorthChart
+                                            timeRange={timeRange}
+                                            setTimeRange={setTimeRange}
+                                            customStartDate={customStartDate}
+                                            setCustomStartDate={setCustomStartDate}
+                                            customEndDate={customEndDate}
+                                            setCustomEndDate={setCustomEndDate}
+                                        />
+                                        <AllocationChart
+                                            stats={stats}
+                                            assets={filteredAssets}
+                                            persons={persons}
+                                        />
+                                    </div>
+
+                                    <MyMovers
                                         assets={filteredAssets}
                                         persons={persons}
+                                        onCardClick={handleCardClick}
+                                        onAddSnapshot={handleAddSnapshot}
+                                        onAddAsset={() => setShowAddModal(true)}
                                     />
-                                </div>
-
-                                <MyMovers
-                                    assets={filteredAssets}
-                                    persons={persons}
-                                    onCardClick={handleCardClick}
-                                    onAddSnapshot={handleAddSnapshot}
-                                    onAddAsset={() => setShowAddModal(true)}
-                                    timeRange={timeRange}
-                                    customStartDate={customStartDate}
-                                    customEndDate={customEndDate}
-                                />
+                                </PortfolioPerformanceProvider>
                             </main>
 
                             <button
