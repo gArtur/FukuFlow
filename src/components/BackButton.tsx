@@ -19,7 +19,7 @@ export default function BackButton({ label = 'Back to Dashboard' }: BackButtonPr
                 padding: '8px',
                 height: '40px',
                 width: '40px',
-                borderRadius: '50%',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border-color)',
                 background: 'var(--bg-card)',
                 color: 'var(--text-primary)',

@@ -1,6 +1,8 @@
+import { useState, useEffect, useRef } from 'react';
 import BackButton from './BackButton';
 import type { Asset, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 interface AssetHeroProps {
     asset: Asset;
@@ -12,25 +14,127 @@ interface AssetHeroProps {
 export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: AssetHeroProps) {
     const { categories } = useSettings();
     const categoryLabel = categories.find(c => c.key === asset.category)?.label || asset.category;
+    const isMobile = useIsMobile();
+    const [menuOpen, setMenuOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!menuOpen) return;
+        function onOutside(e: MouseEvent) {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setMenuOpen(false);
+            }
+        }
+        document.addEventListener('mousedown', onOutside);
+        return () => document.removeEventListener('mousedown', onOutside);
+    }, [menuOpen]);
+
+    if (isMobile) {
+        return (
+            <div className="detail-hero">
+                <div className="detail-mobile-top-row">
+                    <BackButton />
+                    <h1 className="detail-title detail-title--mobile">{asset.name}</h1>
+                    <div className="detail-kebab-wrap" ref={menuRef}>
+                        <button
+                            className="detail-action-btn detail-kebab-btn"
+                            onClick={() => setMenuOpen(o => !o)}
+                            aria-label="Asset actions"
+                        >
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="5" r="2" />
+                                <circle cx="12" cy="12" r="2" />
+                                <circle cx="12" cy="19" r="2" />
+                            </svg>
+                        </button>
+                        {menuOpen && (
+                            <div className="detail-kebab-dropdown">
+                                <button
+                                    className="detail-kebab-item"
+                                    onClick={() => {
+                                        setMenuOpen(false);
+                                        onEdit();
+                                    }}
+                                    data-testid="asset-edit-btn"
+                                >
+                                    <svg
+                                        width="15"
+                                        height="15"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                    Edit
+                                </button>
+                                <button
+                                    className="detail-kebab-item detail-kebab-item--danger"
+                                    onClick={() => {
+                                        setMenuOpen(false);
+                                        onDeleteClick();
+                                    }}
+                                    data-testid="asset-delete-btn"
+                                >
+                                    <svg
+                                        width="15"
+                                        height="15"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                    >
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="detail-mobile-meta-row">
+                    <span
+                        className="detail-owner-text"
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                        <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            style={{ opacity: 0.7 }}
+                        >
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                        </svg>
+                        <span style={{ color: 'var(--text-primary)' }}>
+                            {owner?.name || 'Unknown'}
+                        </span>
+                    </span>
+                    <span className="detail-pill">{categoryLabel}</span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="detail-hero">
-            <div className="detail-title-row" style={{ alignItems: 'center', marginBottom: 0 }}>
-                <div
-                    className="detail-title-main"
-                    style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '16px',
-                        flexWrap: 'wrap',
-                        flex: 1,
-                        minWidth: 0,
-                    }}
-                >
-                    <BackButton />
+            <div className="detail-title-row">
+                <BackButton />
+                <div className="detail-title-main">
                     <h1 className="detail-title">{asset.name}</h1>
                     <span className="detail-pill">{categoryLabel}</span>
-
                     <span
                         className="detail-owner-text"
                         style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
@@ -54,7 +158,6 @@ export default function AssetHero({ asset, owner, onEdit, onDeleteClick }: Asset
                         </span>
                     </span>
                 </div>
-
                 <div className="detail-actions" style={{ marginLeft: 'auto', flexShrink: 0 }}>
                     <button
                         className="detail-action-btn"
