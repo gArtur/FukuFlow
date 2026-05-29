@@ -174,6 +174,42 @@ describe('calculateHeatmapData', () => {
         }
     });
 
+    it('strictly-negative basis (withdrawal below holding) yields 0% for the cell', () => {
+        // Jan holds 1000; Feb withdraws 1500, leaving value 0.
+        // basis = prevValue(1000) + flow(-1500) = -500 (strictly negative).
+        // The shared module guards basis <= 0 to 0%, instead of the old
+        // basis !== 0 rule which divided by -500 and emitted a sign-flipped %.
+        const asset = makeAsset([
+            { date: '2024-01-01', value: 1000 },
+            { date: '2024-02-01', value: 0, investmentChange: -1500 },
+        ]);
+        const rows = calculateHeatmapData(asset);
+        const row2024 = rows.find(r => r.year === 2024)!;
+        const febCell = row2024.cells[1];
+        expect(febCell).not.toBeNull();
+        expect(febCell?.changePercent).toBe(0);
+        // change is still the cash-flow-adjusted delta: 0 - (1000 + -1500) = 500
+        expect(febCell?.changeValue).toBe(500);
+    });
+
+    it('strictly-negative year basis yields 0% total return (via subPeriodReturn)', () => {
+        // 2023 ends at 1000 (the year-start basis for 2024).
+        // 2024 withdraws 1500 in January, leaving value 0 forward-filled.
+        // yearBasis = startValue(1000) + totalFlow(-1500) = -500 (strictly negative).
+        // Routed through subPeriodReturn this guards to 0%, not the old
+        // sign-flipped (yearChange / -500) * 100.
+        const asset = makeAsset([
+            { date: '2023-12-01', value: 1000 },
+            { date: '2024-01-01', value: 0, investmentChange: -1500 },
+        ]);
+        const rows = calculateHeatmapData(asset);
+        const row2024 = rows.find(r => r.year === 2024)!;
+        expect(row2024.startValue).toBe(1000);
+        expect(row2024.totalReturn).toBe(0);
+        // totalChange is still the cash-flow-adjusted delta: 0 - (1000 + -1500) = 500
+        expect(row2024.totalChange).toBe(500);
+    });
+
     it('startValue and endValue are set correctly on year rows', () => {
         const asset = makeAsset([
             { date: '2024-01-01', value: 1000 },
