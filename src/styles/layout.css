@@ -11,6 +11,7 @@
 .main-content {
     max-width: 1400px;
     margin: 0 auto;
+    padding: 0 var(--space-lg) var(--space-lg) var(--space-lg);
     padding-bottom: 100px;
 }
 
@@ -31,8 +32,7 @@
 
 @media (min-width: 1024px) {
     .main-content {
-        padding-top: 0;
-        padding-bottom: 0;
+        padding: 0 var(--space-lg) var(--space-lg) var(--space-lg);
     }
 
     .charts-row {
