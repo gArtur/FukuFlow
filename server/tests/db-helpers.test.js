@@ -1,6 +1,54 @@
 const sqlite3 = require('sqlite3').verbose();
 const { initSchema } = require('../db');
-const { promisifyDb, reconcileAsset } = require('../db-helpers');
+const { promisifyDb, reconcileAsset, withTransaction } = require('../db-helpers');
+
+describe('withTransaction', () => {
+    let db, adb;
+
+    beforeEach(async () => {
+        db = new sqlite3.Database(':memory:');
+        await initSchema(db);
+        adb = promisifyDb(db);
+    });
+
+    it('commits every write when fn resolves', async () => {
+        await withTransaction(adb, async () => {
+            await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['p1', 'A']);
+            await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['p2', 'B']);
+        });
+
+        const rows = await adb.all('SELECT id FROM persons ORDER BY id');
+        expect(rows.map(r => r.id)).toEqual(['p1', 'p2']);
+    });
+
+    it('rolls back every write and rethrows when fn throws', async () => {
+        await expect(
+            withTransaction(adb, async () => {
+                await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['p1', 'A']);
+                throw new Error('boom');
+            })
+        ).rejects.toThrow('boom');
+
+        const rows = await adb.all('SELECT id FROM persons');
+        expect(rows).toEqual([]);
+    });
+
+    it('rolls back when a statement fails (PK violation) and rethrows', async () => {
+        await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['dup', 'Existing']);
+
+        await expect(
+            withTransaction(adb, async () => {
+                await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['ok', 'New']);
+                // Duplicate primary key → the run rejects, failing the transaction.
+                await adb.run('INSERT INTO persons (id, name) VALUES (?, ?)', ['dup', 'Conflict']);
+            })
+        ).rejects.toBeTruthy();
+
+        // The 'ok' insert must not persist; only the pre-existing row remains.
+        const rows = await adb.all('SELECT id FROM persons ORDER BY id');
+        expect(rows.map(r => r.id)).toEqual(['dup']);
+    });
+});
 
 describe('reconcileAsset', () => {
     let db, adb;
