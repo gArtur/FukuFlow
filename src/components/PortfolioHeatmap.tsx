@@ -5,8 +5,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useIsMobile, useIsTouchDevice } from '../hooks/useMediaQuery';
 import { formatMonthLabel, generateMonthRange } from '../utils/dateUtils';
 import { generateAssetUrl } from '../utils/navigation';
-import { getAssetTimeline } from '../utils/heatmapLogic';
-import { subPeriodReturn } from '../utils/subPeriodReturn';
+import { buildAssetHeatmapRow, buildPortfolioHeatmapRow } from './heatmap/buildRows';
 import {
     getColorClass,
     formatCompactValue,
@@ -19,7 +18,6 @@ import HeatmapMobileCard from './heatmap/HeatmapMobileCard';
 import HeatmapCardDetail from './heatmap/HeatmapCardDetail';
 import PersonBadge from './PersonBadge';
 import type {
-    HeatmapCell,
     HeatmapRow,
     TooltipData,
     PortfolioHeatmapProps,
@@ -101,165 +99,21 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         [persons]
     );
 
-    const processAssetData = useCallback(
-        (asset: (typeof assets)[0]): HeatmapRow => {
-            const timeline = getAssetTimeline(asset, maxMonth);
-            const sortedTimelineKeys = Array.from(timeline.keys()).sort();
-            const firstDataMonth = sortedTimelineKeys.length > 0 ? sortedTimelineKeys[0] : null;
-
-            const cells: HeatmapCell[] = visibleMonths.map(month => {
-                const isInception = month === firstDataMonth;
-                const entry = timeline.get(month);
-
-                // Calculate previous month string
-                const y = parseInt(month.substring(0, 4));
-                const m = parseInt(month.substring(5, 7)) - 1;
-                const date = new Date(y, m, 1);
-                date.setMonth(date.getMonth() - 1);
-                const prevMonthStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                const prevValue = timeline.get(prevMonthStr)?.value ?? 0;
-
-                if (entry) {
-                    const flow = entry.flow;
-                    const { change, returnPercent: changePercent } = subPeriodReturn(
-                        prevValue,
-                        entry.value,
-                        flow
-                    );
-
-                    return {
-                        month,
-                        value: entry.value,
-                        previousValue: prevValue,
-                        change,
-                        changePercent,
-                        hasData: entry.realDataExists,
-                        exists: true,
-                        isInception,
-                        monthlyFlow: flow,
-                    };
-                }
-
-                return {
-                    month,
-                    value: 0,
-                    previousValue: 0,
-                    change: 0,
-                    changePercent: 0,
-                    hasData: false,
-                    exists: false,
-                    isInception: false,
-                    monthlyFlow: 0,
-                };
-            });
-
-            const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
-            const totalFlow = cells.reduce((sum, c) => sum + (c.monthlyFlow ?? 0), 0);
-            const startValueBasis =
-                cells.length > 0 && !cells[0].isInception ? cells[0].previousValue : 0;
-            const endValue = cells.length > 0 ? cells[cells.length - 1].value : asset.currentValue;
-            const { returnPercent: totalChangePercent } = subPeriodReturn(
-                startValueBasis,
-                endValue,
-                totalFlow
-            );
-
-            return {
-                id: asset.id,
-                name: asset.name,
-                category: asset.category,
-                ownerName: getPersonName(asset.ownerId),
-                cells,
-                totalChange,
-                totalChangePercent,
-                startValue: cells.length > 0 ? cells[0].previousValue : 0,
-                endValue,
-            };
-        },
-        [visibleMonths, maxMonth, getPersonName]
-    );
-
     const heatmapData = useMemo(() => {
-        const rows = filteredAssets.map(asset => processAssetData(asset));
+        const rows = filteredAssets.map(asset =>
+            buildAssetHeatmapRow(asset, visibleMonths, maxMonth, getPersonName(asset.ownerId))
+        );
         if (sortDirection === 'asc')
             return rows.sort((a, b) => a.totalChangePercent - b.totalChangePercent);
         if (sortDirection === 'desc')
             return rows.sort((a, b) => b.totalChangePercent - a.totalChangePercent);
         return rows.sort((a, b) => a.name.localeCompare(b.name));
-    }, [filteredAssets, processAssetData, sortDirection]);
+    }, [filteredAssets, visibleMonths, maxMonth, getPersonName, sortDirection]);
 
-    const portfolioRow = useMemo((): HeatmapRow => {
-        const cells: HeatmapCell[] = visibleMonths.map((month, index) => {
-            let totalValue = 0;
-            let totalPreviousValue = 0;
-            let totalFlow = 0;
-            let totalChange = 0;
-            let hasAnyData = false;
-
-            heatmapData.forEach(row => {
-                const cell = row.cells[index];
-                if (cell) {
-                    totalValue += cell.value;
-                    totalPreviousValue += cell.previousValue;
-                    totalFlow += cell.monthlyFlow ?? 0;
-                    totalChange += cell.change;
-                    if (cell.hasData) hasAnyData = true;
-                }
-            });
-
-            const { returnPercent: changePercent } = subPeriodReturn(
-                totalPreviousValue,
-                totalValue,
-                totalFlow
-            );
-
-            return {
-                month,
-                value: totalValue,
-                previousValue: totalPreviousValue,
-                change: totalChange,
-                changePercent,
-                hasData: hasAnyData,
-                exists: true,
-                isInception: false,
-            };
-        });
-
-        const totalChange = cells.reduce((sum, c) => sum + c.change, 0);
-        let initialPortfolioBasis = 0;
-        let totalFlowInRange = 0;
-
-        heatmapData.forEach(row => {
-            if (row.cells.length > 0) {
-                const firstCell = row.cells[0];
-                if (!firstCell.isInception && firstCell.exists) {
-                    initialPortfolioBasis += firstCell.previousValue;
-                }
-                row.cells.forEach(cell => {
-                    totalFlowInRange += cell.monthlyFlow ?? 0;
-                });
-            }
-        });
-
-        const endValue = cells.length > 0 ? cells[cells.length - 1].value : 0;
-        const { returnPercent: totalChangePercent } = subPeriodReturn(
-            initialPortfolioBasis,
-            endValue,
-            totalFlowInRange
-        );
-
-        return {
-            id: 'portfolio-total',
-            name: 'TOTAL PORTFOLIO',
-            category: 'Total',
-            ownerName: 'Portfolio',
-            cells,
-            totalChange,
-            totalChangePercent,
-            startValue: initialPortfolioBasis,
-            endValue,
-        };
-    }, [heatmapData, visibleMonths]);
+    const portfolioRow = useMemo(
+        () => buildPortfolioHeatmapRow(heatmapData, visibleMonths),
+        [heatmapData, visibleMonths]
+    );
 
     // ── Tooltip helpers ──────────────────────────────────────────────────────
 
