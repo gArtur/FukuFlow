@@ -220,51 +220,32 @@ describe('Assets routes', () => {
                 .send({ value: 100, date: 'not-a-date' });
             expect(res.status).toBe(400);
         });
-    });
 
-    describe('POST /api/assets/:id/value (legacy)', () => {
-        let assetId;
-
-        beforeAll(async () => {
-            const res = await request(app)
+        it('keeps Invested Capital intact for a value-only snapshot (reconcile invariant)', async () => {
+            const createRes = await request(app)
                 .post('/api/assets')
                 .set(authHeader(token))
-                .send(validAsset({ name: 'Legacy Value Asset', currentValue: 500 }));
-            assetId = res.body.id;
-        });
+                .send(validAsset({ name: 'Value-Only Snapshot Asset', currentValue: 0 }));
+            const assetId = createRes.body.id;
 
-        it('updates currentValue and returns { assetId, date, value }', async () => {
-            const res = await request(app)
-                .post(`/api/assets/${assetId}/value`)
-                .set(authHeader(token))
-                .send({ value: 750, date: '2024-03-01' });
-            expect(res.status).toBe(200);
-            expect(res.body.assetId).toBe(assetId);
-            expect(res.body.value).toBe(750);
-            // Joi isoDate() normalises the date to a full ISO timestamp
-            expect(res.body.date).toMatch(/^2024-03-01/);
-        });
-
-        it('adds a history entry with investmentChange=0', async () => {
+            // Snapshot with an investment change establishes a known Invested Capital baseline.
             await request(app)
-                .post(`/api/assets/${assetId}/value`)
+                .post(`/api/assets/${assetId}/snapshot`)
                 .set(authHeader(token))
-                .send({ value: 800, date: '2024-04-01' });
+                .send({ value: 1200, investmentChange: 1000, date: '2024-07-01' });
+
+            // Value-only snapshot (no investmentChange) updates Total Worth only.
+            await request(app)
+                .post(`/api/assets/${assetId}/snapshot`)
+                .set(authHeader(token))
+                .send({ value: 1500, date: '2024-08-01' });
 
             const listRes = await request(app).get('/api/assets').set(authHeader(token));
             const asset = listRes.body.find(a => a.id === assetId);
-            // Joi normalises '2024-04-01' → '2024-04-01T00:00:00.000Z'
-            const entry = asset.valueHistory.find(h => h.date.startsWith('2024-04-01'));
-            expect(entry).toBeDefined();
-            expect(entry.investmentChange).toBe(0);
-        });
-
-        it('returns 400 for missing value', async () => {
-            const res = await request(app)
-                .post(`/api/assets/${assetId}/value`)
-                .set(authHeader(token))
-                .send({ date: '2024-05-01' });
-            expect(res.status).toBe(400);
+            // currentValue follows the latest snapshot...
+            expect(asset.currentValue).toBe(1500);
+            // ...while purchaseAmount stays = SUM(investmentChange), undisturbed by the value-only snapshot.
+            expect(asset.purchaseAmount).toBe(1000);
         });
     });
 });

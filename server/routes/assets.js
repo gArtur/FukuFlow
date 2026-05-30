@@ -155,27 +155,6 @@ router.post('/:id/snapshot/bulk', validateUuidParam, validateSnapshotBulk, async
     }
 });
 
-// POST legacy value update
-router.post('/:id/value', validateUuidParam, validateSnapshot, (req, res) => {
-    const db = req.app.locals.db;
-    const { id } = req.params;
-    const { value, date = new Date().toISOString() } = req.body;
-
-    db.serialize(() => {
-        db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, id], err => {
-            if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-            db.run(
-                'INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
-                [id, date, value, 0, ''],
-                err => {
-                    if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
-                    res.json({ assetId: id, date, value });
-                }
-            );
-        });
-    });
-});
-
 // DELETE asset
 router.delete('/:id', validateUuidParam, (req, res) => {
     const db = req.app.locals.db;
