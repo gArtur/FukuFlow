@@ -70,22 +70,16 @@ export function useSnapshotActions({
             assetId: string,
             snapshots: SnapshotData[]
         ): Promise<{ success: number; failed: number; errors: string[] }> => {
-            let success = 0;
-            let failed = 0;
-            const errors: string[] = [];
-
-            for (const snapshot of snapshots) {
-                try {
-                    await ApiClient.addSnapshot(assetId, snapshot);
-                    success++;
-                } catch {
-                    failed++;
-                    errors.push(`Failed to import entry for ${snapshot.date}`);
-                }
+            // All-or-nothing bulk import: a single request, then one refresh.
+            try {
+                const { inserted } = await ApiClient.bulkAddSnapshots(assetId, snapshots);
+                await refreshAssets();
+                return { success: inserted, failed: 0, errors: [] };
+            } catch (error) {
+                const message =
+                    error instanceof Error ? error.message : 'Failed to import snapshots';
+                return { success: 0, failed: snapshots.length, errors: [message] };
             }
-
-            await refreshAssets();
-            return { success, failed, errors };
         },
         [refreshAssets]
     );

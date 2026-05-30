@@ -167,28 +167,17 @@ function AppContent() {
         assetId: string,
         snapshots: { date: string; value: number; investmentChange: number; notes: string }[]
     ): Promise<{ success: number; failed: number; errors: string[] }> => {
-        let success = 0;
-        let failed = 0;
-        const errors: string[] = [];
-
-        for (const snapshot of snapshots) {
-            try {
-                await ApiClient.addSnapshot(assetId, snapshot);
-                success++;
-            } catch {
-                failed++;
-                errors.push(`Failed to import entry for ${snapshot.date}`);
-            }
+        // All-or-nothing bulk import: a single request, then one refresh.
+        try {
+            const { inserted } = await ApiClient.bulkAddSnapshots(assetId, snapshots);
+            await refreshAssets();
+            toast.success(`Successfully imported ${inserted} snapshots`);
+            return { success: inserted, failed: 0, errors: [] };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Failed to import snapshots';
+            toast.error(message);
+            return { success: 0, failed: snapshots.length, errors: [message] };
         }
-
-        await refreshAssets();
-        if (success > 0) {
-            toast.success(`Successfully imported ${success} snapshots`);
-        }
-        if (failed > 0) {
-            toast.error(`Failed to import ${failed} snapshots`);
-        }
-        return { success, failed, errors };
     };
 
     const handleCloseAddModal = () => {

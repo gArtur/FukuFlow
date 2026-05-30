@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import PersonBadge from './PersonBadge';
+import { parseSnapshotCsv } from '../utils/parseSnapshotCsv';
 
 interface ImportResult {
     success: number;
@@ -49,7 +50,7 @@ export default function ImportCSVModal({
             setIsProcessing(true);
             try {
                 const text = await file.text();
-                const snapshots = parseCSV(text);
+                const snapshots = parseSnapshotCsv(text);
 
                 if (snapshots.length === 0) {
                     setResult({
@@ -225,84 +226,3 @@ export default function ImportCSVModal({
         </div>
     );
 }
-
-// Helper functions moved outside component to avoid dependency issues
-
-const parseDateFlexible = (dateStr: string): Date | null => {
-    if (!dateStr || !dateStr.trim()) return null;
-
-    const cleaned = dateStr.trim();
-
-    // Try ISO format first (YYYY-MM-DD)
-    let date = new Date(cleaned);
-    if (!isNaN(date.getTime())) return date;
-
-    // Try DD/MM/YYYY or DD-MM-YYYY
-    const ddmmyyyyMatch = cleaned.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-    if (ddmmyyyyMatch) {
-        const [, day, month, year] = ddmmyyyyMatch;
-        date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-        if (!isNaN(date.getTime())) return date;
-    }
-
-    // Try MM/DD/YYYY (US format)
-    const mmddyyyyMatch = cleaned.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
-    if (mmddyyyyMatch) {
-        const [, month, day, year] = mmddyyyyMatch;
-        date = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-        if (!isNaN(date.getTime())) return date;
-    }
-
-    return null;
-};
-
-const parseCSV = (
-    text: string
-): { date: string; value: number; investmentChange: number; notes: string }[] => {
-    const lines = text.split('\n');
-    const hasHeader = lines[0]?.toLowerCase().includes('date');
-    const dataLines = hasHeader ? lines.slice(1) : lines;
-
-    return dataLines
-        .filter(line => {
-            const trimmed = line.trim();
-            // Filter out empty lines or lines with only commas
-            return trimmed && trimmed.replace(/,/g, '').length > 0;
-        })
-        .map(line => {
-            // Handle quoted fields properly
-            const parts: string[] = [];
-            let current = '';
-            let inQuotes = false;
-
-            for (const char of line) {
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    parts.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            parts.push(current.trim());
-
-            const [dateStr, valueStr, investmentChangeStr, ...notesParts] = parts;
-            const notes = notesParts.join(',').replace(/^"|"$/g, '').replace(/""/g, '"');
-
-            const parsedDate = parseDateFlexible(dateStr);
-
-            return {
-                date: parsedDate ? parsedDate.toISOString() : '',
-                value: parseFloat(valueStr) || 0,
-                investmentChange: parseFloat(investmentChangeStr) || 0,
-                notes: notes || '',
-                _rawDate: dateStr, // Keep for error reporting
-            };
-        })
-        .filter(s => {
-            // Filter out entries with invalid dates or no value
-            return s.date && !isNaN(new Date(s.date).getTime()) && s.value > 0;
-        })
-        .map(({ _rawDate, ...rest }) => rest); // Remove temporary field
-};

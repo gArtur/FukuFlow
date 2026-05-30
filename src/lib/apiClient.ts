@@ -265,6 +265,18 @@ export const ApiClient = {
         return response.json();
     },
 
+    async bulkAddSnapshots(id: string, snapshots: SnapshotData[]) {
+        const response = await authFetch(`${API_URL}/assets/${id}/snapshot/bulk`, {
+            method: 'POST',
+            body: JSON.stringify({ snapshots }),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to import snapshots');
+        }
+        return response.json();
+    },
+
     async updateAssetValue(id: string, value: number) {
         const response = await authFetch(`${API_URL}/assets/${id}/value`, {
             method: 'POST',
