@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import type { Asset, PortfolioStats } from '../types';
+import type { Asset } from '../types';
 import { ApiClient } from '../lib/apiClient';
+import { computePortfolioStats } from '../utils/portfolioStats';
 
 export function usePortfolio() {
     const [assets, setAssets] = useState<Asset[]>([]);
@@ -33,39 +34,6 @@ export function usePortfolio() {
 
     const filteredAssets =
         selectedOwner === 'all' ? assets : assets.filter(a => a.ownerId === selectedOwner);
-
-    const calculateStats = useCallback((assetList: Asset[]): PortfolioStats => {
-        const stats: PortfolioStats = {
-            totalValue: 0,
-            totalInvested: 0,
-            totalGain: 0,
-            gainPercentage: 0,
-            byCategory: {},
-            byOwner: {},
-        };
-
-        assetList.forEach(asset => {
-            stats.totalValue += asset.currentValue;
-            stats.totalInvested += asset.purchaseAmount;
-
-            // Handle dynamic categories
-            if (typeof stats.byCategory[asset.category] !== 'number') {
-                stats.byCategory[asset.category] = 0;
-            }
-            stats.byCategory[asset.category] += asset.currentValue;
-
-            if (!stats.byOwner[asset.ownerId]) {
-                stats.byOwner[asset.ownerId] = 0;
-            }
-            stats.byOwner[asset.ownerId] += asset.currentValue;
-        });
-
-        stats.totalGain = stats.totalValue - stats.totalInvested;
-        stats.gainPercentage =
-            stats.totalInvested > 0 ? (stats.totalGain / stats.totalInvested) * 100 : 0;
-
-        return stats;
-    }, []);
 
     const addAsset = useCallback(async (asset: Omit<Asset, 'id' | 'valueHistory'>) => {
         try {
@@ -113,8 +81,8 @@ export function usePortfolio() {
         filteredAssets,
         selectedOwner,
         setSelectedOwner,
-        stats: calculateStats(filteredAssets),
-        totalStats: calculateStats(assets),
+        stats: computePortfolioStats(filteredAssets),
+        totalStats: computePortfolioStats(assets),
         addAsset,
         deleteAsset,
         updateAsset,
