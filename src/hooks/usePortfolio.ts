@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-hot-toast';
-import type { Asset, PortfolioStats, ValueEntry } from '../types';
+import type { Asset, PortfolioStats } from '../types';
 import { ApiClient } from '../lib/apiClient';
 
 export function usePortfolio() {
@@ -78,30 +78,6 @@ export function usePortfolio() {
         }
     }, []);
 
-    const updateAssetValue = useCallback(async (id: string, newValue: number) => {
-        try {
-            await ApiClient.updateAssetValue(id, newValue);
-            setAssets(prev =>
-                prev.map(asset => {
-                    if (asset.id !== id) return asset;
-                    const newEntry: ValueEntry = {
-                        date: new Date().toISOString(),
-                        value: newValue,
-                    };
-                    return {
-                        ...asset,
-                        currentValue: newValue,
-                        valueHistory: [...asset.valueHistory, newEntry],
-                    };
-                })
-            );
-            toast.success('Asset value updated');
-        } catch (error) {
-            console.error('Failed to update asset value:', error);
-            toast.error('Failed to update asset value');
-        }
-    }, []);
-
     const deleteAsset = useCallback(async (id: string) => {
         try {
             await ApiClient.deleteAsset(id);
@@ -140,7 +116,6 @@ export function usePortfolio() {
         stats: calculateStats(filteredAssets),
         totalStats: calculateStats(assets),
         addAsset,
-        updateAssetValue,
         deleteAsset,
         updateAsset,
         isLoading,

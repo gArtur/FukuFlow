@@ -277,14 +277,6 @@ export const ApiClient = {
         return response.json();
     },
 
-    async updateAssetValue(id: string, value: number) {
-        const response = await authFetch(`${API_URL}/assets/${id}/value`, {
-            method: 'POST',
-            body: JSON.stringify({ value }),
-        });
-        return response.json();
-    },
-
     async deleteAsset(id: string) {
         await authFetch(`${API_URL}/assets/${id}`, { method: 'DELETE' });
     },
