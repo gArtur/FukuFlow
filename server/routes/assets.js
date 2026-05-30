@@ -1,15 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
-const { validateAsset, validateAssetUpdate, validateSnapshot, validateUuidParam } = require('../validation/schemas');
+const {
+    validateAsset,
+    validateAssetUpdate,
+    validateSnapshot,
+    validateSnapshotBulk,
+    validateUuidParam,
+} = require('../validation/schemas');
 const { promisifyDb, withTransaction, reconcileAsset } = require('../db-helpers');
 
-const ALLOWED_ASSET_UPDATE_FIELDS = Object.freeze(new Set(['name', 'category', 'ownerId', 'symbol']));
+const ALLOWED_ASSET_UPDATE_FIELDS = Object.freeze(
+    new Set(['name', 'category', 'ownerId', 'symbol'])
+);
 
 // GET all assets with history
 router.get('/', (req, res) => {
     const db = req.app.locals.db;
-    db.all(`
+    db.all(
+        `
         SELECT a.id, a.name, a.category, a.ownerId, a.purchaseAmount,
                a.purchaseDate, a.currentValue, a.symbol,
                h.id as historyId, h.date as historyDate, h.value as historyValue,
@@ -17,29 +26,40 @@ router.get('/', (req, res) => {
         FROM assets a
         LEFT JOIN asset_history h ON a.id = h.assetId
         ORDER BY a.id, h.date ASC, h.id ASC
-    `, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: 'Failed to fetch assets' });
+    `,
+        [],
+        (err, rows) => {
+            if (err) return res.status(500).json({ error: 'Failed to fetch assets' });
 
-        const assetsMap = new Map();
-        rows.forEach(row => {
-            if (!assetsMap.has(row.id)) {
-                assetsMap.set(row.id, {
-                    id: row.id, name: row.name, category: row.category,
-                    ownerId: row.ownerId, purchaseAmount: row.purchaseAmount,
-                    purchaseDate: row.purchaseDate, currentValue: row.currentValue,
-                    symbol: row.symbol, valueHistory: []
-                });
-            }
-            if (row.historyId) {
-                assetsMap.get(row.id).valueHistory.push({
-                    id: row.historyId, date: row.historyDate, value: row.historyValue,
-                    investmentChange: row.investmentChange, notes: row.notes
-                });
-            }
-        });
+            const assetsMap = new Map();
+            rows.forEach(row => {
+                if (!assetsMap.has(row.id)) {
+                    assetsMap.set(row.id, {
+                        id: row.id,
+                        name: row.name,
+                        category: row.category,
+                        ownerId: row.ownerId,
+                        purchaseAmount: row.purchaseAmount,
+                        purchaseDate: row.purchaseDate,
+                        currentValue: row.currentValue,
+                        symbol: row.symbol,
+                        valueHistory: [],
+                    });
+                }
+                if (row.historyId) {
+                    assetsMap.get(row.id).valueHistory.push({
+                        id: row.historyId,
+                        date: row.historyDate,
+                        value: row.historyValue,
+                        investmentChange: row.investmentChange,
+                        notes: row.notes,
+                    });
+                }
+            });
 
-        res.json(Array.from(assetsMap.values()));
-    });
+            res.json(Array.from(assetsMap.values()));
+        }
+    );
 });
 
 // POST create asset
@@ -79,7 +99,7 @@ router.put('/:id', validateUuidParam, validateAssetUpdate, (req, res) => {
     const values = keys.map(k => filteredUpdates[k]);
     values.push(id);
 
-    db.run(`UPDATE assets SET ${fields} WHERE id = ?`, values, (err) => {
+    db.run(`UPDATE assets SET ${fields} WHERE id = ?`, values, err => {
         if (err) return res.status(500).json({ error: 'Failed to update asset' });
         res.json({ id, ...filteredUpdates });
     });
@@ -109,6 +129,32 @@ router.post('/:id/snapshot', validateUuidParam, validateSnapshot, async (req, re
     }
 });
 
+// POST bulk snapshot import (all-or-nothing)
+router.post('/:id/snapshot/bulk', validateUuidParam, validateSnapshotBulk, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
+    const { id } = req.params;
+    const { snapshots } = req.body;
+
+    try {
+        const asset = await adb.get('SELECT id FROM assets WHERE id = ?', [id]);
+        if (!asset) return res.status(404).json({ error: 'Asset not found' });
+
+        await withTransaction(adb, async () => {
+            for (const { value, date, investmentChange = 0, notes = '' } of snapshots) {
+                await adb.run(
+                    'INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
+                    [id, date, value, investmentChange, notes]
+                );
+            }
+            await reconcileAsset(adb, id);
+        });
+
+        res.json({ assetId: id, inserted: snapshots.length });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to import snapshots' });
+    }
+});
+
 // POST legacy value update
 router.post('/:id/value', validateUuidParam, validateSnapshot, (req, res) => {
     const db = req.app.locals.db;
@@ -116,12 +162,12 @@ router.post('/:id/value', validateUuidParam, validateSnapshot, (req, res) => {
     const { value, date = new Date().toISOString() } = req.body;
 
     db.serialize(() => {
-        db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, id], (err) => {
+        db.run('UPDATE assets SET currentValue = ? WHERE id = ?', [value, id], err => {
             if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
             db.run(
                 'INSERT INTO asset_history (assetId, date, value, investmentChange, notes) VALUES (?, ?, ?, ?, ?)',
                 [id, date, value, 0, ''],
-                (err) => {
+                err => {
                     if (err) return res.status(500).json({ error: 'Failed to add snapshot' });
                     res.json({ assetId: id, date, value });
                 }
@@ -133,7 +179,7 @@ router.post('/:id/value', validateUuidParam, validateSnapshot, (req, res) => {
 // DELETE asset
 router.delete('/:id', validateUuidParam, (req, res) => {
     const db = req.app.locals.db;
-    db.run('DELETE FROM assets WHERE id = ?', [req.params.id], (err) => {
+    db.run('DELETE FROM assets WHERE id = ?', [req.params.id], err => {
         if (err) return res.status(500).json({ error: 'Failed to delete asset' });
         res.status(204).send();
     });

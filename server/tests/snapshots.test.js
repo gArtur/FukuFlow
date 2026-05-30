@@ -14,17 +14,14 @@ describe('Snapshots routes', () => {
             .send({ name: 'Bob' });
         const personId = personRes.body.id;
 
-        const assetRes = await request(app)
-            .post('/api/assets')
-            .set(authHeader(token))
-            .send({
-                name: 'Snapshot Test Asset',
-                category: 'stocks',
-                ownerId: personId,
-                purchaseAmount: 0,
-                purchaseDate: '2024-01-01',
-                currentValue: 0,
-            });
+        const assetRes = await request(app).post('/api/assets').set(authHeader(token)).send({
+            name: 'Snapshot Test Asset',
+            category: 'stocks',
+            ownerId: personId,
+            purchaseAmount: 0,
+            purchaseDate: '2024-01-01',
+            currentValue: 0,
+        });
         assetId = assetRes.body.id;
     });
 
@@ -70,7 +67,12 @@ describe('Snapshots routes', () => {
             const res = await request(app)
                 .put(`/api/snapshots/${latest.id}`)
                 .set(authHeader(token))
-                .send({ date: latest.date, value: 9999, investmentChange: latest.investmentChange || 0, notes: '' });
+                .send({
+                    date: latest.date,
+                    value: 9999,
+                    investmentChange: latest.investmentChange || 0,
+                    notes: '',
+                });
             expect(res.status).toBe(200);
 
             const updated = await getAsset();
@@ -86,7 +88,12 @@ describe('Snapshots routes', () => {
             await request(app)
                 .put(`/api/snapshots/${firstSnapshot.id}`)
                 .set(authHeader(token))
-                .send({ date: firstSnapshot.date, value: firstSnapshot.value, investmentChange: oldIC + 1000, notes: '' });
+                .send({
+                    date: firstSnapshot.date,
+                    value: firstSnapshot.value,
+                    investmentChange: oldIC + 1000,
+                    notes: '',
+                });
 
             const updated = await getAsset();
             expect(updated.purchaseAmount).toBe(originalPurchaseAmount + 1000);
@@ -133,17 +140,14 @@ describe('Snapshots routes', () => {
                 .post('/api/persons')
                 .set(authHeader(token))
                 .send({ name: 'Reconcile Owner' });
-            const assetRes = await request(app)
-                .post('/api/assets')
-                .set(authHeader(token))
-                .send({
-                    name: 'Reconcile Asset',
-                    category: 'stocks',
-                    ownerId: personRes.body.id,
-                    purchaseAmount: 0,
-                    purchaseDate: '2024-01-01',
-                    currentValue: 0,
-                });
+            const assetRes = await request(app).post('/api/assets').set(authHeader(token)).send({
+                name: 'Reconcile Asset',
+                category: 'stocks',
+                ownerId: personRes.body.id,
+                purchaseAmount: 0,
+                purchaseDate: '2024-01-01',
+                currentValue: 0,
+            });
             return assetRes.body.id;
         }
 
@@ -232,6 +236,88 @@ describe('Snapshots routes', () => {
             asset = await fetchAsset(invariantAssetId);
             expect(asset.purchaseAmount).toBe(1900); // 1000 + 900
             expect(asset.currentValue).toBe(1500); // new latest
+        });
+    });
+
+    describe('POST /api/assets/:id/snapshot/bulk', () => {
+        let bulkAssetId;
+
+        async function freshBulkAsset() {
+            const personRes = await request(app)
+                .post('/api/persons')
+                .set(authHeader(token))
+                .send({ name: 'Bulk Owner' });
+            const assetRes = await request(app).post('/api/assets').set(authHeader(token)).send({
+                name: 'Bulk Asset',
+                category: 'stocks',
+                ownerId: personRes.body.id,
+                purchaseAmount: 0,
+                purchaseDate: '2024-01-01',
+                currentValue: 0,
+            });
+            return assetRes.body.id;
+        }
+
+        async function fetchAsset(id) {
+            const res = await request(app).get('/api/assets').set(authHeader(token));
+            return res.body.find(a => a.id === id);
+        }
+
+        beforeEach(async () => {
+            bulkAssetId = await freshBulkAsset();
+        });
+
+        it('inserts all rows in one import and reconciles the asset once', async () => {
+            const res = await request(app)
+                .post(`/api/assets/${bulkAssetId}/snapshot/bulk`)
+                .set(authHeader(token))
+                .send({
+                    snapshots: [
+                        { date: '2024-02-01', value: 1000, investmentChange: 1000, notes: 'a' },
+                        { date: '2024-03-01', value: 1500, investmentChange: 400, notes: 'b' },
+                        { date: '2024-04-01', value: 1800, investmentChange: 300, notes: 'c' },
+                    ],
+                });
+
+            expect(res.status).toBe(200);
+            expect(res.body.inserted).toBe(3);
+
+            const asset = await fetchAsset(bulkAssetId);
+            expect(asset.valueHistory.length).toBe(3);
+            // reconcileAsset ran: currentValue = latest, purchaseAmount = SUM(investmentChange)
+            expect(asset.currentValue).toBe(1800);
+            expect(asset.purchaseAmount).toBe(1700);
+        });
+
+        it('rolls back the entire import when any row is invalid and returns 400 with per-row detail', async () => {
+            const res = await request(app)
+                .post(`/api/assets/${bulkAssetId}/snapshot/bulk`)
+                .set(authHeader(token))
+                .send({
+                    snapshots: [
+                        { date: '2024-02-01', value: 1000, investmentChange: 1000 },
+                        { date: 'not-a-date', value: 1500, investmentChange: 400 },
+                    ],
+                });
+
+            expect(res.status).toBe(400);
+            // error detail references the offending row by index
+            expect(res.body.error).toMatch(/snapshots\[1\]/);
+
+            // No partial state: nothing was inserted, asset stays untouched.
+            const asset = await fetchAsset(bulkAssetId);
+            expect(asset.valueHistory.length).toBe(0);
+            expect(asset.currentValue).toBe(0);
+            expect(asset.purchaseAmount).toBe(0);
+        });
+
+        it('returns 404 for a non-existent asset', async () => {
+            const fakeId = '00000000-0000-0000-0000-000000000000';
+            const res = await request(app)
+                .post(`/api/assets/${fakeId}/snapshot/bulk`)
+                .set(authHeader(token))
+                .send({ snapshots: [{ date: '2024-02-01', value: 100, investmentChange: 0 }] });
+            expect(res.status).toBe(404);
         });
     });
 });
