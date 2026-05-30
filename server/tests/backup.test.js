@@ -133,6 +133,52 @@ describe('Backup routes', () => {
             const assetsRes = await request(app).get('/api/assets').set(authHeader(token));
             expect(assetsRes.body).toEqual([]);
         });
+
+        it('rolls the whole restore back when an insert fails mid-way (atomicity)', async () => {
+            // Seed a known person that must survive a failed restore.
+            const survivor = await request(app)
+                .post('/api/persons')
+                .set(authHeader(token))
+                .send({ name: 'Survivor' });
+            const survivorId = survivor.body.id;
+
+            const ownerId = uuidv4();
+            const assetId = uuidv4();
+            // Two history rows share id=1; the second INSERT violates the
+            // asset_history PRIMARY KEY, failing the restore mid-transaction.
+            const payload = {
+                persons: [{ id: ownerId, name: 'Should Not Persist', displayOrder: 0 }],
+                categories: [],
+                assets: [
+                    {
+                        id: assetId,
+                        name: 'Doomed',
+                        category: 'cash',
+                        ownerId,
+                        purchaseAmount: 0,
+                        purchaseDate: '2024-01-01',
+                        currentValue: 0,
+                        symbol: null,
+                    },
+                ],
+                history: [
+                    { id: 1, assetId, date: '2024-01-01', value: 1, investmentChange: 0, notes: '' },
+                    { id: 1, assetId, date: '2024-02-01', value: 2, investmentChange: 0, notes: '' },
+                ],
+                settings: [],
+            };
+
+            const res = await request(app)
+                .post('/api/backup/restore')
+                .set(authHeader(token))
+                .send(payload);
+            expect(res.status).toBe(500);
+
+            // Rollback must have undone both the DELETEs and the partial inserts.
+            const personsRes = await request(app).get('/api/persons').set(authHeader(token));
+            expect(personsRes.body.some(p => p.id === survivorId)).toBe(true);
+            expect(personsRes.body.some(p => p.id === ownerId)).toBe(false);
+        });
     });
 
     describe('POST /api/backup/restore — validation', () => {

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { validatePerson, validatePersonUpdate, validatePersonReorder, validateUuidParam } = require('../validation/schemas');
+const { promisifyDb, withTransaction } = require('../db-helpers');
 
 // GET all persons
 router.get('/', (req, res) => {
@@ -30,26 +31,20 @@ router.post('/', validatePerson, (req, res) => {
 });
 
 // PUT reorder persons
-router.put('/reorder', validatePersonReorder, (req, res) => {
-    const db = req.app.locals.db;
+router.put('/reorder', validatePersonReorder, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
     const { ids } = req.body;
 
-    db.serialize(() => {
-        db.run('BEGIN TRANSACTION');
-        const stmt = db.prepare('UPDATE persons SET displayOrder = ? WHERE id = ?');
-
-        ids.forEach((id, index) => { stmt.run(index, id); });
-
-        stmt.finalize((err) => {
-            if (err) {
-                db.run('ROLLBACK');
-                return res.status(500).json({ error: 'Failed to reorder persons' });
+    try {
+        await withTransaction(adb, async () => {
+            for (let index = 0; index < ids.length; index++) {
+                await adb.run('UPDATE persons SET displayOrder = ? WHERE id = ?', [index, ids[index]]);
             }
-            db.run('COMMIT', () => {
-                res.json({ message: 'Reorder successful', ids });
-            });
         });
-    });
+        res.json({ message: 'Reorder successful', ids });
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to reorder persons' });
+    }
 });
 
 // PUT update person
@@ -79,43 +74,27 @@ router.put('/:id', validateUuidParam, validatePersonUpdate, (req, res) => {
 });
 
 // DELETE person (cascades to assets and history)
-router.delete('/:id', validateUuidParam, (req, res) => {
-    const db = req.app.locals.db;
+router.delete('/:id', validateUuidParam, async (req, res) => {
+    const adb = promisifyDb(req.app.locals.db);
     const { id } = req.params;
 
-    const rollback = (cb) => db.run('ROLLBACK', cb);
-
-    db.run('BEGIN TRANSACTION', (err) => {
-        if (err) return res.status(500).json({ error: 'Failed to delete person' });
-
-        db.all('SELECT id FROM assets WHERE ownerId = ?', [id], (err, assets) => {
-            if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
-
+    try {
+        await withTransaction(adb, async () => {
+            const assets = await adb.all('SELECT id FROM assets WHERE ownerId = ?', [id]);
             const assetIds = assets.map(a => a.id);
 
-            const deleteAssets = (cb) => {
-                if (assetIds.length === 0) return cb(null);
+            if (assetIds.length > 0) {
                 const placeholders = assetIds.map(() => '?').join(',');
-                db.run(`DELETE FROM asset_history WHERE assetId IN (${placeholders})`, assetIds, (err) => {
-                    if (err) return cb(err);
-                    db.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds, cb);
-                });
-            };
+                await adb.run(`DELETE FROM asset_history WHERE assetId IN (${placeholders})`, assetIds);
+                await adb.run(`DELETE FROM assets WHERE id IN (${placeholders})`, assetIds);
+            }
 
-            deleteAssets((err) => {
-                if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
-
-                db.run('DELETE FROM persons WHERE id = ?', [id], (err) => {
-                    if (err) return rollback(() => res.status(500).json({ error: 'Failed to delete person' }));
-
-                    db.run('COMMIT', (err) => {
-                        if (err) return res.status(500).json({ error: 'Failed to commit' });
-                        res.status(204).send();
-                    });
-                });
-            });
+            await adb.run('DELETE FROM persons WHERE id = ?', [id]);
         });
-    });
+        res.status(204).send();
+    } catch (err) {
+        res.status(500).json({ error: 'Failed to delete person' });
+    }
 });
 
 module.exports = router;
