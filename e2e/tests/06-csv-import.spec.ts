@@ -1,21 +1,36 @@
 import { test, expect } from '../fixtures/pages.fixture';
-import { DashboardPage } from '../pages/DashboardPage';
+import { seedPerson, deletePerson, getToken } from '../helpers/seed';
 
-test.describe('CSV bulk import', () => {
+let token: string;
+let personId: string;
+const OWNER_NAME = 'CSV Import Owner';
+const ASSET_NAME = 'CSV Import Asset';
+
+test.beforeAll(async ({ request }) => {
+    token = await getToken(request);
+    personId = await seedPerson(request, token, OWNER_NAME);
+});
+
+test.afterAll(async ({ request }) => {
+    // Cascade-deletes all assets owned by this person
+    await deletePerson(request, token, personId);
+});
+
+test.describe('06 — CSV bulk import', () => {
     test('imports snapshots via a single bulk request and shows them in history', async ({
-        page,
+        dashboard,
+        assetDetail,
     }) => {
-        const dashboard = new DashboardPage(page);
-        await dashboard.goto();
+        const page = assetDetail.page;
 
         // Create an asset to import into.
+        await dashboard.goto();
         const modal = await dashboard.openAddAsset();
-        await modal.fillBasicInfo('CSV Import Asset', 'stocks');
-        await modal.selectOwnerByIndex(0);
+        await modal.fill({ name: ASSET_NAME, owner: OWNER_NAME });
         await modal.submit();
-        await dashboard.expectAssetCard('CSV Import Asset');
-        await dashboard.clickAssetCard('CSV Import Asset');
-        await expect(page.getByTestId('asset-detail')).toBeVisible();
+        await dashboard.expectAssetCard(ASSET_NAME);
+        await dashboard.clickAssetCard(ASSET_NAME);
+        await assetDetail.expectSnapshotTableEmpty();
 
         // Open the Import CSV modal.
         await page.getByRole('button', { name: /import csv/i }).click();
@@ -42,11 +57,13 @@ test.describe('CSV bulk import', () => {
         await bulkRequest;
 
         // The modal reports a successful import of all three rows.
-        await expect(page.getByText(/successfully imported 3 snapshots/i)).toBeVisible();
+        await expect(page.getByText(/3 snapshots imported successfully/i)).toBeVisible();
 
-        // Close the modal; the imported snapshots are now visible in history.
+        // Close the modal; the imported snapshots are now in the asset's history.
+        // (Rows render twice — desktop table + mobile list — so assert on content.)
         await page.getByRole('button', { name: /done/i }).click();
-        await expect(page.getByText('Added funds')).toBeVisible();
-        await expect(page.getByText('Initial deposit')).toBeVisible();
+        await expect(page.getByText('Added funds').first()).toBeVisible();
+        await expect(page.getByText('Initial deposit').first()).toBeVisible();
+        await expect(page.getByText('Monthly update').first()).toBeVisible();
     });
 });
