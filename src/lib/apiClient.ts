@@ -22,6 +22,20 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 /**
+ * Error thrown by the API client for any non-ok HTTP response. Carries the HTTP
+ * `status` so callers can branch on it without re-parsing the response.
+ */
+export class ApiError extends Error {
+    readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = 'ApiError';
+        this.status = status;
+    }
+}
+
+/**
  * Make an authenticated fetch request
  */
 async function authFetch(url: string, options: RequestInit = {}): Promise<Response> {
@@ -40,58 +54,80 @@ async function authFetch(url: string, options: RequestInit = {}): Promise<Respon
     return response;
 }
 
+/**
+ * Map a non-ok response to an ApiError. Prefers the server-provided `{ error }`
+ * message, falling back to the status text or a generic status message.
+ */
+async function toApiError(response: Response): Promise<ApiError> {
+    let message = response.statusText || `Request failed with status ${response.status}`;
+    try {
+        const body = await response.json();
+        if (body && typeof body.error === 'string') {
+            message = body.error;
+        }
+    } catch {
+        // Body was empty or not JSON; keep the status-based fallback message.
+    }
+    return new ApiError(message, response.status);
+}
+
+/**
+ * Parse a successful response body. Returns `undefined` for empty / 204
+ * responses so callers don't have to special-case them.
+ */
+async function parseBody<T>(response: Response): Promise<T | undefined> {
+    if (response.status === 204) return undefined;
+    const text = await response.text();
+    if (!text) return undefined;
+    return JSON.parse(text) as T;
+}
+
+/**
+ * The single error/return contract for every endpoint: throws an ApiError on any
+ * non-ok response (mapping status to message in one place), otherwise returns the
+ * parsed JSON body (or `undefined` for empty responses).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function request<T = any>(url: string, options: RequestInit = {}): Promise<T> {
+    const response = await authFetch(url, options);
+    if (!response.ok) {
+        throw await toApiError(response);
+    }
+    return (await parseBody<T>(response)) as T;
+}
+
 export const ApiClient = {
     // ============================================
-    // AUTH ENDPOINTS (no auth required)
+    // AUTH ENDPOINTS
     // ============================================
 
     async getAuthStatus() {
-        const response = await fetch(`${API_URL}/auth/status`);
-        if (!response.ok) throw new Error('Failed to check auth status');
-        return response.json();
+        return request(`${API_URL}/auth/status`);
     },
 
     async login(password: string) {
-        const response = await fetch(`${API_URL}/auth/login`, {
+        return request(`${API_URL}/auth/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Login failed');
-        }
-        return response.json();
     },
 
     async setup(password: string) {
-        const response = await fetch(`${API_URL}/auth/setup`, {
+        return request(`${API_URL}/auth/setup`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Setup failed');
-        }
-        return response.json();
     },
 
     async logout() {
-        const response = await authFetch(`${API_URL}/auth/logout`, { method: 'POST' });
-        return response.json();
+        return request(`${API_URL}/auth/logout`, { method: 'POST' });
     },
 
     async changePassword(currentPassword: string, newPassword: string) {
-        const response = await authFetch(`${API_URL}/auth/change-password`, {
+        return request(`${API_URL}/auth/change-password`, {
             method: 'POST',
             body: JSON.stringify({ currentPassword, newPassword }),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Password change failed');
-        }
-        return response.json();
     },
 
     // ============================================
@@ -99,21 +135,14 @@ export const ApiClient = {
     // ============================================
 
     async getSettings() {
-        const response = await authFetch(`${API_URL}/settings`);
-        if (!response.ok) {
-            if (response.status === 404) return null;
-            throw new Error(`Failed to fetch settings: ${response.statusText}`);
-        }
-        return response.json();
+        return request(`${API_URL}/settings`);
     },
 
     async updateSetting(key: string, value: string) {
-        const response = await authFetch(`${API_URL}/settings`, {
+        return request(`${API_URL}/settings`, {
             method: 'POST',
             body: JSON.stringify({ key, value }),
         });
-        if (!response.ok) throw new Error(`Failed to update setting: ${response.statusText}`);
-        return response.json();
     },
 
     // ============================================
@@ -121,36 +150,25 @@ export const ApiClient = {
     // ============================================
 
     async getCategories() {
-        const response = await authFetch(`${API_URL}/categories`);
-        if (!response.ok) {
-            if (response.status === 404) return [];
-            throw new Error(`Failed to fetch categories: ${response.statusText}`);
-        }
-        return response.json();
+        return request(`${API_URL}/categories`);
     },
 
     async addCategory(label: string, color: string) {
-        const response = await authFetch(`${API_URL}/categories`, {
+        return request(`${API_URL}/categories`, {
             method: 'POST',
             body: JSON.stringify({ label, color }),
         });
-        return response.json();
     },
 
     async updateCategory(id: string, label: string, color: string) {
-        const response = await authFetch(`${API_URL}/categories/${id}`, {
+        return request(`${API_URL}/categories/${id}`, {
             method: 'PUT',
             body: JSON.stringify({ label, color }),
         });
-        return response.json();
     },
 
     async deleteCategory(id: string) {
-        const response = await authFetch(`${API_URL}/categories/${id}`, { method: 'DELETE' });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to delete category');
-        }
+        await request(`${API_URL}/categories/${id}`, { method: 'DELETE' });
     },
 
     // ============================================
@@ -159,20 +177,18 @@ export const ApiClient = {
 
     async getBackup() {
         const response = await authFetch(`${API_URL}/backup`);
+        if (!response.ok) {
+            throw await toApiError(response);
+        }
         return response.blob();
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async restoreBackup(backupData: any) {
-        const response = await authFetch(`${API_URL}/backup/restore`, {
+        return request(`${API_URL}/backup/restore`, {
             method: 'POST',
             body: JSON.stringify(backupData),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Restore failed');
-        }
-        return response.json();
     },
 
     // ============================================
@@ -180,43 +196,32 @@ export const ApiClient = {
     // ============================================
 
     async getPersons() {
-        const response = await authFetch(`${API_URL}/persons`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch persons: ${response.statusText}`);
-        }
-        return response.json();
+        return request(`${API_URL}/persons`);
     },
 
     async addPerson(name: string) {
-        const response = await authFetch(`${API_URL}/persons`, {
+        return request(`${API_URL}/persons`, {
             method: 'POST',
             body: JSON.stringify({ name }),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to add person');
-        }
-        return response.json();
     },
 
     async updatePerson(id: string, data: { name?: string; displayOrder?: number }) {
-        const response = await authFetch(`${API_URL}/persons/${id}`, {
+        return request(`${API_URL}/persons/${id}`, {
             method: 'PUT',
             body: JSON.stringify(data),
         });
-        return response.json();
     },
 
     async reorderPersons(ids: string[]) {
-        const response = await authFetch(`${API_URL}/persons/reorder`, {
+        return request(`${API_URL}/persons/reorder`, {
             method: 'PUT',
             body: JSON.stringify({ ids }),
         });
-        return response.json();
     },
 
     async deletePerson(id: string) {
-        await authFetch(`${API_URL}/persons/${id}`, { method: 'DELETE' });
+        await request(`${API_URL}/persons/${id}`, { method: 'DELETE' });
     },
 
     // ============================================
@@ -224,61 +229,41 @@ export const ApiClient = {
     // ============================================
 
     async getAssets() {
-        const response = await authFetch(`${API_URL}/assets`);
-        if (!response.ok) {
-            throw new Error(`Failed to fetch assets: ${response.statusText}`);
-        }
-        return response.json();
+        return request(`${API_URL}/assets`);
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async addAsset(asset: any) {
-        const response = await authFetch(`${API_URL}/assets`, {
+        return request(`${API_URL}/assets`, {
             method: 'POST',
             body: JSON.stringify(asset),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to add asset');
-        }
-        return response.json();
     },
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async updateAsset(id: string, updates: any) {
-        const response = await authFetch(`${API_URL}/assets/${id}`, {
+        return request(`${API_URL}/assets/${id}`, {
             method: 'PUT',
             body: JSON.stringify(updates),
         });
-        return response.json();
     },
 
     async addSnapshot(id: string, snapshot: SnapshotData) {
-        const response = await authFetch(`${API_URL}/assets/${id}/snapshot`, {
+        return request(`${API_URL}/assets/${id}/snapshot`, {
             method: 'POST',
             body: JSON.stringify(snapshot),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to add snapshot');
-        }
-        return response.json();
     },
 
     async bulkAddSnapshots(id: string, snapshots: SnapshotData[]) {
-        const response = await authFetch(`${API_URL}/assets/${id}/snapshot/bulk`, {
+        return request(`${API_URL}/assets/${id}/snapshot/bulk`, {
             method: 'POST',
             body: JSON.stringify({ snapshots }),
         });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to import snapshots');
-        }
-        return response.json();
     },
 
     async deleteAsset(id: string) {
-        await authFetch(`${API_URL}/assets/${id}`, { method: 'DELETE' });
+        await request(`${API_URL}/assets/${id}`, { method: 'DELETE' });
     },
 
     // ============================================
@@ -286,17 +271,16 @@ export const ApiClient = {
     // ============================================
 
     async deleteSnapshot(id: number) {
-        await authFetch(`${API_URL}/snapshots/${id}`, { method: 'DELETE' });
+        await request(`${API_URL}/snapshots/${id}`, { method: 'DELETE' });
     },
 
     async updateSnapshot(
         id: number,
         data: { date: string; value: number; investmentChange: number; notes: string }
     ) {
-        const response = await authFetch(`${API_URL}/snapshots/${id}`, {
+        return request(`${API_URL}/snapshots/${id}`, {
             method: 'PUT',
             body: JSON.stringify(data),
         });
-        return response.json();
     },
 };
