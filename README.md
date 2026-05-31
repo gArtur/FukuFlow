@@ -2,7 +2,7 @@
 
 A modern, elegant personal wealth management dashboard for tracking investments across multiple asset categories and family members.
 
-![React](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Vite](https://img.shields.io/badge/Vite-7-purple) ![Node.js](https://img.shields.io/badge/Node.js-18+-green)
+![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-6-blue) ![Vite](https://img.shields.io/badge/Vite-8-purple) ![Node.js](https://img.shields.io/badge/Node.js-24+-green)
 
 ## Screenshots
 Dashboard
@@ -53,7 +53,7 @@ Together, it symbolizes the continuous flow of good fortune and wealth managemen
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | React 18, TypeScript, Vite |
+| Frontend | React 19, TypeScript, Vite |
 | Charts | Chart.js, react-chartjs-2 |
 | Backend | Node.js, Express |
 | Database | SQLite3 |
@@ -136,7 +136,7 @@ This project uses GitHub Actions for CI/CD:
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 24 or higher
 - npm or yarn
 
 ### Installation

@@ -49,7 +49,7 @@ Full verification is `typecheck` + `lint` + `npm test`. The frontend has a vites
 ### Stack
 
 - **Frontend**: React 19 + TypeScript + Vite, React Router, Chart.js (via react-chartjs-2)
-- **Backend**: Express 5, Node.js 18+, SQLite3
+- **Backend**: Express 5, Node.js 24+, SQLite3
 - **Auth**: Single-user JWT (the auth table enforces `CHECK id=1`); tokens invalidated server-side via `tokenVersion`
 - **Security**: Helmet, CORS, rate limiting (express-rate-limit)
 
