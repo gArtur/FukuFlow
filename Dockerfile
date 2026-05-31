@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build the Frontend (React + Vite)
 # ==========================================
-FROM node:20-alpine AS frontend-builder
+FROM node:24-alpine AS frontend-builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN npm run build
 # ==========================================
 # Stage 2: Setup the Backend (Node.js)
 # ==========================================
-FROM node:20-alpine AS backend-builder
+FROM node:24-alpine AS backend-builder
 
 WORKDIR /server
 
@@ -48,7 +48,7 @@ RUN npm ci --only=production
 # ==========================================
 # Stage 3: Production Image
 # ==========================================
-FROM node:20-alpine AS production
+FROM node:24-alpine AS production
 
 # Link image to GitHub Repository
 LABEL org.opencontainers.image.source=https://github.com/gArtur/FukuFlow
