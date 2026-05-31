@@ -10,7 +10,7 @@
     "assets": [
       "dist/**/*",
       "server/db/wealth.db",
-      "node_modules/sqlite3/lib/binding/**/*",
+      "node_modules/sqlite3/build/Release/*.node",
       "node_modules/systray2/traybin/**/*",
       "server/logo.ico"
     ],
