@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "bin": "server/index.js",
+  "engines": {
+    "node": ">=24"
+  },
   "pkg": {
     "assets": [
       "dist/**/*",
@@ -12,7 +15,7 @@
       "server/logo.ico"
     ],
     "targets": [
-      "node22-win-x64"
+      "node24-win-x64"
     ],
     "outputPath": "dist-exe"
   },
@@ -41,17 +44,17 @@
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "express-rate-limit": "^8.5.1",
-    "helmet": "^8.1.0",
-    "joi": "^18.0.2",
+    "express-rate-limit": "^8.5.2",
+    "helmet": "^8.2.0",
+    "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
     "react-hot-toast": "^2.6.0",
     "sqlite3": "^6.0.1",
     "systray2": "^2.1.4",
-    "uuid": "^13.0.0",
+    "uuid": "^14.0.0",
     "winreg": "^1.2.5"
   },
   "devDependencies": {
@@ -60,19 +63,19 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^25.6.2",
-    "@types/react": "^19.2.14",
+    "@types/node": "^25.9.1",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-react": "^6.0.1",
-    "@vitest/ui": "^4.1.6",
-    "@yao-pkg/pkg": "^6.19.0",
+    "@types/uuid": "^11.0.0",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/ui": "^4.1.7",
+    "@yao-pkg/pkg": "^6.20.0",
     "chart.js": "^4.5.1",
-    "concurrently": "^9.2.1",
-    "eslint": "^10.3.0",
+    "concurrently": "^10.0.0",
+    "eslint": "^10.4.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^16.5.0",
+    "globals": "^17.6.0",
     "jsdom": "^29.1.1",
     "open": "^11.0.0",
     "png-to-ico": "^3.0.1",
@@ -80,12 +83,12 @@
     "react": "^19.2.6",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.15.0",
+    "react-router-dom": "^7.16.0",
     "sharp": "^0.34.5",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.59.3",
-    "vite": "^8.0.12",
-    "vitest": "^4.1.6",
-    "wait-on": "^9.0.3"
+    "typescript-eslint": "^8.60.0",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.7",
+    "wait-on": "^9.0.10"
   }
 }
