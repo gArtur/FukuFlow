@@ -38,10 +38,6 @@
         font-size: 18px;
     }
 
-    .stat-card-value {
-        font-size: 16px;
-    }
-
     .mover-card {
         padding: var(--space-sm);
     }
@@ -139,16 +135,6 @@
         flex-direction: column;
         align-items: flex-start;
         gap: var(--space-md);
-    }
-
-    /* Stats row stacking */
-    .stats-row {
-        flex-direction: column;
-        gap: var(--space-md);
-    }
-
-    .stat-card {
-        width: 100%;
     }
 
     /* Allocation chart */
@@ -315,29 +301,6 @@
     /* Allow quick-filter tabs to wrap if needed on very small phones */
     .slider-header .time-range-tabs {
         flex-wrap: wrap;
-    }
-
-    /* Stats */
-    .stat-card-label {
-        font-size: 11px;
-    }
-
-    .stat-card-value {
-        font-size: 18px;
-    }
-
-    /* Dashboard stats */
-    .stats-hero {
-        padding: var(--space-md);
-    }
-
-    .stats-value {
-        font-size: 28px;
-    }
-
-    .stats-change {
-        flex-wrap: wrap;
-        gap: var(--space-xs);
     }
 
     /* Filter tabs scrollable */

@@ -35,6 +35,7 @@
     --shadow-sm: none;
     --shadow-md: none;
     --shadow-lg: none;
+    --shadow-xl: none;
 }
 
 /* HIGH CONTRAST MODE - HEATMAP OVERRIDES */

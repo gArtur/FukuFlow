@@ -702,38 +702,9 @@
     color: var(--text-muted);
 }
 
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: var(--accent-primary);
-}
-
-.btn-danger {
-    background: transparent;
-    border: 1px solid var(--accent-red, #e74c3c);
-    color: var(--accent-red, #e74c3c);
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.btn-danger:hover {
-    background: rgba(231, 76, 60, 0.1);
-}
+/* .btn-secondary and .btn-danger are defined once in index.css (button
+   primitives). The settings-specific variants were removed to stop them
+   leaking into modals/heatmap via global load order. */
 
 .btn-logout {
     display: flex;
@@ -758,26 +729,9 @@
     transform: translateY(-1px);
 }
 
-.btn-primary {
-    background: var(--gradient-primary);
-    border: none;
-    color: #000;
-    padding: 10px 20px;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-primary:hover:not(:disabled) {
-    opacity: 0.9;
-}
-
-.btn-primary:disabled,
-.btn-secondary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+/* .btn-primary is defined once in index.css (button primitives), including its
+   :hover and :disabled states. Settings primary buttons opt out of the base
+   flex:1 inline via style={{ flex: 'none' }}. */
 
 /* Password Change Form */
 .password-change-form {
