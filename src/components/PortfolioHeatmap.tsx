@@ -18,6 +18,7 @@ import HeatmapMobileCard from './heatmap/HeatmapMobileCard';
 import HeatmapCardDetail from './heatmap/HeatmapCardDetail';
 import PersonBadge from './PersonBadge';
 import type {
+    HeatmapCell,
     HeatmapRow,
     TooltipData,
     PortfolioHeatmapProps,
