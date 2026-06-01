@@ -35,11 +35,6 @@
     --tab-active-bg: #111827;
     --tab-active-text: #ffffff;
 
-    /* Use a dark pill for active filter tabs in light mode */
-    --filter-active-bg: #111827;
-    --filter-active-text: #ffffff;
-    --filter-active-border: #111827;
-
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);

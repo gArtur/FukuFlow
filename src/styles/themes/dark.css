@@ -33,10 +33,6 @@
     --tab-active-bg: var(--accent-primary);
     --tab-active-text: #000000;
 
-    --filter-active-bg: var(--bg-card);
-    --filter-active-text: var(--accent-primary);
-    --filter-active-border: var(--accent-primary);
-
     /* Shadows */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);

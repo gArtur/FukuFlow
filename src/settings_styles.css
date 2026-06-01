@@ -40,9 +40,9 @@
 
 .settings-tab.active {
     background: var(--bg-card);
-    color: var(--text-primary);
+    color: var(--accent-primary);
     font-weight: 600;
-    /* Active indicator handled per-breakpoint in settings-responsive.css */
+    /* Gold left-bar indicator handled per-breakpoint in settings-responsive.css */
 }
 
 /* Main Content Area */
