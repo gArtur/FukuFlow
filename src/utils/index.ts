@@ -2,6 +2,8 @@
  * Shared utility functions for the FukuFlow application
  */
 
+export { cx } from './cx';
+
 /**
  * Parse a string value to a number, handling European comma decimals.
  * Returns 0 if the value cannot be parsed.
