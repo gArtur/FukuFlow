@@ -1,6 +1,7 @@
 import { ApiClient } from '../../lib/apiClient';
 import { toast } from 'react-hot-toast';
 import { getTodayString } from '../../utils';
+import styles from './Settings.module.css';
 
 interface BackupSettingsProps {
     onShowRestoreModal: () => void;
@@ -26,41 +27,41 @@ export default function BackupSettings({ onShowRestoreModal }: BackupSettingsPro
     };
 
     return (
-        <section id="backup" className="settings-section">
-            <div className="movers-header">
-                <div className="movers-header-left">
-                    <h2 className="movers-title">Backup</h2>
+        <section id="backup" className={styles.settingsSection}>
+            <div className={styles.sectionHeader}>
+                <div className={styles.sectionHeaderLeft}>
+                    <h2 className={styles.sectionTitle}>Backup</h2>
                 </div>
             </div>
-            <div className="settings-group-card">
-                <div className="data-row">
-                    <div className="data-block">
-                        <div className="data-block-info">
+            <div className={styles.settingsGroupCard}>
+                <div className={styles.dataRow}>
+                    <div className={styles.dataBlock}>
+                        <div className={styles.dataBlockInfo}>
                             <h3>Backup Data</h3>
                             <p>Download a JSON file of your portfolio.</p>
                         </div>
                         <button
                             onClick={handleBackup}
-                            className="btn-data-action"
+                            className={styles.btnDataAction}
                             data-testid="backup-download-btn"
                         >
                             Backup Data
-                            <span className="icon-right">↓</span>
+                            <span className={styles.iconRight}>↓</span>
                         </button>
                     </div>
 
-                    <div className="data-block">
-                        <div className="data-block-info">
+                    <div className={styles.dataBlock}>
+                        <div className={styles.dataBlockInfo}>
                             <h3>Restore Data</h3>
                             <p>Overwrite current data with a backup file.</p>
                         </div>
                         <button
                             onClick={onShowRestoreModal}
-                            className="btn-data-action"
+                            className={styles.btnDataAction}
                             data-testid="restore-data-btn"
                         >
                             Restore Data
-                            <span className="icon-right">↑</span>
+                            <span className={styles.iconRight}>↑</span>
                         </button>
                     </div>
                 </div>

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { cx } from '../../utils';
+import styles from './Settings.module.css';
 
 export function SecuritySettings() {
     const { changePassword, logout } = useAuth();
@@ -46,59 +48,59 @@ export function SecuritySettings() {
     };
 
     return (
-        <section id="security" className="settings-section">
-            <div className="movers-header">
-                <div className="movers-header-left">
-                    <h2 className="movers-title">Security</h2>
+        <section id="security" className={styles.settingsSection}>
+            <div className={styles.sectionHeader}>
+                <div className={styles.sectionHeaderLeft}>
+                    <h2 className={styles.sectionTitle}>Security</h2>
                 </div>
             </div>
-            <div className="settings-group-card">
+            <div className={styles.settingsGroupCard}>
                 {!isChangingPassword ? (
-                    <div className="data-row">
-                        <div className="data-block">
-                            <div className="data-block-info">
+                    <div className={styles.dataRow}>
+                        <div className={styles.dataBlock}>
+                            <div className={styles.dataBlockInfo}>
                                 <h3>Change Password</h3>
                                 <p>Update your account password</p>
                             </div>
                             <button
-                                className="btn-data-action"
+                                className={styles.btnDataAction}
                                 onClick={() => setIsChangingPassword(true)}
                                 data-testid="change-password-btn"
                             >
                                 Change Password
-                                <span className="icon-right">🔑</span>
+                                <span className={styles.iconRight}>🔑</span>
                             </button>
                         </div>
-                        <div className="data-block">
-                            <div className="data-block-info">
+                        <div className={styles.dataBlock}>
+                            <div className={styles.dataBlockInfo}>
                                 <h3>Sign Out</h3>
                                 <p>End your current session</p>
                             </div>
                             <button
-                                className="btn-logout"
+                                className={styles.btnLogout}
                                 onClick={handleLogout}
                                 data-testid="logout-btn"
                             >
                                 Logout
-                                <span className="icon-right">→</span>
+                                <span className={styles.iconRight}>→</span>
                             </button>
                         </div>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="password-change-form">
-                        <div className="password-form-header">
+                    <form onSubmit={handleSubmit} className={styles.passwordChangeForm}>
+                        <div className={styles.passwordFormHeader}>
                             <h3>Change Password</h3>
                             <p>Enter your current password and choose a new one</p>
                         </div>
 
-                        <div className="input-group">
-                            <label className="input-label-sm" htmlFor="currentPassword">
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabelSm} htmlFor="currentPassword">
                                 CURRENT PASSWORD
                             </label>
                             <input
                                 type="password"
                                 id="currentPassword"
-                                className="input-dark"
+                                className={styles.inputDark}
                                 value={currentPassword}
                                 onChange={e => setCurrentPassword(e.target.value)}
                                 required
@@ -106,14 +108,14 @@ export function SecuritySettings() {
                                 data-testid="current-password-input"
                             />
                         </div>
-                        <div className="input-group">
-                            <label className="input-label-sm" htmlFor="newPassword">
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabelSm} htmlFor="newPassword">
                                 NEW PASSWORD
                             </label>
                             <input
                                 type="password"
                                 id="newPassword"
-                                className="input-dark"
+                                className={styles.inputDark}
                                 value={newPassword}
                                 onChange={e => setNewPassword(e.target.value)}
                                 required
@@ -122,14 +124,14 @@ export function SecuritySettings() {
                                 data-testid="new-password-input"
                             />
                         </div>
-                        <div className="input-group">
-                            <label className="input-label-sm" htmlFor="confirmPassword">
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabelSm} htmlFor="confirmPassword">
                                 CONFIRM NEW PASSWORD
                             </label>
                             <input
                                 type="password"
                                 id="confirmPassword"
-                                className="input-dark"
+                                className={styles.inputDark}
                                 value={confirmPassword}
                                 onChange={e => setConfirmPassword(e.target.value)}
                                 required
@@ -138,13 +140,13 @@ export function SecuritySettings() {
                             />
                         </div>
 
-                        {error && <div className="error-message">{error}</div>}
-                        {success && <div className="success-message">{success}</div>}
+                        {error && <div className={styles.errorMessage}>{error}</div>}
+                        {success && <div className={styles.successMessage}>{success}</div>}
 
-                        <div className="password-form-actions">
+                        <div className={styles.passwordFormActions}>
                             <button
                                 type="button"
-                                className="btn-cancel"
+                                className={styles.btnCancel}
                                 onClick={() => {
                                     setIsChangingPassword(false);
                                     setError(null);
@@ -158,7 +160,7 @@ export function SecuritySettings() {
                             </button>
                             <button
                                 type="submit"
-                                className="btn-data-action btn-save"
+                                className={cx(styles.btnDataAction, styles.btnSave)}
                                 disabled={
                                     isLoading ||
                                     !currentPassword ||

@@ -1,6 +1,8 @@
 import type { Person } from '../../types';
 import type { TimeRange } from '../../types';
+import { cx } from '../../utils';
 import CustomSelect from './CustomSelect';
+import styles from './Settings.module.css';
 
 interface GeneralSettingsProps {
     currency: string;
@@ -58,47 +60,53 @@ export default function GeneralSettings({
     ];
 
     return (
-        <section id="general" className="settings-section">
-            <div className="movers-header" style={{ marginTop: 0 }}>
-                <div className="movers-header-left">
-                    <h2 className="movers-title">General</h2>
+        <section id="general" className={styles.settingsSection}>
+            <div className={styles.sectionHeader} style={{ marginTop: 0 }}>
+                <div className={styles.sectionHeaderLeft}>
+                    <h2 className={styles.sectionTitle}>General</h2>
                 </div>
             </div>
-            <div className="settings-group-card">
-                <div className="settings-row">
-                    <div className="settings-group">
+            <div className={styles.settingsGroupCard}>
+                <div className={styles.settingsRow}>
+                    <div className={styles.settingsGroup}>
                         <CustomSelect
                             label="Theme"
                             value={theme || 'dark'}
                             options={THEME_OPTIONS}
                             onChange={val => setTheme(val as 'dark' | 'light' | 'high-contrast')}
+                            testId="setting-theme"
                         />
                     </div>
-                    <div className="settings-group">
+                    <div className={styles.settingsGroup}>
                         <CustomSelect
                             label="Currency Selection"
                             value={currency || 'USD'}
                             options={CURRENCY_OPTIONS}
                             onChange={setCurrency}
+                            testId="setting-currency"
                         />
                     </div>
-                    <div className="settings-group">
+                    <div className={styles.settingsGroup}>
                         <CustomSelect
                             label="Default Diagram Filter"
                             value={defaultFilter || 'all'}
                             options={filterOptions}
                             onChange={setDefaultFilter}
+                            testId="setting-filter"
                         />
                     </div>
                 </div>
-                <div className="settings-row" style={{ marginTop: '20px' }}>
-                    <div className="settings-group">
-                        <label className="settings-label">Default Date Range</label>
-                        <div className="date-range-pills">
+                <div className={styles.settingsRow} style={{ marginTop: '20px' }}>
+                    <div className={styles.settingsGroup}>
+                        <label className={styles.settingsLabel}>Default Date Range</label>
+                        <div className={styles.dateRangePills}>
                             {DATE_RANGE_OPTIONS.map(range => (
                                 <button
                                     key={range}
-                                    className={`date-pill ${defaultDateRange === range ? 'active' : ''}`}
+                                    className={cx(
+                                        styles.datePill,
+                                        defaultDateRange === range && styles.active
+                                    )}
                                     onClick={() => setDefaultDateRange(range)}
                                 >
                                     {range}
@@ -106,34 +114,36 @@ export default function GeneralSettings({
                             ))}
                         </div>
                     </div>
-                    <div className="settings-group">
-                        <label className="settings-label">Show Asset Details Heatmap</label>
-                        <div className="checkbox-wrapper">
-                            <label className="toggle-switch">
+                    <div className={styles.settingsGroup}>
+                        <label className={styles.settingsLabel}>Show Asset Details Heatmap</label>
+                        <div className={styles.checkboxWrapper}>
+                            <label className={styles.toggleSwitch}>
                                 <input
                                     type="checkbox"
                                     checked={showAssetHeatmap}
                                     onChange={e => setShowAssetHeatmap(e.target.checked)}
                                 />
-                                <span className="toggle-slider"></span>
+                                <span className={styles.toggleSlider}></span>
                             </label>
-                            <span className="checkbox-label">
+                            <span className={styles.checkboxLabel}>
                                 {showAssetHeatmap ? 'Visible' : 'Hidden'}
                             </span>
                         </div>
                     </div>
-                    <div className="settings-group">
-                        <label className="settings-label">Assets follow General Diagram</label>
-                        <div className="checkbox-wrapper">
-                            <label className="toggle-switch">
+                    <div className={styles.settingsGroup}>
+                        <label className={styles.settingsLabel}>
+                            Assets follow General Diagram
+                        </label>
+                        <div className={styles.checkboxWrapper}>
+                            <label className={styles.toggleSwitch}>
                                 <input
                                     type="checkbox"
                                     checked={assetsFollowGeneral}
                                     onChange={e => setAssetsFollowGeneral(e.target.checked)}
                                 />
-                                <span className="toggle-slider"></span>
+                                <span className={styles.toggleSlider}></span>
                             </label>
-                            <span className="checkbox-label">
+                            <span className={styles.checkboxLabel}>
                                 {assetsFollowGeneral ? 'ON' : 'OFF'}
                             </span>
                         </div>

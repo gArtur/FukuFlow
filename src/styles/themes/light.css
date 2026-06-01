@@ -46,41 +46,11 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
 }
 
-/* Light theme input field overrides */
-[data-theme='light'] .input-dark {
-    background: var(--input-bg);
-    border-color: var(--input-border);
-    color: var(--text-primary);
-}
-
-[data-theme='light'] .input-dark:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 2px var(--accent-primary-glow);
-}
-
-[data-theme='light'] .input-dark::placeholder {
-    color: var(--text-muted);
-}
-
-/* Light theme select and other form elements */
-[data-theme='light'] .custom-select-trigger {
-    background: var(--input-bg);
-    border-color: var(--input-border);
-}
-
-[data-theme='light'] .date-range-pills {
-    background: var(--input-bg);
-    border-color: var(--input-border);
-}
-
-[data-theme='light'] .date-pill.active {
-    background: var(--gradient-primary, #c9a227);
-    color: #000;
-}
-
-/* Modal and form buttons - consistent gold */
-[data-theme='light'] .modal-actions .btn-primary,
-[data-theme='light'] .btn-data-action {
+/* Modal primary buttons - keep the gold gradient explicit in light mode.
+   (Settings input/select/pill light overrides were removed: those styles now
+   live in Settings.module.css and are driven by the --input-bg/--input-border
+   tokens, so the global light-theme overrides no longer matched.) */
+[data-theme='light'] .modal-actions .btn-primary {
     background: var(
         --gradient-primary,
         linear-gradient(135deg, #d4af37 0%, #c9a227 50%, #b8921b 100%)

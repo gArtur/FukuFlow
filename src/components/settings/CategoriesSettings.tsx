@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { Asset } from '../../types';
+import { cx } from '../../utils';
+import styles from './Settings.module.css';
 
 // SVG Icons
 const EditIcon = () => (
@@ -181,11 +183,11 @@ export default function CategoriesSettings({
     };
 
     return (
-        <section id="categories" className="settings-section">
-            <div className="movers-header">
-                <div className="movers-header-left">
-                    <h2 className="movers-title">Categories</h2>
-                    <span className="movers-count">{categories.length} categories</span>
+        <section id="categories" className={styles.settingsSection}>
+            <div className={styles.sectionHeader}>
+                <div className={styles.sectionHeaderLeft}>
+                    <h2 className={styles.sectionTitle}>Categories</h2>
+                    <span className={styles.sectionCount}>{categories.length} categories</span>
                 </div>
                 <button
                     className="add-asset-btn-inline"
@@ -198,18 +200,18 @@ export default function CategoriesSettings({
             </div>
 
             {addingCategory && (
-                <div className="add-person-card">
-                    <div className="add-person-header">
+                <div className={styles.addPersonCard}>
+                    <div className={styles.addPersonHeader}>
                         <h3>New Category</h3>
                     </div>
-                    <div className="add-person-form-row">
-                        <div className="input-group" style={{ flex: 2 }}>
-                            <label className="input-label-sm">NAME</label>
+                    <div className={styles.addPersonFormRow}>
+                        <div className={styles.inputGroup} style={{ flex: 2 }}>
+                            <label className={styles.inputLabelSm}>NAME</label>
                             <input
                                 value={addCategoryLabel}
                                 onChange={e => setAddCategoryLabel(e.target.value)}
                                 placeholder="e.g. Commodities"
-                                className="input-dark"
+                                className={styles.inputDark}
                                 autoFocus
                                 onKeyDown={e => {
                                     if (e.key === 'Enter') handleAddCategory();
@@ -218,19 +220,22 @@ export default function CategoriesSettings({
                                 data-testid="add-category-input"
                             />
                         </div>
-                        <div className="input-group" style={{ flex: 3 }}>
-                            <label className="input-label-sm">COLOR</label>
-                            <div className="color-swatches-row">
+                        <div className={styles.inputGroup} style={{ flex: 3 }}>
+                            <label className={styles.inputLabelSm}>COLOR</label>
+                            <div className={styles.colorSwatchesRow}>
                                 {COLOR_SWATCHES.map(color => (
                                     <button
                                         key={color}
-                                        className={`color-swatch-btn ${addCategoryColor === color ? 'selected' : ''}`}
+                                        className={cx(
+                                            styles.colorSwatchBtn,
+                                            addCategoryColor === color && styles.selected
+                                        )}
                                         style={{ backgroundColor: color }}
                                         onClick={() => setAddCategoryColor(color)}
                                     >
                                         {addCategoryColor === color && (
                                             <svg
-                                                className="swatch-check"
+                                                className={styles.swatchCheck}
                                                 viewBox="0 0 24 24"
                                                 fill="none"
                                                 stroke="currentColor"
@@ -241,7 +246,7 @@ export default function CategoriesSettings({
                                     </button>
                                 ))}
                                 <button
-                                    className="color-swatch-add"
+                                    className={styles.colorSwatchAdd}
                                     onClick={() =>
                                         document
                                             .getElementById('add-category-color-picker')
@@ -255,7 +260,7 @@ export default function CategoriesSettings({
                                     type="color"
                                     value={addCategoryColor}
                                     onChange={e => setAddCategoryColor(e.target.value)}
-                                    className="hidden-color-input"
+                                    className={styles.hiddenColorInput}
                                 />
                             </div>
                         </div>
@@ -271,33 +276,33 @@ export default function CategoriesSettings({
                 </div>
             )}
 
-            <div className="settings-items-grid">
+            <div className={styles.settingsItemsGrid}>
                 {categories.map(category => (
                     <div
                         key={category.id}
-                        className="item-card"
+                        className={styles.itemCard}
                         data-testid="category-item"
                         data-category-label={category.label}
                     >
                         {editingCategory === category.id ? (
                             <>
-                                <div className="pill-wrapper">
+                                <div className={styles.pillWrapper}>
                                     <div
-                                        className="category-pill editable"
+                                        className={cx(styles.categoryPill, styles.editable)}
                                         style={{ backgroundColor: editCategoryColor }}
                                     ></div>
                                     <input
                                         type="color"
                                         value={editCategoryColor}
                                         onChange={e => setEditCategoryColor(e.target.value)}
-                                        className="color-input-overlay"
+                                        className={styles.colorInputOverlay}
                                     />
                                 </div>
-                                <div className="edit-person-inline">
+                                <div className={styles.editPersonInline}>
                                     <input
                                         value={editCategoryLabel}
                                         onChange={e => setEditCategoryLabel(e.target.value)}
-                                        className="input-dark"
+                                        className={styles.inputDark}
                                         style={{ flex: 1 }}
                                         autoFocus
                                         onKeyDown={e => {
@@ -305,16 +310,16 @@ export default function CategoriesSettings({
                                             if (e.key === 'Escape') setEditingCategory(null);
                                         }}
                                     />
-                                    <div className="edit-actions">
+                                    <div className={styles.editActions}>
                                         <button
                                             onClick={handleUpdateCategory}
-                                            className="btn-icon-check"
+                                            className={styles.btnIconCheck}
                                         >
                                             ✓
                                         </button>
                                         <button
                                             onClick={() => setEditingCategory(null)}
-                                            className="btn-icon-cross"
+                                            className={styles.btnIconCross}
                                         >
                                             ✕
                                         </button>
@@ -323,31 +328,31 @@ export default function CategoriesSettings({
                             </>
                         ) : (
                             <>
-                                <div className="item-card-left">
+                                <div className={styles.itemCardLeft}>
                                     <div
-                                        className="category-pill"
+                                        className={styles.categoryPill}
                                         style={{ backgroundColor: category.color }}
                                     ></div>
                                 </div>
-                                <div className="item-card-info">
-                                    <span className="item-name">{category.label}</span>
+                                <div className={styles.itemCardInfo}>
+                                    <span className={styles.itemName}>{category.label}</span>
                                 </div>
 
-                                <div className="item-card-actions">
+                                <div className={styles.itemCardActions}>
                                     <button
                                         onClick={() => {
                                             setEditingCategory(category.id);
                                             setEditCategoryLabel(category.label);
                                             setEditCategoryColor(category.color);
                                         }}
-                                        className="action-icon-btn"
+                                        className={styles.actionIconBtn}
                                         title="Edit"
                                     >
                                         <EditIcon />
                                     </button>
                                     <button
                                         onClick={() => handleDeleteCategory(category.id)}
-                                        className="action-icon-btn delete"
+                                        className={cx(styles.actionIconBtn, styles.delete)}
                                         title="Delete"
                                         data-testid="category-delete-btn"
                                     >
