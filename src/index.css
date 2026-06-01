@@ -166,7 +166,7 @@
 .chart-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     padding: var(--space-lg);
     margin-bottom: var(--space-lg);
 }
@@ -1952,6 +1952,13 @@
     opacity: 0.9;
 }
 
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .modal-small {
     max-width: 400px;
     padding: var(--space-lg);
@@ -2566,7 +2573,7 @@
 .history-card {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-xl);
+    border-radius: var(--radius-lg);
     overflow: hidden;
     margin-top: var(--space-xl);
 }
@@ -2876,27 +2883,8 @@
     gap: var(--space-md);
 }
 
-.btn-secondary {
-    padding: var(--space-sm) var(--space-md);
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-}
-
-.btn-danger {
-    padding: var(--space-sm) var(--space-md);
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--accent-red);
-    border: 1px solid var(--accent-red);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-}
-
-.btn-danger:hover {
-    background: rgba(239, 68, 68, 0.2);
-}
+/* Button primitives (.btn-primary / .btn-secondary / .btn-danger) are defined
+   once near the modal styles above. Do not redefine them here. */
 
 /* ===== SETTINGS PAGE ===== */
 .settings-page {
@@ -3510,7 +3498,8 @@
 }
 
 .heatmap-row:hover .heatmap-cell-total {
-    background: linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), #0a0a0c;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.04)), var(--bg-primary);
 }
 
 .heatmap-row.portfolio-total {

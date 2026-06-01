@@ -1,2 +1,24 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Pin LF at checkout for source files. Prettier is configured with
+# endOfLine: "lf"; without this, core.autocrlf=true on Windows checks these
+# out as CRLF and `npm run format:check` fails locally even though the repo
+# blobs (and CI on Linux) are already LF-clean.
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.cjs   text eol=lf
+*.mjs   text eol=lf
+*.jsx   text eol=lf
+*.css   text eol=lf
+*.json  text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Windows-specific scripts must stay CRLF
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+*.ps1   text eol=crlf

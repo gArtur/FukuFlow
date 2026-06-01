@@ -41,4 +41,9 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+
+    /* Form inputs (sit on a --bg-card surface, so they go slightly darker) */
+    --input-bg: rgba(0, 0, 0, 0.2);
+    --input-border: var(--border-color);
 }
