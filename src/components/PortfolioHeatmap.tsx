@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, Fragment } from 'react';
+import { useState, useMemo, useCallback, useRef, useLayoutEffect, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
@@ -29,7 +29,13 @@ import type {
 
 export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapProps) {
     const { isHidden } = usePrivacy();
-    const { defaultFilter, currency, formatAmount, isLoading: settingsLoading } = useSettings();
+    const {
+        defaultFilter,
+        defaultDateRange,
+        currency,
+        formatAmount,
+        isLoading: settingsLoading,
+    } = useSettings();
     const navigate = useNavigate();
     const isMobile = useIsMobile();
     const isTouchDevice = useIsTouchDevice();
@@ -80,11 +86,42 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         return { minMonth: min, maxMonth: max };
     }, [assets]);
 
-    // null override = follow live min/max; string override = user/quick-filter selection
-    const [rangeStartOverride, setRangeStartOverride] = useState<string | null>(null);
-    const [rangeEndOverride, setRangeEndOverride] = useState<string | null>(null);
-    const rangeStart = rangeStartOverride ?? minMonth;
-    const rangeEnd = rangeEndOverride ?? maxMonth;
+    // Resolved default range from the app-wide default date range setting —
+    // null means "no quick-filter default", i.e. full history. Updates
+    // reactively when settings load/change, mirroring how settingsPersonId
+    // resolves the default person filter above. MAX / Custom / undefined all
+    // fall through to full history (live min/max).
+    const settingsRange = useMemo(() => {
+        if (settingsLoading) return null;
+        if (defaultDateRange === 'YTD' || defaultDateRange === '1Y' || defaultDateRange === '5Y') {
+            return getQuickFilterRange(defaultDateRange, minMonth, maxMonth);
+        }
+        return null;
+    }, [settingsLoading, defaultDateRange, minMonth, maxMonth]);
+
+    // undefined override = follow the settings default; null = user-selected MAX
+    // (follow live min/max); string = user/quick-filter selection.
+    const [rangeStartOverride, setRangeStartOverride] = useState<string | null | undefined>(
+        undefined
+    );
+    const [rangeEndOverride, setRangeEndOverride] = useState<string | null | undefined>(undefined);
+    const rangeStart =
+        (rangeStartOverride !== undefined ? rangeStartOverride : (settingsRange?.start ?? null)) ??
+        minMonth;
+    const rangeEnd =
+        (rangeEndOverride !== undefined ? rangeEndOverride : (settingsRange?.end ?? null)) ??
+        maxMonth;
+
+    // Keep the grid scrolled to its far right so the latest months stay in view
+    // (the user can scroll back for older history). Runs on open — desktop mount,
+    // or when the mobile "Show full grid" toggle reveals it — and again whenever
+    // the visible time range changes (quick filter or slider), so the latest
+    // month of the new range is shown. Sort/view/person changes don't touch the
+    // range, so they leave the user's scroll position alone.
+    useLayoutEffect(() => {
+        const grid = gridRef.current;
+        if (grid) grid.scrollLeft = grid.scrollWidth;
+    }, [isMobile, showMobileGrid, settingsLoading, rangeStart, rangeEnd]);
 
     const allMonths = useMemo(() => generateMonthRange(minMonth, maxMonth), [minMonth, maxMonth]);
     const visibleMonths = useMemo(
