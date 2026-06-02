@@ -18,6 +18,13 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(commitHash),
   },
+  css: {
+    modules: {
+      // Allow co-located *.module.css files to keep kebab-case class names
+      // while components reference them as camelCase (styles.itemCard).
+      localsConvention: 'camelCase',
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

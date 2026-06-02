@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { Person, Asset } from '../../types';
+import { cx } from '../../utils';
+import styles from './Settings.module.css';
 
 // SVG Icons as components for cleaner JSX
 const EditIcon = () => (
@@ -219,11 +221,11 @@ export default function PeopleSettings({
     };
 
     return (
-        <section id="people" className="settings-section">
-            <div className="movers-header">
-                <div className="movers-header-left">
-                    <h2 className="movers-title">People</h2>
-                    <span className="movers-count">{persons.length} people</span>
+        <section id="people" className={styles.settingsSection}>
+            <div className={styles.sectionHeader}>
+                <div className={styles.sectionHeaderLeft}>
+                    <h2 className={styles.sectionTitle}>People</h2>
+                    <span className={styles.sectionCount}>{persons.length} people</span>
                 </div>
                 <button
                     className="add-asset-btn-inline"
@@ -235,18 +237,18 @@ export default function PeopleSettings({
             </div>
 
             {addingPerson && (
-                <div className="add-person-card">
-                    <div className="add-person-header">
+                <div className={styles.addPersonCard}>
+                    <div className={styles.addPersonHeader}>
                         <h3>Add Person</h3>
                     </div>
-                    <div className="add-person-form-row">
-                        <div className="input-group">
-                            <label className="input-label-sm">NAME</label>
+                    <div className={styles.addPersonFormRow}>
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabelSm}>NAME</label>
                             <input
                                 value={addPersonValue}
                                 onChange={e => setAddPersonValue(e.target.value)}
                                 placeholder="e.g. John Doe"
-                                className="input-dark"
+                                className={styles.inputDark}
                                 autoFocus
                                 onKeyDown={e => {
                                     if (e.key === 'Enter') handleAddPerson();
@@ -267,11 +269,15 @@ export default function PeopleSettings({
                 </div>
             )}
 
-            <div className="settings-items-grid">
+            <div className={styles.settingsItemsGrid}>
                 {persons.map(person => (
                     <div
                         key={person.id}
-                        className={`item-card ${draggedId === person.id ? 'dragging' : ''} ${dragOverId === person.id ? 'drag-over' : ''}`}
+                        className={cx(
+                            styles.itemCard,
+                            draggedId === person.id && styles.dragging,
+                            dragOverId === person.id && styles.dragOver
+                        )}
                         data-testid="person-item"
                         data-person-name={person.name}
                         draggable={editingPerson === null}
@@ -281,11 +287,11 @@ export default function PeopleSettings({
                         onDragEnd={handleDragEnd}
                     >
                         {editingPerson === person.id ? (
-                            <div className="edit-person-inline">
+                            <div className={styles.editPersonInline}>
                                 <input
                                     value={editPersonValue}
                                     onChange={e => setEditPersonValue(e.target.value)}
-                                    className="input-dark"
+                                    className={styles.inputDark}
                                     style={{ flex: 1 }}
                                     autoFocus
                                     onKeyDown={e => {
@@ -293,13 +299,16 @@ export default function PeopleSettings({
                                         if (e.key === 'Escape') setEditingPerson(null);
                                     }}
                                 />
-                                <div className="edit-actions">
-                                    <button onClick={handleUpdatePerson} className="btn-icon-check">
+                                <div className={styles.editActions}>
+                                    <button
+                                        onClick={handleUpdatePerson}
+                                        className={styles.btnIconCheck}
+                                    >
                                         ✓
                                     </button>
                                     <button
                                         onClick={() => setEditingPerson(null)}
-                                        className="btn-icon-cross"
+                                        className={styles.btnIconCross}
                                     >
                                         ✕
                                     </button>
@@ -307,33 +316,33 @@ export default function PeopleSettings({
                             </div>
                         ) : (
                             <>
-                                <div className="drag-handle" title="Drag to reorder">
+                                <div className={styles.dragHandle} title="Drag to reorder">
                                     <DragIcon />
                                 </div>
-                                <div className="item-card-left">
-                                    <div className="person-avatar">
+                                <div className={styles.itemCardLeft}>
+                                    <div className={styles.personAvatar}>
                                         {person.name.charAt(0).toUpperCase()}
                                     </div>
                                 </div>
-                                <div className="item-card-info">
-                                    <span className="item-name">{person.name}</span>
+                                <div className={styles.itemCardInfo}>
+                                    <span className={styles.itemName}>{person.name}</span>
                                 </div>
 
-                                <div className="item-card-actions">
-                                    <div className="action-buttons-row">
+                                <div className={styles.itemCardActions}>
+                                    <div className={styles.actionButtonsRow}>
                                         <button
                                             onClick={() => {
                                                 setEditingPerson(person.id);
                                                 setEditPersonValue(person.name);
                                             }}
-                                            className="action-icon-btn"
+                                            className={styles.actionIconBtn}
                                             title="Edit"
                                         >
                                             <EditIcon />
                                         </button>
                                         <button
                                             onClick={() => handleDeletePersonClick(person.id)}
-                                            className="action-icon-btn delete"
+                                            className={cx(styles.actionIconBtn, styles.delete)}
                                             title="Delete"
                                             data-testid="person-delete-btn"
                                         >

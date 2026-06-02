@@ -74,10 +74,14 @@ export class SettingsPage {
     // --- Currency ---
 
     async setCurrency(currency: string) {
-        // CustomSelect trigger is a div (not a button)
-        const currencySelect = this.page.locator('.settings-group').filter({ hasText: 'Currency' });
-        await currencySelect.locator('[class*="custom-select-trigger"]').click();
-        await this.page.locator('[class*="custom-select-option"]').filter({ hasText: currency }).first().click();
+        // CustomSelect exposes stable test ids (class names are hashed by CSS Modules):
+        // trigger = testId, each option = `${testId}-option`.
+        await this.page.getByTestId('setting-currency').click();
+        await this.page
+            .getByTestId('setting-currency-option')
+            .filter({ hasText: currency })
+            .first()
+            .click();
         await this.page.waitForLoadState('networkidle');
         return this;
     }

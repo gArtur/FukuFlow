@@ -338,8 +338,7 @@
     /* Form inputs - 16px prevents iOS zoom */
     .form-input,
     .form-select,
-    .combobox-input,
-    .input-dark {
+    .combobox-input {
         min-height: 48px;
         font-size: 16px;
     }

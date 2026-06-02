@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import type { Person, Asset } from '../types';
-import '../settings_styles.css';
+import { cx } from '../utils';
+import styles from './settings/Settings.module.css';
 import ConfirmationModal from './ConfirmationModal';
 import RestoreDataModal from './RestoreDataModal';
 import {
@@ -93,7 +94,7 @@ export default function Settings({
             }
         );
 
-        const sections = document.querySelectorAll('.settings-section');
+        const sections = document.querySelectorAll(`.${styles.settingsSection}`);
         sections.forEach(section => observer.observe(section));
 
         return () => {
@@ -125,35 +126,50 @@ export default function Settings({
 
     return (
         <div className="dashboard-container">
-            <div className="settings-layout">
+            <div className={styles.settingsLayout}>
                 {/* Sidebar Navigation */}
-                <nav className="settings-sidebar">
+                <nav className={styles.settingsSidebar}>
                     <button
-                        className={`settings-tab ${activeSection === 'general' ? 'active' : ''}`}
+                        className={cx(
+                            styles.settingsTab,
+                            activeSection === 'general' && styles.active
+                        )}
                         onClick={() => scrollToSection('general')}
                     >
                         General
                     </button>
                     <button
-                        className={`settings-tab ${activeSection === 'people' ? 'active' : ''}`}
+                        className={cx(
+                            styles.settingsTab,
+                            activeSection === 'people' && styles.active
+                        )}
                         onClick={() => scrollToSection('people')}
                     >
                         People
                     </button>
                     <button
-                        className={`settings-tab ${activeSection === 'categories' ? 'active' : ''}`}
+                        className={cx(
+                            styles.settingsTab,
+                            activeSection === 'categories' && styles.active
+                        )}
                         onClick={() => scrollToSection('categories')}
                     >
                         Categories
                     </button>
                     <button
-                        className={`settings-tab ${activeSection === 'backup' ? 'active' : ''}`}
+                        className={cx(
+                            styles.settingsTab,
+                            activeSection === 'backup' && styles.active
+                        )}
                         onClick={() => scrollToSection('backup')}
                     >
                         Backup
                     </button>
                     <button
-                        className={`settings-tab ${activeSection === 'security' ? 'active' : ''}`}
+                        className={cx(
+                            styles.settingsTab,
+                            activeSection === 'security' && styles.active
+                        )}
                         onClick={() => scrollToSection('security')}
                     >
                         Security
@@ -172,7 +188,7 @@ export default function Settings({
                 </nav>
 
                 {/* Content Area */}
-                <div className="settings-content">
+                <div className={styles.settingsContent}>
                     <GeneralSettings
                         currency={currency}
                         setCurrency={setCurrency}
@@ -189,7 +205,7 @@ export default function Settings({
                         persons={persons}
                     />
 
-                    <div className="section-divider"></div>
+                    <div className={styles.sectionDivider}></div>
 
                     <PeopleSettings
                         persons={persons}
@@ -202,7 +218,7 @@ export default function Settings({
                         onShowDeleteConfirm={handleShowDeleteConfirm}
                     />
 
-                    <div className="section-divider"></div>
+                    <div className={styles.sectionDivider}></div>
 
                     <CategoriesSettings
                         categories={categories}
@@ -214,11 +230,11 @@ export default function Settings({
                         onShowDeleteConfirm={handleShowDeleteConfirm}
                     />
 
-                    <div className="section-divider"></div>
+                    <div className={styles.sectionDivider}></div>
 
                     <BackupSettings onShowRestoreModal={() => setShowRestoreModal(true)} />
 
-                    <div className="section-divider"></div>
+                    <div className={styles.sectionDivider}></div>
 
                     <SecuritySettings />
                 </div>

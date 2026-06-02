@@ -2720,35 +2720,6 @@
     }
 }
 
-/* Settings Page */
-.settings-page {
-    padding: var(--space-lg);
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.settings-section {
-    margin-bottom: var(--space-xl);
-}
-
-.settings-section h2 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: var(--space-md);
-    color: var(--text-primary);
-}
-
-.setting-item {
-    margin-bottom: var(--space-md);
-}
-
-.setting-item label {
-    display: block;
-    margin-bottom: var(--space-sm);
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
 .form-select {
     width: 100%;
     padding: var(--space-sm);
@@ -2756,46 +2727,6 @@
     border: 1px solid var(--border-color);
     color: var(--text-primary);
     border-radius: var(--radius-sm);
-}
-
-.settings-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-}
-
-.list-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: var(--space-sm);
-    background: var(--bg-secondary);
-    border-radius: var(--radius-sm);
-}
-
-.list-item .actions {
-    display: flex;
-    gap: var(--space-sm);
-}
-
-.edit-row {
-    display: flex;
-    gap: var(--space-sm);
-    width: 100%;
-    align-items: center;
-}
-
-.edit-row .form-input {
-    flex: 1;
-    padding: 6px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    border-radius: var(--radius-sm);
-}
-
-.add-row {
-    background: var(--bg-card-hover);
 }
 
 .btn-icon {
@@ -2878,81 +2809,8 @@
     border-radius: var(--radius-sm);
 }
 
-.data-actions {
-    display: flex;
-    gap: var(--space-md);
-}
-
 /* Button primitives (.btn-primary / .btn-secondary / .btn-danger) are defined
    once near the modal styles above. Do not redefine them here. */
-
-/* ===== SETTINGS PAGE ===== */
-.settings-page {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-    padding-bottom: 120px;
-}
-
-.settings-section {
-    margin-bottom: var(--space-xl);
-}
-
-.settings-section h2 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--space-md);
-}
-
-.settings-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-}
-
-.settings-list {
-    display: flex;
-    flex-direction: column;
-}
-
-.list-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-md);
-    border-bottom: 1px solid var(--border-color);
-    transition: background-color 0.2s ease;
-}
-
-.list-item:last-child {
-    border-bottom: none;
-}
-
-.list-item:hover {
-    background: var(--bg-card-hover);
-}
-
-.list-item input.form-input {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 8px 12px;
-    border-radius: var(--radius-sm);
-    color: var(--text-primary);
-    font-size: 14px;
-}
-
-.list-item .actions {
-    display: flex;
-    gap: var(--space-sm);
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-}
-
-.list-item:hover .actions {
-    opacity: 1;
-}
 
 .btn-icon {
     background: transparent;
@@ -2972,13 +2830,6 @@
 .btn-icon.delete:hover {
     background: var(--accent-red-glow);
     color: var(--accent-red);
-}
-
-.edit-row {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    flex: 1;
 }
 
 /* Currency Grid */
@@ -3129,80 +2980,6 @@
     gap: var(--space-sm);
     align-items: center;
     border-top: 1px solid var(--border-color);
-}
-
-/* ===== SETTINGS PAGE LAYOUT ===== */
-.settings-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-lg);
-}
-
-@media (min-width: 768px) {
-    .settings-container {
-        flex-direction: row;
-        align-items: flex-start;
-        gap: var(--space-xl);
-    }
-}
-
-.settings-sidebar {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-    gap: var(--space-md);
-    padding-bottom: var(--space-sm);
-    border-bottom: 1px solid var(--border-color);
-}
-
-@media (min-width: 768px) {
-    .settings-sidebar {
-        width: 240px;
-        flex-direction: column;
-        flex-shrink: 0;
-        overflow-x: visible;
-        padding-bottom: 0;
-        border-bottom: none;
-        position: sticky;
-        top: 100px;
-    }
-}
-
-.settings-nav-item {
-    display: flex;
-    align-items: center;
-    gap: var(--space-md);
-    padding: var(--space-md);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-
-.settings-nav-item:hover {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
-}
-
-.settings-nav-item.active {
-    background: var(--bg-card);
-    color: var(--accent-primary);
-    /* border: 1px solid var(--border-color); */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.settings-nav-icon {
-    font-size: 18px;
-    width: 24px;
-    text-align: center;
-}
-
-.settings-content-area {
-    flex: 1;
-    min-width: 0;
-    /* Prevent flex overflow */
 }
 
 /* Animations */
