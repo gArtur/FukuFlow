@@ -139,11 +139,7 @@
 
     /* Allocation chart */
     .doughnut-container {
-        height: 200px;
-    }
-
-    .doughnut-center-value {
-        font-size: 18px;
+        height: 240px;
     }
 
     .allocation-legend-item {

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
-import type { Chart } from 'chart.js';
+import { Chart as ChartJS, ArcElement } from 'chart.js';
+import type { Chart, ChartEvent, ActiveElement } from 'chart.js';
 import type { PortfolioStats, AssetCategory, Asset, Person } from '../types';
 import { usePrivacy } from '../contexts/PrivacyContext';
 import { useSettings } from '../contexts/SettingsContext';
 
-ChartJS.register(ArcElement, Tooltip);
+ChartJS.register(ArcElement);
 
 interface AllocationChartProps {
     stats: PortfolioStats;
@@ -21,9 +21,10 @@ export default function AllocationChart({
     assets = [],
     persons = [],
 }: AllocationChartProps) {
-    const { isHidden, formatAmount } = usePrivacy();
+    const { formatAmount } = usePrivacy();
     const { categories: categoryConfig, theme } = useSettings();
     const [viewMode, setViewMode] = useState<ViewMode>('category');
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
     // Auto-generate colors for investments
     const getInvestmentColor = useCallback(
@@ -170,6 +171,47 @@ export default function AllocationChart({
         };
     }, []);
 
+    // specific border colors matching card backgrounds
+    const borderColor =
+        theme === 'light' ? '#FFFFFF' : theme === 'high-contrast' ? '#000000' : '#16161A';
+
+    const data = useMemo(
+        () => ({
+            labels: chartData.labels,
+            datasets: [
+                {
+                    data: chartData.data,
+                    backgroundColor: chartData.colors,
+                    borderColor: borderColor,
+                    borderWidth: 3,
+                    hoverOffset: 8,
+                },
+            ],
+        }),
+        [chartData, borderColor]
+    );
+
+    // No floating tooltip — the hovered segment's details are shown in the doughnut center.
+    const options = useMemo(
+        () => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '76%',
+            plugins: {
+                legend: { display: false },
+                // Tooltip is registered globally by other charts; disable it here so the
+                // hovered segment's details show only in the doughnut center.
+                tooltip: { enabled: false },
+            },
+            onHover: (_event: ChartEvent, elements: ActiveElement[]) => {
+                setHoveredIndex(elements.length > 0 ? elements[0].index : null);
+            },
+        }),
+        []
+    );
+
+    const hoveredItem = hoveredIndex != null ? chartData.items[hoveredIndex] : undefined;
+
     if (chartData.items.length === 0) {
         return (
             <div className="chart-card allocation-card">
@@ -184,77 +226,6 @@ export default function AllocationChart({
         );
     }
 
-    // specific border colors matching card backgrounds
-    const borderColor =
-        theme === 'light' ? '#FFFFFF' : theme === 'high-contrast' ? '#000000' : '#16161A';
-
-    // Theme-based tooltip styles
-    const tooltipBg =
-        theme === 'light'
-            ? 'rgba(255, 255, 255, 0.95)'
-            : theme === 'high-contrast'
-              ? '#000000'
-              : 'rgba(26, 26, 34, 0.95)';
-    const tooltipTitleColor =
-        theme === 'light' ? '#111827' : theme === 'high-contrast' ? '#FFFFFF' : '#fff';
-    const tooltipBodyColor =
-        theme === 'light' ? '#4B5563' : theme === 'high-contrast' ? '#FFFFFF' : '#9CA3AF';
-    const tooltipBorderColor =
-        theme === 'light'
-            ? 'rgba(0,0,0,0.1)'
-            : theme === 'high-contrast'
-              ? '#FFFFFF'
-              : 'rgba(255,255,255,0.1)';
-    const tooltipBorderWidth = theme === 'high-contrast' ? 2 : 1;
-
-    const data = {
-        labels: chartData.labels,
-        datasets: [
-            {
-                data: chartData.data,
-                backgroundColor: chartData.colors,
-                borderColor: borderColor,
-                borderWidth: 3,
-                hoverOffset: 8,
-            },
-        ],
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '70%',
-
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: tooltipBg,
-                titleColor: tooltipTitleColor,
-                titleFont: { weight: 'bold' as const },
-                bodyColor: tooltipBodyColor,
-                bodyFont: {
-                    weight: theme === 'high-contrast' ? ('bold' as const) : ('normal' as const),
-                },
-                borderColor: tooltipBorderColor,
-                borderWidth: tooltipBorderWidth,
-                padding: 12,
-                cornerRadius: 8,
-                displayColors: true,
-                boxPadding: 4,
-                callbacks: {
-                    label: (context: { label: string; parsed: number }) => {
-                        const value = context.parsed;
-                        const percentage = ((value / chartData.total) * 100).toFixed(1);
-                        if (isHidden) {
-                            return `${percentage}%`;
-                        }
-                        return `${formatAmount(value)} (${percentage}%)`;
-                    },
-                },
-            },
-        },
-    };
-
     return (
         <div className="chart-card allocation-card" data-testid="allocation-chart">
             <div
@@ -265,13 +236,19 @@ export default function AllocationChart({
                 <div className="time-range-tabs">
                     <button
                         className={`time-tab ${viewMode === 'category' ? 'active' : ''}`}
-                        onClick={() => setViewMode('category')}
+                        onClick={() => {
+                            setViewMode('category');
+                            setHoveredIndex(null);
+                        }}
                     >
                         Type
                     </button>
                     <button
                         className={`time-tab ${viewMode === 'investment' ? 'active' : ''}`}
-                        onClick={() => setViewMode('investment')}
+                        onClick={() => {
+                            setViewMode('investment');
+                            setHoveredIndex(null);
+                        }}
                     >
                         Investments
                     </button>
@@ -280,17 +257,33 @@ export default function AllocationChart({
             <div
                 className="doughnut-container"
                 onMouseLeave={() => {
+                    setHoveredIndex(null);
                     if (chartRef.current) {
                         chartRef.current.setActiveElements([]);
-                        chartRef.current.tooltip?.setActiveElements([], { x: 0, y: 0 });
                         chartRef.current.update();
                     }
                 }}
             >
                 <Doughnut ref={chartRef} data={data} options={options} />
                 <div className="doughnut-center">
-                    <div className="doughnut-center-value">{formatAmount(stats.totalValue)}</div>
-                    <div className="doughnut-center-label">Total</div>
+                    {hoveredItem ? (
+                        <>
+                            <div className="doughnut-center-label" title={hoveredItem.label}>
+                                {hoveredItem.label}
+                            </div>
+                            <div className="doughnut-center-value">
+                                {formatAmount(hoveredItem.value)}
+                            </div>
+                            <div className="doughnut-center-percent">{hoveredItem.percentage}%</div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="doughnut-center-label">Total</div>
+                            <div className="doughnut-center-value">
+                                {formatAmount(stats.totalValue)}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
             <div className="allocation-legend">
