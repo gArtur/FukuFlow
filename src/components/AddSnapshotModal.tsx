@@ -259,6 +259,10 @@ export default function AddSnapshotModal({
                             onChange={e => handleNumberInput(e.target.value, setValue)}
                             placeholder="Enter new value"
                             required
+                            // Specific-asset mode (opened via an asset's "+"): focus the value
+                            // field so the user can type immediately. In global mode the asset
+                            // search field is the entry point, so don't steal focus from it.
+                            autoFocus={!isGlobalMode}
                             data-testid="snapshot-value"
                         />
                         {value && (
