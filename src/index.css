@@ -362,6 +362,7 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     cursor: default;
+    text-align: center;
 }
 
 /* Responsive metric label: show the abbreviated form on phones so it fits one row. */
@@ -3032,6 +3033,33 @@
     margin-top: var(--space-lg);
     border-top: none;
     padding-top: 0;
+}
+
+/* On narrow screens the flex row wraps unevenly (e.g. 3 + 1), leaving a stat's
+   right-hand divider dangling into empty space. Lay the four stats out as an even
+   2x2 grid instead, and draw the vertical divider only between the two columns so
+   it never trails past a wrapped row. (Placed after the base rule so it wins the
+   cascade — see the note in responsive.css.) */
+@media (max-width: 640px) {
+    .heatmap-stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-md) 0;
+    }
+
+    .heatmap-stats-row .chart-metric {
+        flex: none;
+        min-width: 0;
+        padding: 0 var(--space-sm);
+    }
+
+    .heatmap-stats-row .chart-metric:nth-child(odd) {
+        border-right: 1px solid var(--border-color);
+    }
+
+    .heatmap-stats-row .chart-metric:nth-child(even) {
+        border-right: none;
+    }
 }
 
 /* Time Range Slider Section - Inside chart-card */
