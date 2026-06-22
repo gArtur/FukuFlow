@@ -27,6 +27,7 @@ import MigrationTool from './components/MigrationTool';
 import SkeletonDashboard from './components/SkeletonDashboard';
 import LoginPage from './components/LoginPage';
 import SetupPage from './components/SetupPage';
+import OnboardingWizard from './components/OnboardingWizard';
 import ScrollToTop from './components/ScrollToTop';
 import { generateAssetUrl, resolveAssetFromSlug } from './utils/navigation';
 
@@ -75,6 +76,7 @@ function AppContent() {
     const [editingSnapshot, setEditingSnapshot] = useState<(ValueEntry & { id: number }) | null>(
         null
     );
+    const [showOnboarding, setShowOnboarding] = useState(false);
 
     // Time range state lifted from TotalWorthChart for sharing with Asset Cards
     const [timeRange, setTimeRange] = useState<TimeRange>(defaultDateRange || '1Y');
@@ -198,6 +200,29 @@ function AppContent() {
     const isInitialLoad =
         (assetsLoading && allAssets.length === 0) || personsLoading || settingsLoading;
 
+    // Auto-launch the guided onboarding for a fresh install (no people, no assets)
+    // unless the user has already dismissed or completed it.
+    useEffect(() => {
+        if (isInitialLoad) return;
+        const dismissed = localStorage.getItem('onboardingDismissed') === 'true';
+        if (!dismissed && persons.length === 0 && allAssets.length === 0) {
+            // One-shot open once data has loaded and the install is confirmed empty —
+            // this synchronizes UI to loaded state, not a cascading update loop.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setShowOnboarding(true);
+        }
+    }, [isInitialLoad, persons.length, allAssets.length]);
+
+    const handleCloseOnboarding = () => {
+        localStorage.setItem('onboardingDismissed', 'true');
+        setShowOnboarding(false);
+    };
+
+    const handleCompleteOnboarding = async () => {
+        localStorage.setItem('onboardingDismissed', 'true');
+        await refreshAssets();
+    };
+
     const headerProps = {
         onAddSnapshot: handleGlobalAddSnapshot,
     };
@@ -264,6 +289,7 @@ function AppContent() {
                                         onCardClick={handleCardClick}
                                         onAddSnapshot={handleAddSnapshot}
                                         onAddAsset={() => setShowAddModal(true)}
+                                        onStartOnboarding={() => setShowOnboarding(true)}
                                     />
                                 </PortfolioPerformanceProvider>
                             </main>
@@ -283,6 +309,14 @@ function AppContent() {
                                 editAsset={editAsset}
                                 onUpdate={updateAsset}
                                 persons={persons}
+                            />
+
+                            <OnboardingWizard
+                                isOpen={showOnboarding}
+                                onClose={handleCloseOnboarding}
+                                onComplete={handleCompleteOnboarding}
+                                addPerson={addPerson}
+                                addAsset={addAsset}
                             />
                         </div>
                     }

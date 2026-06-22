@@ -14,6 +14,8 @@ interface MyMoversProps {
     onCardClick: (asset: Asset) => void;
     onAddSnapshot: (asset: Asset) => void;
     onAddAsset: () => void;
+    /** Re-open the guided setup wizard (used by the first-run empty state). */
+    onStartOnboarding?: () => void;
 }
 
 export default function MyMovers({
@@ -22,6 +24,7 @@ export default function MyMovers({
     onCardClick,
     onAddSnapshot,
     onAddAsset,
+    onStartOnboarding,
 }: MyMoversProps) {
     const { categories } = useSettings();
     const { formatAmount, isHidden } = usePrivacy();
@@ -70,10 +73,20 @@ export default function MyMovers({
                     <div className="empty-icon">💰</div>
                     <h3 className="empty-title">No assets yet</h3>
                     {persons.length === 0 ? (
-                        <p className="empty-text">
-                            Before adding assets, you need to create at least one person in{' '}
-                            <strong>Settings → People</strong>
-                        </p>
+                        <>
+                            <p className="empty-text">
+                                Let&apos;s set up your portfolio — we&apos;ll walk you through it.
+                            </p>
+                            {onStartOnboarding && (
+                                <button
+                                    className="add-asset-btn-inline"
+                                    onClick={onStartOnboarding}
+                                    data-testid="empty-get-started-btn"
+                                >
+                                    Get started
+                                </button>
+                            )}
+                        </>
                     ) : (
                         <p className="empty-text">Tap the + button to add your first asset</p>
                     )}

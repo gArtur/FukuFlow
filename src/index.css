@@ -1073,6 +1073,21 @@
     /* Mobile: compact */
 }
 
+/* Onboarding wizard: small step indicator in the modal header + intro copy */
+.onboarding-step-count {
+    margin-left: auto;
+    margin-right: var(--space-sm);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+}
+
+.onboarding-step-intro {
+    margin-bottom: var(--space-md);
+    text-align: left;
+}
+
 /* ===== FORM ELEMENTS ===== */
 .form-group {
     margin-bottom: var(--space-sm);
