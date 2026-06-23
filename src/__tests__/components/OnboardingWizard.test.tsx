@@ -59,8 +59,23 @@ function gotoPersonStep() {
     fireEvent.click(screen.getByText('Continue')); // preferences -> person
 }
 
+// Add the default "Me", continue, name the asset, continue -> land on value step.
+async function goToValueStep(assetName = 'Apple Stock') {
+    gotoPersonStep();
+    fireEvent.click(screen.getByTestId('onboarding-person-add'));
+    await screen.findByText('Me');
+    fireEvent.click(screen.getByTestId('onboarding-person-submit'));
+    await screen.findByTestId('onboarding-asset-name-input');
+    fireEvent.change(screen.getByTestId('onboarding-asset-name-input'), {
+        target: { value: assetName },
+    });
+    fireEvent.click(screen.getByTestId('onboarding-asset-submit'));
+    await screen.findByTestId('onboarding-value-input');
+}
+
 describe('OnboardingWizard', () => {
     beforeEach(() => {
+        localStorage.clear();
         addSnapshotMock.mockReset();
         addSnapshotMock.mockResolvedValue(undefined);
     });
@@ -89,22 +104,18 @@ describe('OnboardingWizard', () => {
         expect(screen.getByTestId('onboarding-get-started')).toBeInTheDocument();
     });
 
-    it('chains person -> asset -> first value and finishes', async () => {
+    it('chains household -> asset -> value, creating the asset only on finish', async () => {
         const props = setup();
-        gotoPersonStep();
+        await goToValueStep('Apple Stock');
 
-        // Person step: add the pre-filled person "Me", then continue.
-        fireEvent.click(screen.getByTestId('onboarding-person-add'));
-        await waitFor(() => expect(props.addPerson).toHaveBeenCalledWith('Me'));
-        await screen.findByText('Me'); // chip appears once state updates
-        fireEvent.click(screen.getByTestId('onboarding-person-submit'));
+        // Asset is not created until finish (so Back can edit it safely).
+        expect(props.addAsset).not.toHaveBeenCalled();
 
-        // Asset step
-        await screen.findByTestId('onboarding-asset-name-input');
-        fireEvent.change(screen.getByTestId('onboarding-asset-name-input'), {
-            target: { value: 'Apple Stock' },
+        fireEvent.change(screen.getByTestId('onboarding-value-input'), {
+            target: { value: '5000' },
         });
-        fireEvent.click(screen.getByTestId('onboarding-asset-submit'));
+        fireEvent.click(screen.getByTestId('onboarding-value-submit'));
+
         await waitFor(() =>
             expect(props.addAsset).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -116,14 +127,7 @@ describe('OnboardingWizard', () => {
                 })
             )
         );
-
-        // Value step
-        await screen.findByTestId('onboarding-value-input');
-        fireEvent.change(screen.getByTestId('onboarding-value-input'), {
-            target: { value: '5000' },
-        });
-        fireEvent.click(screen.getByTestId('onboarding-value-submit'));
-
+        // Invested left blank defaults to the value (no spurious gain).
         await waitFor(() =>
             expect(addSnapshotMock).toHaveBeenCalledWith(
                 'a1',
@@ -132,6 +136,61 @@ describe('OnboardingWizard', () => {
         );
         expect(props.onComplete).toHaveBeenCalled();
         expect(await screen.findByTestId('onboarding-done')).toBeInTheDocument();
+    });
+
+    it('records the amount invested so the snapshot captures profit', async () => {
+        setup();
+        await goToValueStep();
+
+        fireEvent.change(screen.getByTestId('onboarding-value-input'), {
+            target: { value: '1200' },
+        });
+        fireEvent.change(screen.getByTestId('onboarding-invested-input'), {
+            target: { value: '1000' },
+        });
+        expect(screen.getByTestId('onboarding-profit-preview')).toHaveTextContent('Profit');
+
+        fireEvent.click(screen.getByTestId('onboarding-value-submit'));
+        await waitFor(() =>
+            expect(addSnapshotMock).toHaveBeenCalledWith(
+                'a1',
+                expect.objectContaining({ value: 1200, investmentChange: 1000 })
+            )
+        );
+    });
+
+    it('lets the user go back to edit a previous step', () => {
+        setup();
+        fireEvent.click(screen.getByTestId('onboarding-get-started')); // -> preferences
+        expect(screen.getByTestId('onboarding-currency-select')).toBeInTheDocument();
+        fireEvent.click(screen.getByText('Continue')); // -> person
+        expect(screen.getByTestId('onboarding-person-input')).toBeInTheDocument();
+        fireEvent.click(screen.getByTestId('onboarding-back')); // -> preferences
+        expect(screen.getByTestId('onboarding-currency-select')).toBeInTheDocument();
+    });
+
+    it('resumes from saved progress after a reload', () => {
+        localStorage.setItem(
+            'onboardingProgress',
+            JSON.stringify({
+                step: 'value',
+                personName: '',
+                createdPersons: [{ id: 'p1', name: 'Me' }],
+                createdAsset: null,
+                ownerId: 'p1',
+                assetName: 'Apple Stock',
+                category: 'stocks',
+                value: '5000',
+                invested: '',
+                date: '2026-06-01',
+            })
+        );
+        setup();
+
+        // Wizard opens straight on the value step with the saved details.
+        const valueInput = screen.getByTestId('onboarding-value-input') as HTMLInputElement;
+        expect(valueInput.value).toBe('5000');
+        expect(screen.getByText(/Apple Stock/)).toBeInTheDocument();
     });
 
     it('calls onClose when the user skips', () => {
@@ -180,6 +239,13 @@ describe('OnboardingWizard', () => {
             target: { value: 'Condo' },
         });
         fireEvent.click(screen.getByTestId('onboarding-asset-submit'));
+
+        // Asset is created on finish, with the chosen owner.
+        await screen.findByTestId('onboarding-value-input');
+        fireEvent.change(screen.getByTestId('onboarding-value-input'), {
+            target: { value: '300000' },
+        });
+        fireEvent.click(screen.getByTestId('onboarding-value-submit'));
         await waitFor(() =>
             expect(props.addAsset).toHaveBeenCalledWith(
                 expect.objectContaining({ name: 'Condo', ownerId: 'p2' })

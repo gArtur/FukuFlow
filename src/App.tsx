@@ -205,13 +205,15 @@ function AppContent() {
         (assetsLoading && allAssets.length === 0) || personsLoading || settingsLoading;
 
     // Auto-launch the guided onboarding for a fresh install (no people, no assets)
-    // unless the user has already dismissed or completed it.
+    // or resume it if the user closed the browser mid-onboarding - unless they
+    // already dismissed or completed it.
     useEffect(() => {
         if (isInitialLoad) return;
-        const dismissed = localStorage.getItem('onboardingDismissed') === 'true';
-        if (!dismissed && persons.length === 0 && allAssets.length === 0) {
-            // One-shot open once data has loaded and the install is confirmed empty -
-            // this synchronizes UI to loaded state, not a cascading update loop.
+        if (localStorage.getItem('onboardingDismissed') === 'true') return;
+        const hasProgress = localStorage.getItem('onboardingProgress') !== null;
+        if (hasProgress || (persons.length === 0 && allAssets.length === 0)) {
+            // One-shot open once data has loaded - this synchronizes UI to loaded
+            // state, not a cascading update loop.
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowOnboarding(true);
         }
@@ -219,11 +221,13 @@ function AppContent() {
 
     const handleCloseOnboarding = () => {
         localStorage.setItem('onboardingDismissed', 'true');
+        localStorage.removeItem('onboardingProgress');
         setShowOnboarding(false);
     };
 
     const handleCompleteOnboarding = async () => {
         localStorage.setItem('onboardingDismissed', 'true');
+        localStorage.removeItem('onboardingProgress');
         await refreshAssets();
     };
 

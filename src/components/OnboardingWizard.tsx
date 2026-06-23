@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import type { Asset, AssetCategory, Person } from '../types';
 import { useSettings } from '../contexts/SettingsContext';
 import { ApiClient } from '../lib/apiClient';
-import { parseValue, handleNumberInput } from '../utils';
+import { parseValue, handleNumberInput, formatCurrency } from '../utils';
 import { CURRENCY_OPTIONS, THEME_OPTIONS } from '../constants/settingsOptions';
 
 interface OnboardingWizardProps {
@@ -20,6 +20,8 @@ interface OnboardingWizardProps {
 
 type Step = 'welcome' | 'preferences' | 'person' | 'asset' | 'value' | 'done';
 
+// Full step order, used for Back navigation.
+const FLOW: Step[] = ['welcome', 'preferences', 'person', 'asset', 'value', 'done'];
 // Steps that count toward the "Step X of N" progress indicator.
 const STEP_ORDER: Step[] = ['preferences', 'person', 'asset', 'value'];
 
@@ -32,10 +34,37 @@ const STEP_TITLES: Record<Step, string> = {
     done: 'All set',
 };
 
+// In-progress wizard state is mirrored to localStorage so closing the browser
+// mid-onboarding resumes on the same step with the same details.
+const PROGRESS_KEY = 'onboardingProgress';
+
+interface OnboardingProgress {
+    step: Step;
+    personName: string;
+    createdPersons: Person[];
+    createdAsset: Asset | null;
+    ownerId: string;
+    assetName: string;
+    category: AssetCategory;
+    value: string;
+    invested: string;
+    date: string;
+}
+
+function loadProgress(): Partial<OnboardingProgress> | null {
+    try {
+        const raw = localStorage.getItem(PROGRESS_KEY);
+        return raw ? (JSON.parse(raw) as Partial<OnboardingProgress>) : null;
+    } catch {
+        return null;
+    }
+}
+
 /**
  * First-run guided setup. Walks a brand-new user from an empty install to a
  * populated, configured dashboard - preferences -> household -> first asset ->
- * first value - reusing the existing settings/portfolio hooks. No menu hunting.
+ * first value - reusing the existing settings/portfolio hooks. Supports going
+ * back to edit earlier steps, and resumes where it left off after a reload.
  */
 export default function OnboardingWizard({
     isOpen,
@@ -47,21 +76,73 @@ export default function OnboardingWizard({
 }: OnboardingWizardProps) {
     const { categories, currency, setCurrency, theme, setTheme } = useSettings();
 
-    const [step, setStep] = useState<Step>('welcome');
+    // Restore any saved progress once on mount.
+    const [saved] = useState(loadProgress);
+
+    const [step, setStep] = useState<Step>(saved?.step ?? 'welcome');
     const [submitting, setSubmitting] = useState(false);
 
-    const [personName, setPersonName] = useState('Me');
-    const [createdPersons, setCreatedPersons] = useState<Person[]>([]);
-    const [ownerId, setOwnerId] = useState('');
-    const [assetName, setAssetName] = useState('');
-    const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
-    const [createdAsset, setCreatedAsset] = useState<Asset | null>(null);
-    const [value, setValue] = useState('');
-    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+    const [personName, setPersonName] = useState(saved?.personName ?? 'Me');
+    const [createdPersons, setCreatedPersons] = useState<Person[]>(saved?.createdPersons ?? []);
+    const [createdAsset, setCreatedAsset] = useState<Asset | null>(saved?.createdAsset ?? null);
+    const [ownerId, setOwnerId] = useState(saved?.ownerId ?? '');
+    const [assetName, setAssetName] = useState(saved?.assetName ?? '');
+    const [category, setCategory] = useState<AssetCategory>(
+        saved?.category ?? categories[0]?.key ?? 'stocks'
+    );
+    const [value, setValue] = useState(saved?.value ?? '');
+    const [invested, setInvested] = useState(saved?.invested ?? '');
+    const [date, setDate] = useState(saved?.date ?? new Date().toISOString().split('T')[0]);
+
+    // Persist progress whenever it changes (but not the terminal "done" step).
+    useEffect(() => {
+        if (!isOpen || step === 'done') return;
+        const progress: OnboardingProgress = {
+            step,
+            personName,
+            createdPersons,
+            createdAsset,
+            ownerId,
+            assetName,
+            category,
+            value,
+            invested,
+            date,
+        };
+        try {
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+        } catch {
+            /* ignore storage quota errors */
+        }
+    }, [
+        isOpen,
+        step,
+        personName,
+        createdPersons,
+        createdAsset,
+        ownerId,
+        assetName,
+        category,
+        value,
+        invested,
+        date,
+    ]);
 
     if (!isOpen) return null;
 
     const stepNumber = STEP_ORDER.indexOf(step) + 1;
+
+    // Live profit/loss for the value step (first snapshot starts from a 0 basis).
+    const currentValueNum = parseValue(value);
+    const investedNum = invested.trim() === '' ? currentValueNum : parseValue(invested);
+    let gain = currentValueNum - investedNum;
+    if (Math.abs(gain) < 0.0001) gain = 0;
+    const gainPercent = investedNum > 0 ? (gain / investedNum) * 100 : 0;
+
+    const goBack = () => {
+        const idx = FLOW.indexOf(step);
+        if (idx > 0) setStep(FLOW[idx - 1]);
+    };
 
     const handleAddPerson = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -91,48 +172,69 @@ export default function OnboardingWizard({
         setStep('asset');
     };
 
-    const handleCreateAsset = async (e: React.FormEvent) => {
+    // The asset is not created until "Finish" so the user can step back and edit
+    // the name/category/owner without creating duplicates.
+    const handleAssetContinue = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!ownerId || !assetName.trim() || submitting) return;
-        setSubmitting(true);
-        const asset = await addAsset({
-            name: assetName.trim(),
-            category,
-            ownerId,
-            purchaseDate: new Date().toISOString().split('T')[0],
-            purchaseAmount: 0,
-            currentValue: 0,
-        });
-        setSubmitting(false);
-        if (!asset) return;
-        setCreatedAsset(asset);
+        if (!assetName.trim()) return;
         setStep('value');
     };
 
-    const handleCreateValue = async (e: React.FormEvent) => {
+    const handleFinish = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!createdAsset || !value || submitting) return;
-        const amount = parseValue(value);
+        if (!value || submitting) return;
+        const finalOwnerId = ownerId || createdPersons[0]?.id;
+        if (!finalOwnerId || !assetName.trim()) return;
+
         setSubmitting(true);
         try {
-            // investmentChange equals the value so invested capital matches the
-            // current value on day one - the first snapshot shows 0 gain, not a
-            // spurious gain equal to the whole balance.
-            await ApiClient.addSnapshot(createdAsset.id, {
-                value: amount,
+            // Reuse an asset created on a previous (failed) finish attempt so a
+            // retry - even after a reload - never creates a duplicate.
+            let asset: Asset | null = createdAsset;
+            if (!asset) {
+                const created = await addAsset({
+                    name: assetName.trim(),
+                    category,
+                    ownerId: finalOwnerId,
+                    purchaseDate: new Date().toISOString().split('T')[0],
+                    purchaseAmount: 0,
+                    currentValue: 0,
+                });
+                if (!created) {
+                    setSubmitting(false);
+                    return;
+                }
+                asset = created;
+                setCreatedAsset(created);
+            }
+            // investmentChange records how much was put in, so the asset shows
+            // real profit/loss from day one (value - invested).
+            await ApiClient.addSnapshot(asset.id, {
+                value: currentValueNum,
                 date: new Date(date).toISOString(),
-                investmentChange: amount,
+                investmentChange: investedNum,
                 notes: '',
             });
             onComplete();
             setStep('done');
         } catch (error) {
-            console.error('Failed to save first value:', error);
-            toast.error('Failed to save value');
+            console.error('Failed to finish onboarding:', error);
+            toast.error('Failed to save your asset');
         } finally {
             setSubmitting(false);
         }
     };
+
+    const backButton = (
+        <button
+            type="button"
+            className="btn-secondary"
+            onClick={goBack}
+            data-testid="onboarding-back"
+        >
+            Back
+        </button>
+    );
 
     return (
         <div className="modal-overlay" data-testid="onboarding-wizard">
@@ -230,14 +332,7 @@ export default function OnboardingWizard({
                             </select>
                         </div>
                         <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-secondary"
-                                onClick={onClose}
-                                data-testid="onboarding-skip"
-                            >
-                                Skip setup
-                            </button>
+                            {backButton}
                             <button type="submit" className="btn-primary">
                                 Continue
                             </button>
@@ -272,7 +367,10 @@ export default function OnboardingWizard({
                         </form>
 
                         {createdPersons.length > 0 && (
-                            <ul className="onboarding-person-list" data-testid="onboarding-person-list">
+                            <ul
+                                className="onboarding-person-list"
+                                data-testid="onboarding-person-list"
+                            >
                                 {createdPersons.map(p => (
                                     <li key={p.id} className="onboarding-person-chip">
                                         <span>{p.name}</span>
@@ -292,14 +390,7 @@ export default function OnboardingWizard({
                         )}
 
                         <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-secondary"
-                                onClick={onClose}
-                                data-testid="onboarding-skip"
-                            >
-                                Skip setup
-                            </button>
+                            {backButton}
                             <button
                                 type="button"
                                 className="btn-primary"
@@ -314,7 +405,7 @@ export default function OnboardingWizard({
                 )}
 
                 {step === 'asset' && (
-                    <form className="modal-body" onSubmit={handleCreateAsset}>
+                    <form className="modal-body" onSubmit={handleAssetContinue}>
                         <p className="empty-text onboarding-step-intro">
                             Add your first asset - a stock, some crypto, a property, anything you
                             want to track.
@@ -365,31 +456,24 @@ export default function OnboardingWizard({
                             </div>
                         )}
                         <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-secondary"
-                                onClick={onClose}
-                                data-testid="onboarding-skip"
-                            >
-                                Skip setup
-                            </button>
+                            {backButton}
                             <button
                                 type="submit"
                                 className="btn-primary"
-                                disabled={submitting || !assetName.trim()}
+                                disabled={!assetName.trim()}
                                 data-testid="onboarding-asset-submit"
                             >
-                                {submitting ? 'Adding…' : 'Continue'}
+                                Continue
                             </button>
                         </div>
                     </form>
                 )}
 
                 {step === 'value' && (
-                    <form className="modal-body" onSubmit={handleCreateValue}>
+                    <form className="modal-body" onSubmit={handleFinish}>
                         <p className="empty-text onboarding-step-intro">
-                            What&apos;s <strong>{createdAsset?.name}</strong> worth today? This is its
-                            first data point - add more over time to watch it grow.
+                            What&apos;s <strong>{assetName}</strong> worth today, and how much did you
+                            put in? We&apos;ll show whether it&apos;s in profit.
                         </p>
                         <div className="form-group">
                             <label className="form-label">Date</label>
@@ -403,7 +487,7 @@ export default function OnboardingWizard({
                             />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Current Value</label>
+                            <label className="form-label">Current value</label>
                             <input
                                 type="text"
                                 inputMode="decimal"
@@ -416,15 +500,42 @@ export default function OnboardingWizard({
                                 data-testid="onboarding-value-input"
                             />
                         </div>
-                        <div className="modal-actions">
-                            <button
-                                type="button"
-                                className="btn-secondary"
-                                onClick={onClose}
-                                data-testid="onboarding-skip"
+                        <div className="form-group">
+                            <label className="form-label">Amount invested</label>
+                            <input
+                                type="text"
+                                inputMode="decimal"
+                                className="form-input"
+                                value={invested}
+                                onChange={e => handleNumberInput(e.target.value, setInvested)}
+                                placeholder="How much you put in"
+                                data-testid="onboarding-invested-input"
+                            />
+                            <small className="form-hint">
+                                Leave blank if it&apos;s the same as the current value (no profit
+                                yet).
+                            </small>
+                        </div>
+                        {value && (
+                            <div
+                                className={`value-change-indicator ${
+                                    gain > 0 ? 'positive' : gain < 0 ? 'negative' : 'neutral'
+                                }`}
+                                data-testid="onboarding-profit-preview"
                             >
-                                Skip setup
-                            </button>
+                                {gain === 0 ? (
+                                    'No profit yet'
+                                ) : (
+                                    <>
+                                        {gain > 0 ? 'Profit: +' : 'Loss: '}
+                                        {formatCurrency(Math.abs(gain), currency, 2)}
+                                        {` (${gainPercent >= 0 ? '+' : ''}${gainPercent.toFixed(2)}%)`}
+                                    </>
+                                )}
+                            </div>
+                        )}
+                        <div className="modal-actions">
+                            {backButton}
                             <button
                                 type="submit"
                                 className="btn-primary"
@@ -443,9 +554,8 @@ export default function OnboardingWizard({
                             <div className="empty-icon">🎉</div>
                             <h3 className="empty-title">You&apos;re all set!</h3>
                             <p className="empty-text">
-                                {createdAsset?.name} is on your dashboard. Use the{' '}
-                                <strong>+</strong> button anytime to record new values or add more
-                                assets.
+                                {assetName} is on your dashboard. Use the <strong>+</strong> button
+                                anytime to record new values or add more assets.
                             </p>
                         </div>
                         <div className="modal-actions">
