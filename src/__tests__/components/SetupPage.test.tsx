@@ -22,22 +22,26 @@ describe('SetupPage', () => {
         expect(submit).toBeDisabled();
     });
 
-    it('marks all requirements met and enables submit for a valid matching password', () => {
+    it('keeps "Passwords match" unmet (and submit disabled) until the confirm field matches', () => {
         render(<SetupPage />);
         fireEvent.change(screen.getByTestId('setup-password'), {
             target: { value: 'TestPass1234' },
         });
 
-        // The four policy requirements all tick green ("met").
+        // Policy rules tick green, but "Passwords match" stays unmet while confirm is empty.
         const requirements = screen.getAllByRole('listitem');
-        expect(requirements).toHaveLength(4);
-        requirements.forEach(li => expect(li.className).toContain('met'));
+        expect(requirements).toHaveLength(5);
+        expect(requirements.filter(li => li.className.includes('met'))).toHaveLength(4);
 
         const submit = screen.getByTestId('setup-submit');
         expect(submit).toBeDisabled(); // confirm not entered yet
+
         fireEvent.change(screen.getByTestId('setup-confirm-password'), {
             target: { value: 'TestPass1234' },
         });
+
+        // Now every requirement is met and the button is enabled.
+        screen.getAllByRole('listitem').forEach(li => expect(li.className).toContain('met'));
         expect(submit).toBeEnabled();
     });
 

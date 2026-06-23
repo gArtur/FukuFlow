@@ -44,11 +44,12 @@ export default function SetupPage() {
     const passwordsMatch = password === confirmPassword;
     const isValid = isPasswordValid(password) && passwordsMatch && confirmPassword.length > 0;
 
-    const requirements: { key: keyof typeof checks; label: string }[] = [
-        { key: 'minLength', label: `At least ${PASSWORD_MIN_LENGTH} characters` },
-        { key: 'uppercase', label: 'One uppercase letter' },
-        { key: 'lowercase', label: 'One lowercase letter' },
-        { key: 'number', label: 'One number' },
+    const requirements: { key: string; label: string; met: boolean }[] = [
+        { key: 'minLength', label: `At least ${PASSWORD_MIN_LENGTH} characters`, met: checks.minLength },
+        { key: 'uppercase', label: 'One uppercase letter', met: checks.uppercase },
+        { key: 'lowercase', label: 'One lowercase letter', met: checks.lowercase },
+        { key: 'number', label: 'One number', met: checks.number },
+        { key: 'match', label: 'Passwords match', met: confirmPassword.length > 0 && passwordsMatch },
     ];
 
     return (
@@ -98,7 +99,7 @@ export default function SetupPage() {
                         {requirements.map(req => (
                             <li
                                 key={req.key}
-                                className={`auth-requirement ${checks[req.key] ? 'met' : ''}`}
+                                className={`auth-requirement ${req.met ? 'met' : ''}`}
                             >
                                 {req.label}
                             </li>
