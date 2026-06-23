@@ -72,23 +72,20 @@ export default function MyMovers({
                 <div className="empty-state">
                     <div className="empty-icon">💰</div>
                     <h3 className="empty-title">No assets yet</h3>
-                    {persons.length === 0 ? (
-                        <>
-                            <p className="empty-text">
-                                Let&apos;s set up your portfolio — we&apos;ll walk you through it.
-                            </p>
-                            {onStartOnboarding && (
-                                <button
-                                    className="add-asset-btn-inline"
-                                    onClick={onStartOnboarding}
-                                    data-testid="empty-get-started-btn"
-                                >
-                                    Get started
-                                </button>
-                            )}
-                        </>
-                    ) : (
-                        <p className="empty-text">Tap the + button to add your first asset</p>
+                    <p className="empty-text">
+                        Add your first investment with <strong>Add Asset</strong> above
+                        {onStartOnboarding
+                            ? ', or let the setup guide walk you through it.'
+                            : '.'}
+                    </p>
+                    {onStartOnboarding && (
+                        <button
+                            className="empty-link-btn"
+                            onClick={onStartOnboarding}
+                            data-testid="empty-open-guide-btn"
+                        >
+                            Open the setup guide
+                        </button>
                     )}
                 </div>
             </section>
