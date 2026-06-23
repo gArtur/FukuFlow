@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import OnboardingWizard from '../../components/OnboardingWizard';
@@ -23,14 +24,12 @@ vi.mock('../../lib/apiClient', () => ({
     ApiClient: { addSnapshot: addSnapshotMock },
 }));
 
-const PERSON: Person = { id: 'p1', name: 'Me' };
-
 function makeAsset(over: Partial<Asset> = {}): Asset {
     return {
         id: 'a1',
         name: 'Apple Stock',
         category: 'stocks',
-        ownerId: PERSON.id,
+        ownerId: 'p1',
         purchaseDate: '2026-06-22',
         purchaseAmount: 0,
         currentValue: 0,
@@ -39,18 +38,50 @@ function makeAsset(over: Partial<Asset> = {}): Asset {
     };
 }
 
-function setup(overrides: Partial<React.ComponentProps<typeof OnboardingWizard>> = {}) {
-    const props = {
-        isOpen: true,
-        onClose: vi.fn(),
-        onComplete: vi.fn(),
-        addPerson: vi.fn().mockResolvedValue(PERSON),
-        addAsset: vi.fn().mockResolvedValue(makeAsset()),
-        deletePerson: vi.fn().mockResolvedValue(true),
-        ...overrides,
+const addPersonSpy = vi.fn();
+const deletePersonSpy = vi.fn();
+const onCloseSpy = vi.fn();
+const onCompleteSpy = vi.fn();
+const addAssetSpy = vi.fn();
+
+// Stateful wrapper that mirrors how App wires the wizard: people live outside
+// the wizard (in the DB / usePersons) and arrive via the `persons` prop, which
+// updates when addPerson/deletePerson run.
+function Harness({
+    initialPersons = [],
+    failAddPerson = false,
+}: {
+    initialPersons?: Person[];
+    failAddPerson?: boolean;
+}) {
+    const [persons, setPersons] = useState<Person[]>(initialPersons);
+    const addPerson = async (name: string) => {
+        addPersonSpy(name);
+        if (failAddPerson) return undefined;
+        const p: Person = { id: `p${persons.length + 1}`, name };
+        setPersons(prev => [...prev, p]);
+        return p;
     };
-    render(<OnboardingWizard {...props} />);
-    return props;
+    const deletePerson = async (id: string) => {
+        deletePersonSpy(id);
+        setPersons(prev => prev.filter(p => p.id !== id));
+        return true;
+    };
+    return (
+        <OnboardingWizard
+            isOpen
+            onClose={onCloseSpy}
+            onComplete={onCompleteSpy}
+            persons={persons}
+            addPerson={addPerson}
+            addAsset={addAssetSpy}
+            deletePerson={deletePerson}
+        />
+    );
+}
+
+function renderWizard(opts: { initialPersons?: Person[]; failAddPerson?: boolean } = {}) {
+    render(<Harness {...opts} />);
 }
 
 // Advance welcome -> preferences -> person step.
@@ -76,7 +107,8 @@ async function goToValueStep(assetName = 'Apple Stock') {
 describe('OnboardingWizard', () => {
     beforeEach(() => {
         localStorage.clear();
-        addSnapshotMock.mockReset();
+        vi.clearAllMocks();
+        addAssetSpy.mockResolvedValue(makeAsset());
         addSnapshotMock.mockResolvedValue(undefined);
     });
 
@@ -86,6 +118,7 @@ describe('OnboardingWizard', () => {
                 isOpen={false}
                 onClose={vi.fn()}
                 onComplete={vi.fn()}
+                persons={[]}
                 addPerson={vi.fn()}
                 addAsset={vi.fn()}
             />
@@ -97,6 +130,7 @@ describe('OnboardingWizard', () => {
                 isOpen
                 onClose={vi.fn()}
                 onComplete={vi.fn()}
+                persons={[]}
                 addPerson={vi.fn()}
                 addAsset={vi.fn()}
             />
@@ -104,12 +138,28 @@ describe('OnboardingWizard', () => {
         expect(screen.getByTestId('onboarding-get-started')).toBeInTheDocument();
     });
 
+    it('shows people that already exist when onboarding is reopened', () => {
+        renderWizard({
+            initialPersons: [
+                { id: 'p1', name: 'Me' },
+                { id: 'p2', name: 'Spouse' },
+            ],
+        });
+        gotoPersonStep();
+
+        // The household step reflects the people already in the database.
+        expect(screen.getByText('Me')).toBeInTheDocument();
+        expect(screen.getByText('Spouse')).toBeInTheDocument();
+        // ...and the user can continue without re-adding anyone.
+        expect(screen.getByTestId('onboarding-person-submit')).toBeEnabled();
+    });
+
     it('chains household -> asset -> value, creating the asset only on finish', async () => {
-        const props = setup();
+        renderWizard();
         await goToValueStep('Apple Stock');
 
         // Asset is not created until finish (so Back can edit it safely).
-        expect(props.addAsset).not.toHaveBeenCalled();
+        expect(addAssetSpy).not.toHaveBeenCalled();
 
         fireEvent.change(screen.getByTestId('onboarding-value-input'), {
             target: { value: '5000' },
@@ -117,7 +167,7 @@ describe('OnboardingWizard', () => {
         fireEvent.click(screen.getByTestId('onboarding-value-submit'));
 
         await waitFor(() =>
-            expect(props.addAsset).toHaveBeenCalledWith(
+            expect(addAssetSpy).toHaveBeenCalledWith(
                 expect.objectContaining({
                     name: 'Apple Stock',
                     category: 'stocks',
@@ -134,12 +184,12 @@ describe('OnboardingWizard', () => {
                 expect.objectContaining({ value: 5000, investmentChange: 5000 })
             )
         );
-        expect(props.onComplete).toHaveBeenCalled();
+        expect(onCompleteSpy).toHaveBeenCalled();
         expect(await screen.findByTestId('onboarding-done')).toBeInTheDocument();
     });
 
     it('records the amount invested so the snapshot captures profit', async () => {
-        setup();
+        renderWizard();
         await goToValueStep();
 
         fireEvent.change(screen.getByTestId('onboarding-value-input'), {
@@ -160,7 +210,7 @@ describe('OnboardingWizard', () => {
     });
 
     it('lets the user go back to edit a previous step', () => {
-        setup();
+        renderWizard();
         fireEvent.click(screen.getByTestId('onboarding-get-started')); // -> preferences
         expect(screen.getByTestId('onboarding-currency-select')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Continue')); // -> person
@@ -175,7 +225,6 @@ describe('OnboardingWizard', () => {
             JSON.stringify({
                 step: 'value',
                 personName: '',
-                createdPersons: [{ id: 'p1', name: 'Me' }],
                 createdAsset: null,
                 ownerId: 'p1',
                 assetName: 'Apple Stock',
@@ -185,7 +234,7 @@ describe('OnboardingWizard', () => {
                 date: '2026-06-01',
             })
         );
-        setup();
+        renderWizard({ initialPersons: [{ id: 'p1', name: 'Me' }] });
 
         // Wizard opens straight on the value step with the saved details.
         const valueInput = screen.getByTestId('onboarding-value-input') as HTMLInputElement;
@@ -194,19 +243,19 @@ describe('OnboardingWizard', () => {
     });
 
     it('calls onClose when the user skips', () => {
-        const props = setup();
+        renderWizard();
         fireEvent.click(screen.getByTestId('onboarding-skip'));
-        expect(props.onClose).toHaveBeenCalled();
+        expect(onCloseSpy).toHaveBeenCalled();
     });
 
     it('stays on the person step when adding a person fails', async () => {
-        const props = setup({ addPerson: vi.fn().mockResolvedValue(undefined) });
+        renderWizard({ failAddPerson: true });
         gotoPersonStep();
 
         fireEvent.click(screen.getByTestId('onboarding-person-add'));
 
-        await waitFor(() => expect(props.addPerson).toHaveBeenCalled());
-        expect(props.addAsset).not.toHaveBeenCalled();
+        await waitFor(() => expect(addPersonSpy).toHaveBeenCalled());
+        expect(addAssetSpy).not.toHaveBeenCalled();
         expect(addSnapshotMock).not.toHaveBeenCalled();
         // No person was added, so Continue is disabled and we stay on the person step.
         expect(screen.getByTestId('onboarding-person-input')).toBeInTheDocument();
@@ -214,10 +263,7 @@ describe('OnboardingWizard', () => {
     });
 
     it('supports adding multiple people and choosing the asset owner', async () => {
-        const me: Person = { id: 'p1', name: 'Me' };
-        const spouse: Person = { id: 'p2', name: 'Spouse' };
-        const addPerson = vi.fn().mockResolvedValueOnce(me).mockResolvedValueOnce(spouse);
-        const props = setup({ addPerson });
+        renderWizard();
         gotoPersonStep();
 
         // Add "Me" (pre-filled), then "Spouse".
@@ -228,7 +274,7 @@ describe('OnboardingWizard', () => {
         });
         fireEvent.click(screen.getByTestId('onboarding-person-add'));
         await screen.findByText('Spouse');
-        expect(addPerson).toHaveBeenCalledTimes(2);
+        expect(addPersonSpy).toHaveBeenCalledTimes(2);
 
         // Continue -> asset step shows an owner selector listing both people.
         fireEvent.click(screen.getByTestId('onboarding-person-submit'));
@@ -247,7 +293,7 @@ describe('OnboardingWizard', () => {
         });
         fireEvent.click(screen.getByTestId('onboarding-value-submit'));
         await waitFor(() =>
-            expect(props.addAsset).toHaveBeenCalledWith(
+            expect(addAssetSpy).toHaveBeenCalledWith(
                 expect.objectContaining({ name: 'Condo', ownerId: 'p2' })
             )
         );

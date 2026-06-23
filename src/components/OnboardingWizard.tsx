@@ -12,6 +12,8 @@ interface OnboardingWizardProps {
     onClose: () => void;
     /** Called after the first value is saved so the parent can refresh data. */
     onComplete: () => void;
+    /** The real people already in the database - the household list reads from this. */
+    persons: Person[];
     addPerson: (name: string) => Promise<Person | undefined>;
     addAsset: (asset: Omit<Asset, 'id' | 'valueHistory'>) => Promise<Asset | undefined>;
     /** Optional: enables removing a person added by mistake during onboarding. */
@@ -35,13 +37,13 @@ const STEP_TITLES: Record<Step, string> = {
 };
 
 // In-progress wizard state is mirrored to localStorage so closing the browser
-// mid-onboarding resumes on the same step with the same details.
+// mid-onboarding resumes on the same step with the same details. People are NOT
+// persisted here - they live in the database and arrive via the `persons` prop.
 const PROGRESS_KEY = 'onboardingProgress';
 
 interface OnboardingProgress {
     step: Step;
     personName: string;
-    createdPersons: Person[];
     createdAsset: Asset | null;
     ownerId: string;
     assetName: string;
@@ -63,13 +65,15 @@ function loadProgress(): Partial<OnboardingProgress> | null {
 /**
  * First-run guided setup. Walks a brand-new user from an empty install to a
  * populated, configured dashboard - preferences -> household -> first asset ->
- * first value - reusing the existing settings/portfolio hooks. Supports going
- * back to edit earlier steps, and resumes where it left off after a reload.
+ * first value - reusing the existing settings/portfolio hooks. The household
+ * list reflects the real people in the database, so restarting or resuming
+ * onboarding shows anyone already added. Supports going back to edit steps.
  */
 export default function OnboardingWizard({
     isOpen,
     onClose,
     onComplete,
+    persons,
     addPerson,
     addAsset,
     deletePerson,
@@ -82,8 +86,10 @@ export default function OnboardingWizard({
     const [step, setStep] = useState<Step>(saved?.step ?? 'welcome');
     const [submitting, setSubmitting] = useState(false);
 
-    const [personName, setPersonName] = useState(saved?.personName ?? 'Me');
-    const [createdPersons, setCreatedPersons] = useState<Person[]>(saved?.createdPersons ?? []);
+    // Pre-fill "Me" only for a truly fresh start (no people yet).
+    const [personName, setPersonName] = useState(
+        saved?.personName ?? (persons.length > 0 ? '' : 'Me')
+    );
     const [createdAsset, setCreatedAsset] = useState<Asset | null>(saved?.createdAsset ?? null);
     const [ownerId, setOwnerId] = useState(saved?.ownerId ?? '');
     const [assetName, setAssetName] = useState(saved?.assetName ?? '');
@@ -100,7 +106,6 @@ export default function OnboardingWizard({
         const progress: OnboardingProgress = {
             step,
             personName,
-            createdPersons,
             createdAsset,
             ownerId,
             assetName,
@@ -114,19 +119,7 @@ export default function OnboardingWizard({
         } catch {
             /* ignore storage quota errors */
         }
-    }, [
-        isOpen,
-        step,
-        personName,
-        createdPersons,
-        createdAsset,
-        ownerId,
-        assetName,
-        category,
-        value,
-        invested,
-        date,
-    ]);
+    }, [isOpen, step, personName, createdAsset, ownerId, assetName, category, value, invested, date]);
 
     if (!isOpen) return null;
 
@@ -152,23 +145,20 @@ export default function OnboardingWizard({
         const person = await addPerson(name);
         setSubmitting(false);
         // On failure the hook already shows a toast; keep the typed name.
+        // On success the parent updates `persons`, so the list re-renders.
         if (!person) return;
-        setCreatedPersons(prev => [...prev, person]);
         setPersonName('');
     };
 
     const handleRemovePerson = async (id: string) => {
         if (!deletePerson) return;
-        const removed = await deletePerson(id);
-        if (removed) setCreatedPersons(prev => prev.filter(p => p.id !== id));
+        await deletePerson(id);
     };
 
     const handleContinueFromPerson = () => {
-        if (createdPersons.length === 0) return;
+        if (persons.length === 0) return;
         // Default the first asset's owner to a valid person.
-        setOwnerId(prev =>
-            prev && createdPersons.some(p => p.id === prev) ? prev : createdPersons[0].id
-        );
+        setOwnerId(prev => (prev && persons.some(p => p.id === prev) ? prev : persons[0].id));
         setStep('asset');
     };
 
@@ -183,7 +173,7 @@ export default function OnboardingWizard({
     const handleFinish = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!value || submitting) return;
-        const finalOwnerId = ownerId || createdPersons[0]?.id;
+        const finalOwnerId = ownerId || persons[0]?.id;
         if (!finalOwnerId || !assetName.trim()) return;
 
         setSubmitting(true);
@@ -366,12 +356,12 @@ export default function OnboardingWizard({
                             </button>
                         </form>
 
-                        {createdPersons.length > 0 && (
+                        {persons.length > 0 && (
                             <ul
                                 className="onboarding-person-list"
                                 data-testid="onboarding-person-list"
                             >
-                                {createdPersons.map(p => (
+                                {persons.map(p => (
                                     <li key={p.id} className="onboarding-person-chip">
                                         <span>{p.name}</span>
                                         {deletePerson && (
@@ -395,7 +385,7 @@ export default function OnboardingWizard({
                                 type="button"
                                 className="btn-primary"
                                 onClick={handleContinueFromPerson}
-                                disabled={createdPersons.length === 0}
+                                disabled={persons.length === 0}
                                 data-testid="onboarding-person-submit"
                             >
                                 Continue
@@ -438,7 +428,7 @@ export default function OnboardingWizard({
                                 ))}
                             </select>
                         </div>
-                        {createdPersons.length > 1 && (
+                        {persons.length > 1 && (
                             <div className="form-group">
                                 <label className="form-label">Owner</label>
                                 <select
@@ -447,7 +437,7 @@ export default function OnboardingWizard({
                                     onChange={e => setOwnerId(e.target.value)}
                                     data-testid="onboarding-asset-owner-select"
                                 >
-                                    {createdPersons.map(p => (
+                                    {persons.map(p => (
                                         <option key={p.id} value={p.id}>
                                             {p.name}
                                         </option>

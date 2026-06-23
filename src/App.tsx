@@ -343,6 +343,7 @@ function AppContent() {
                                 isOpen={showOnboarding}
                                 onClose={handleCloseOnboarding}
                                 onComplete={handleCompleteOnboarding}
+                                persons={persons}
                                 addPerson={addPerson}
                                 addAsset={addAsset}
                                 deletePerson={deletePerson}
