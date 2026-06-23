@@ -168,6 +168,40 @@
     color: var(--danger-color, #e74c3c);
 }
 
+/* Live password requirements checklist (setup screen) */
+.auth-requirements {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 4px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.auth-requirement {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    transition: color 0.2s;
+}
+
+.auth-requirement::before {
+    content: '○';
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.auth-requirement.met {
+    color: var(--accent-green, #00d9a5);
+}
+
+.auth-requirement.met::before {
+    content: '✓';
+}
+
 .auth-note {
     margin-top: 24px;
     font-size: 0.85rem;
@@ -211,4 +245,12 @@
 [data-theme='light'] .auth-button:disabled {
     background: #d1d5db;
     color: #9ca3af;
+}
+
+/* Small phones: tighten the card padding so inputs + checklist get more room */
+@media (max-width: 480px) {
+    .auth-card,
+    .auth-card.setup-card {
+        padding: 28px 20px;
+    }
 }

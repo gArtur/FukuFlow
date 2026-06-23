@@ -178,41 +178,37 @@ export default function OnboardingWizard({
                             Choose how FukuFlow looks and which currency to track your wealth in. You
                             can change these anytime in Settings.
                         </p>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label className="form-label">Currency</label>
-                                <select
-                                    className="form-select"
-                                    value={currency}
-                                    onChange={e => setCurrency(e.target.value)}
-                                    data-testid="onboarding-currency-select"
-                                >
-                                    {CURRENCY_OPTIONS.map(opt => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="form-group">
-                                <label className="form-label">Theme</label>
-                                <select
-                                    className="form-select"
-                                    value={theme}
-                                    onChange={e =>
-                                        setTheme(
-                                            e.target.value as 'dark' | 'light' | 'high-contrast'
-                                        )
-                                    }
-                                    data-testid="onboarding-theme-select"
-                                >
-                                    {THEME_OPTIONS.map(opt => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                        <div className="form-group">
+                            <label className="form-label">Currency</label>
+                            <select
+                                className="form-select"
+                                value={currency}
+                                onChange={e => setCurrency(e.target.value)}
+                                data-testid="onboarding-currency-select"
+                            >
+                                {CURRENCY_OPTIONS.map(opt => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label className="form-label">Theme</label>
+                            <select
+                                className="form-select"
+                                value={theme}
+                                onChange={e =>
+                                    setTheme(e.target.value as 'dark' | 'light' | 'high-contrast')
+                                }
+                                data-testid="onboarding-theme-select"
+                            >
+                                {THEME_OPTIONS.map(opt => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div className="modal-actions">
                             <button
