@@ -9,7 +9,7 @@ export const PASSWORD_MIN_LENGTH = 12;
 export const PASSWORD_MAX_LENGTH = 128;
 
 export interface PasswordChecks {
-    minLength: boolean;
+    length: boolean;
     uppercase: boolean;
     lowercase: boolean;
     number: boolean;
@@ -17,7 +17,7 @@ export interface PasswordChecks {
 
 export function getPasswordChecks(password: string): PasswordChecks {
     return {
-        minLength: password.length >= PASSWORD_MIN_LENGTH,
+        length: password.length >= PASSWORD_MIN_LENGTH && password.length <= PASSWORD_MAX_LENGTH,
         uppercase: /[A-Z]/.test(password),
         lowercase: /[a-z]/.test(password),
         number: /\d/.test(password),
@@ -25,7 +25,6 @@ export function getPasswordChecks(password: string): PasswordChecks {
 }
 
 export function isPasswordValid(password: string): boolean {
-    if (password.length > PASSWORD_MAX_LENGTH) return false;
     const checks = getPasswordChecks(password);
-    return checks.minLength && checks.uppercase && checks.lowercase && checks.number;
+    return checks.length && checks.uppercase && checks.lowercase && checks.number;
 }

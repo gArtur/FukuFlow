@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getPasswordChecks, isPasswordValid, PASSWORD_MIN_LENGTH } from '../utils/passwordPolicy';
+import {
+    getPasswordChecks,
+    isPasswordValid,
+    PASSWORD_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+} from '../utils/passwordPolicy';
 import '../styles/login_styles.css';
 
 export default function SetupPage() {
@@ -24,7 +29,7 @@ export default function SetupPage() {
         // Validate against the password policy (mirrors the backend rule)
         if (!isPasswordValid(password)) {
             setError(
-                `Password must be at least ${PASSWORD_MIN_LENGTH} characters and include an uppercase letter, a lowercase letter, and a number`
+                `Password must be ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} characters and include an uppercase letter, a lowercase letter, and a number`
             );
             return;
         }
@@ -45,11 +50,19 @@ export default function SetupPage() {
     const isValid = isPasswordValid(password) && passwordsMatch && confirmPassword.length > 0;
 
     const requirements: { key: string; label: string; met: boolean }[] = [
-        { key: 'minLength', label: `At least ${PASSWORD_MIN_LENGTH} characters`, met: checks.minLength },
+        {
+            key: 'length',
+            label: `Between ${PASSWORD_MIN_LENGTH} and ${PASSWORD_MAX_LENGTH} characters`,
+            met: checks.length,
+        },
         { key: 'uppercase', label: 'One uppercase letter', met: checks.uppercase },
         { key: 'lowercase', label: 'One lowercase letter', met: checks.lowercase },
         { key: 'number', label: 'One number', met: checks.number },
-        { key: 'match', label: 'Passwords match', met: confirmPassword.length > 0 && passwordsMatch },
+        {
+            key: 'match',
+            label: 'Passwords match',
+            met: confirmPassword.length > 0 && passwordsMatch,
+        },
     ];
 
     return (

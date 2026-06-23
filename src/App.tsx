@@ -346,6 +346,7 @@ function AppContent() {
                                 persons={persons}
                                 addPerson={addPerson}
                                 addAsset={addAsset}
+                                updateAsset={updateAsset}
                                 deletePerson={deletePerson}
                             />
                         </div>

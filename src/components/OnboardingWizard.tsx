@@ -16,6 +16,11 @@ interface OnboardingWizardProps {
     persons: Person[];
     addPerson: (name: string) => Promise<Person | undefined>;
     addAsset: (asset: Omit<Asset, 'id' | 'valueHistory'>) => Promise<Asset | undefined>;
+    /** Syncs edits onto an asset already created by an earlier (failed) finish. */
+    updateAsset?: (
+        id: string,
+        updates: Partial<Omit<Asset, 'id' | 'valueHistory'>>
+    ) => Promise<void>;
     /** Optional: enables removing a person added by mistake during onboarding. */
     deletePerson?: (id: string) => Promise<boolean>;
 }
@@ -76,6 +81,7 @@ export default function OnboardingWizard({
     persons,
     addPerson,
     addAsset,
+    updateAsset,
     deletePerson,
 }: OnboardingWizardProps) {
     const { categories, currency, setCurrency, theme, setTheme } = useSettings();
@@ -86,9 +92,9 @@ export default function OnboardingWizard({
     const [step, setStep] = useState<Step>(saved?.step ?? 'welcome');
     const [submitting, setSubmitting] = useState(false);
 
-    // Pre-fill "Me" only for a truly fresh start (no people yet).
+    // Pre-fill a sample name only for a truly fresh start (no people yet).
     const [personName, setPersonName] = useState(
-        saved?.personName ?? (persons.length > 0 ? '' : 'Me')
+        saved?.personName ?? (persons.length > 0 ? '' : 'John')
     );
     const [createdAsset, setCreatedAsset] = useState<Asset | null>(saved?.createdAsset ?? null);
     const [ownerId, setOwnerId] = useState(saved?.ownerId ?? '');
@@ -119,7 +125,18 @@ export default function OnboardingWizard({
         } catch {
             /* ignore storage quota errors */
         }
-    }, [isOpen, step, personName, createdAsset, ownerId, assetName, category, value, invested, date]);
+    }, [
+        isOpen,
+        step,
+        personName,
+        createdAsset,
+        ownerId,
+        assetName,
+        category,
+        value,
+        invested,
+        date,
+    ]);
 
     if (!isOpen) return null;
 
@@ -173,7 +190,10 @@ export default function OnboardingWizard({
     const handleFinish = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!value || submitting) return;
-        const finalOwnerId = ownerId || persons[0]?.id;
+        // Guard against a stale owner (e.g. the person was deleted before a
+        // resumed session) by falling back to a person that still exists.
+        const finalOwnerId =
+            ownerId && persons.some(p => p.id === ownerId) ? ownerId : persons[0]?.id;
         if (!finalOwnerId || !assetName.trim()) return;
 
         setSubmitting(true);
@@ -196,6 +216,14 @@ export default function OnboardingWizard({
                 }
                 asset = created;
                 setCreatedAsset(created);
+            } else if (updateAsset) {
+                // The asset already exists from an earlier failed finish; apply any
+                // edits the user made via Back so they aren't silently dropped.
+                await updateAsset(asset.id, {
+                    name: assetName.trim(),
+                    category,
+                    ownerId: finalOwnerId,
+                });
             }
             // investmentChange records how much was put in, so the asset shows
             // real profit/loss from day one (value - invested).
@@ -252,8 +280,8 @@ export default function OnboardingWizard({
                             <div className="empty-icon">👋</div>
                             <h3 className="empty-title">Welcome to FukuFlow</h3>
                             <p className="empty-text">
-                                Your password is set. Let&apos;s get your portfolio up and running in
-                                a few quick steps - no menus to hunt through.
+                                Your password is set. Let&apos;s get your portfolio up and running
+                                in a few quick steps - no menus to hunt through.
                             </p>
                         </div>
                         <div className="modal-actions">
@@ -286,8 +314,8 @@ export default function OnboardingWizard({
                         }}
                     >
                         <p className="empty-text onboarding-step-intro">
-                            Choose how FukuFlow looks and which currency to track your wealth in. You
-                            can change these anytime in Settings.
+                            Choose how FukuFlow looks and which currency to track your wealth in.
+                            You can change these anytime in Settings.
                         </p>
                         <div className="form-group">
                             <label className="form-label">Currency</label>
@@ -342,7 +370,7 @@ export default function OnboardingWizard({
                                 className="form-input"
                                 value={personName}
                                 onChange={e => setPersonName(e.target.value)}
-                                placeholder="e.g., Me, Spouse, Child"
+                                placeholder="e.g., John, Jane, Alex"
                                 autoFocus
                                 data-testid="onboarding-person-input"
                             />
@@ -462,8 +490,8 @@ export default function OnboardingWizard({
                 {step === 'value' && (
                     <form className="modal-body" onSubmit={handleFinish}>
                         <p className="empty-text onboarding-step-intro">
-                            What&apos;s <strong>{assetName}</strong> worth today, and how much did you
-                            put in? We&apos;ll show whether it&apos;s in profit.
+                            What&apos;s <strong>{assetName}</strong> worth today, and how much did
+                            you put in? We&apos;ll show whether it&apos;s in profit.
                         </p>
                         <div className="form-group">
                             <label className="form-label">Date</label>

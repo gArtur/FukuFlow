@@ -43,6 +43,7 @@ const deletePersonSpy = vi.fn();
 const onCloseSpy = vi.fn();
 const onCompleteSpy = vi.fn();
 const addAssetSpy = vi.fn();
+const updateAssetSpy = vi.fn();
 
 // Stateful wrapper that mirrors how App wires the wizard: people live outside
 // the wizard (in the DB / usePersons) and arrive via the `persons` prop, which
@@ -75,6 +76,7 @@ function Harness({
             persons={persons}
             addPerson={addPerson}
             addAsset={addAssetSpy}
+            updateAsset={updateAssetSpy}
             deletePerson={deletePerson}
         />
     );
@@ -90,11 +92,11 @@ function gotoPersonStep() {
     fireEvent.click(screen.getByText('Continue')); // preferences -> person
 }
 
-// Add the default "Me", continue, name the asset, continue -> land on value step.
+// Add the default sample person, continue, name the asset, continue -> value step.
 async function goToValueStep(assetName = 'Apple Stock') {
     gotoPersonStep();
     fireEvent.click(screen.getByTestId('onboarding-person-add'));
-    await screen.findByText('Me');
+    await screen.findByText('John');
     fireEvent.click(screen.getByTestId('onboarding-person-submit'));
     await screen.findByTestId('onboarding-asset-name-input');
     fireEvent.change(screen.getByTestId('onboarding-asset-name-input'), {
@@ -109,6 +111,7 @@ describe('OnboardingWizard', () => {
         localStorage.clear();
         vi.clearAllMocks();
         addAssetSpy.mockResolvedValue(makeAsset());
+        updateAssetSpy.mockResolvedValue(undefined);
         addSnapshotMock.mockResolvedValue(undefined);
     });
 
@@ -266,14 +269,14 @@ describe('OnboardingWizard', () => {
         renderWizard();
         gotoPersonStep();
 
-        // Add "Me" (pre-filled), then "Spouse".
+        // Add "John" (pre-filled), then "Jane".
         fireEvent.click(screen.getByTestId('onboarding-person-add'));
-        await screen.findByText('Me');
+        await screen.findByText('John');
         fireEvent.change(screen.getByTestId('onboarding-person-input'), {
-            target: { value: 'Spouse' },
+            target: { value: 'Jane' },
         });
         fireEvent.click(screen.getByTestId('onboarding-person-add'));
-        await screen.findByText('Spouse');
+        await screen.findByText('Jane');
         expect(addPersonSpy).toHaveBeenCalledTimes(2);
 
         // Continue -> asset step shows an owner selector listing both people.

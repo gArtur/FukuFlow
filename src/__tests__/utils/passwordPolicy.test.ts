@@ -9,13 +9,13 @@ import {
 describe('passwordPolicy', () => {
     it('reports individual checks', () => {
         expect(getPasswordChecks('')).toEqual({
-            minLength: false,
+            length: false,
             uppercase: false,
             lowercase: false,
             number: false,
         });
         expect(getPasswordChecks('TestPass1234')).toEqual({
-            minLength: true,
+            length: true,
             uppercase: true,
             lowercase: true,
             number: true,
@@ -40,6 +40,9 @@ describe('passwordPolicy', () => {
     it('rejects passwords longer than the maximum length', () => {
         const tooLong = 'Aa1' + 'x'.repeat(PASSWORD_MAX_LENGTH);
         expect(tooLong.length).toBeGreaterThan(PASSWORD_MAX_LENGTH);
+        // The length check fails (so the UI marks that requirement unmet), and
+        // the overall validation rejects it.
+        expect(getPasswordChecks(tooLong).length).toBe(false);
         expect(isPasswordValid(tooLong)).toBe(false);
     });
 });
