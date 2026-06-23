@@ -27,7 +27,11 @@ export default function GetStartedHero({ onGetStarted, onDismiss }: GetStartedHe
                 Track your investments and watch your wealth grow over time. Let&apos;s add your
                 first one - it only takes a minute.
             </p>
-            <button className="get-started-btn" onClick={onGetStarted} data-testid="get-started-btn">
+            <button
+                className="get-started-btn"
+                onClick={onGetStarted}
+                data-testid="get-started-btn"
+            >
                 Get Started
             </button>
             <button className="get-started-later" onClick={onDismiss}>

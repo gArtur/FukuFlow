@@ -74,9 +74,7 @@ export default function MyMovers({
                     <h3 className="empty-title">No assets yet</h3>
                     <p className="empty-text">
                         Add your first investment with <strong>Add Asset</strong> above
-                        {onStartOnboarding
-                            ? ', or let the setup guide walk you through it.'
-                            : '.'}
+                        {onStartOnboarding ? ', or let the setup guide walk you through it.' : '.'}
                     </p>
                     {onStartOnboarding && (
                         <button
