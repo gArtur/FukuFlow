@@ -54,12 +54,12 @@ function parseDateFlexible(dateStr: string): Date | null {
  * Rows are intentionally dropped when:
  *   - the date is missing or unparseable, or
  *   - the value is <= 0 (a snapshot must record a positive total worth).
- * This drop is deliberate, not silent — see the `value > 0` test.
+ * This drop is deliberate, not silent - see the `value > 0` test.
  */
 export function parseSnapshotCsv(text: string): ParsedSnapshot[] {
     const lines = text.split('\n');
     // The first line is a header only when its first column is the literal
-    // "date" label — not merely any line containing the substring "date"
+    // "date" label - not merely any line containing the substring "date"
     // (e.g. a notes field like "Monthly update").
     const firstCell = lines[0]?.split(',')[0]?.trim().toLowerCase();
     const hasHeader = firstCell === 'date';

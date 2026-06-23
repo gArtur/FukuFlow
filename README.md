@@ -74,7 +74,7 @@ The application will be available at `http://localhost:3001`.
 
 | Tag | Points to | Use it for |
 |---|---|---|
-| `:latest` | Newest **stable release** | Most users — pull this. |
+| `:latest` | Newest **stable release** | Most users - pull this. |
 | `:edge` | Latest build off `main` | Trying unreleased changes (may be unstable). |
 | `:1.2.3` / `:1.2` / `:1` | A specific release / rolling major or minor | Pinning a deployment for reproducibility. |
 | `:sha-<short>` | An exact commit build | Debugging / pinning to one precise build. |

@@ -14,7 +14,7 @@ export interface PerformanceWindow {
 }
 
 export interface PortfolioPerformance {
-    /** Per-asset gain over the active window — identical to computeAssetGain(asset, window). */
+    /** Per-asset gain over the active window - identical to computeAssetGain(asset, window). */
     getAssetGain: (asset: Asset) => AssetGain;
     /** Portfolio performance series over the active window, as the Total Worth chart plots it. */
     portfolio: PerformanceStats;

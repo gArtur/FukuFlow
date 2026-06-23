@@ -107,7 +107,7 @@ export default function HeatmapCardDetail({
                     </div>
                 </div>
 
-                {/* Monthly grid — horizontally scrollable, grouped by year */}
+                {/* Monthly grid - horizontally scrollable, grouped by year */}
                 <div className="heatmap-detail-scroll-area">
                     {Array.from(byYear.entries()).map(([year, cells]) => (
                         <div key={year} className="heatmap-detail-year-row">

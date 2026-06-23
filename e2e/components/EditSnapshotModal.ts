@@ -18,7 +18,7 @@ export class EditSnapshotModal {
 
     async delete() {
         await this.deleteBtn.click();
-        // Confirmation modal appears — confirm it
+        // Confirmation modal appears - confirm it
         await this.page.getByTestId('confirm-ok').click();
         await expect(this.modal).toBeHidden({ timeout: 5000 });
         return this;

@@ -1,6 +1,7 @@
 import type { Person } from '../../types';
 import type { TimeRange } from '../../types';
 import { cx } from '../../utils';
+import { CURRENCY_OPTIONS, THEME_OPTIONS } from '../../constants/settingsOptions';
 import CustomSelect from './CustomSelect';
 import styles from './Settings.module.css';
 
@@ -19,23 +20,6 @@ interface GeneralSettingsProps {
     setDefaultDateRange: (range: TimeRange) => Promise<void>;
     persons: Person[];
 }
-
-const THEME_OPTIONS = [
-    { value: 'dark', label: 'Dark (Default)' },
-    { value: 'light', label: 'Light' },
-    { value: 'high-contrast', label: 'High Contrast' },
-];
-
-const CURRENCY_OPTIONS = [
-    { value: 'USD', label: 'USD ($)' },
-    { value: 'PLN', label: 'PLN (zł)' },
-    { value: 'EUR', label: 'EUR (€)' },
-    { value: 'GBP', label: 'GBP (£)' },
-    { value: 'JPY', label: 'JPY (¥)' },
-    { value: 'CHF', label: 'CHF (Fr)' },
-    { value: 'CAD', label: 'CAD ($)' },
-    { value: 'AUD', label: 'AUD ($)' },
-];
 
 const DATE_RANGE_OPTIONS: TimeRange[] = ['YTD', '1Y', '5Y', 'MAX'];
 

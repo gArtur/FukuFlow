@@ -30,7 +30,7 @@ const END = new Date('2024-12-31');
 
 // ─── Edge cases ───────────────────────────────────────────────────────────────
 
-describe('calculatePerformance — empty assets', () => {
+describe('calculatePerformance - empty assets', () => {
     it('returns zeroed stats with empty history for no assets', () => {
         const result = calculatePerformance([], START, END);
         expect(result.history).toEqual([]);
@@ -43,7 +43,7 @@ describe('calculatePerformance — empty assets', () => {
 
 // ─── Single asset, no history in range ───────────────────────────────────────
 
-describe('calculatePerformance — single asset, history outside range', () => {
+describe('calculatePerformance - single asset, history outside range', () => {
     it('returns 0 values when all history is outside the date range', () => {
         const asset = makeAsset([{ date: '2022-01-01', value: 5000, investmentChange: 5000 }]);
         const result = calculatePerformance(
@@ -60,7 +60,7 @@ describe('calculatePerformance — single asset, history outside range', () => {
 
 // ─── Single asset, 2 snapshots in range ───────────────────────────────────────
 
-describe('calculatePerformance — single asset with snapshots in range', () => {
+describe('calculatePerformance - single asset with snapshots in range', () => {
     it('currentValue equals the value at the last date in the timeline', () => {
         const asset = makeAsset([
             { date: '2024-03-01', value: 1000, investmentChange: 1000 },
@@ -104,7 +104,7 @@ describe('calculatePerformance — single asset with snapshots in range', () => 
 
 // ─── Multiple assets ─────────────────────────────────────────────────────────
 
-describe('calculatePerformance — multiple assets', () => {
+describe('calculatePerformance - multiple assets', () => {
     it('sums values across all assets for a shared date', () => {
         const a1 = makeAsset([{ date: '2024-06-01', value: 1000, investmentChange: 1000 }], {
             id: 'a1',
@@ -122,9 +122,9 @@ describe('calculatePerformance — multiple assets', () => {
 
 // ─── Binary search / boundary behaviour ──────────────────────────────────────
 
-describe('calculatePerformance — binary search boundary', () => {
+describe('calculatePerformance - binary search boundary', () => {
     it('picks up a snapshot dated before startDate as the "start basis"', () => {
-        // Snapshot on Dec 31 2023 — before our 2024 range
+        // Snapshot on Dec 31 2023 - before our 2024 range
         const asset = makeAsset([
             { date: '2023-12-31', value: 800, investmentChange: 800 },
             { date: '2024-06-01', value: 1000, investmentChange: 0 },
@@ -255,7 +255,7 @@ describe('calculateCAGR', () => {
         expect(calculateCAGR(history, 0)).toBe(0);
     });
 
-    it('is not inflated by deposits — uses gainPercent not raw value ratio', () => {
+    it('is not inflated by deposits - uses gainPercent not raw value ratio', () => {
         // Start with 1K, add 99K after 1 year, end at 110K after 2 years.
         // Raw value ratio: 110K/1K = 110x → would give ~949% CAGR (wrong).
         // gainPercent (Modified Dietz): gain=10K, avgCapital=100K → 10% total → ~4.9% CAGR.
@@ -298,11 +298,11 @@ describe('calculateMaxDrawdown', () => {
 
     it('does not treat a large deposit as a market peak', () => {
         // Jan: 100K value, 100K invested
-        // Feb: 200K value, 200K invested (added 100K — not a market gain)
+        // Feb: 200K value, 200K invested (added 100K - not a market gain)
         // Mar: 195K value, 200K invested (market dropped 2.5%)
         // Old formula: peak=200K, trough=195K → -2.5% (OK here, but peak was set by deposit)
         // New formula: wealth index r_Feb = (200-100-100)/100 = 0%, r_Mar = (195-200)/200 = -2.5%
-        // → max drawdown = -2.5% (correct — reflects only market movement)
+        // → max drawdown = -2.5% (correct - reflects only market movement)
         const history = [
             { date: '2024-01-01', value: 100000, invested: 100000 },
             { date: '2024-02-01', value: 200000, invested: 200000 },
@@ -334,7 +334,7 @@ describe('calculateVolatilityFromHistory', () => {
     });
 
     it('uses last snapshot per month when multiple snapshots exist in one month', () => {
-        // Two snapshots in Jan: 100 and 150 — only 150 (the last) should count
+        // Two snapshots in Jan: 100 and 150 - only 150 (the last) should count
         const history = [
             makeDatum('2024-01-10', 100),
             makeDatum('2024-01-25', 150),
@@ -362,7 +362,7 @@ describe('calculateVolatilityFromHistory', () => {
         // Monthly snapshots: volatility must match heatmap's formula applied to same returns
         const values = [100, 110, 99, 108];
         const history = values.map((v, i) => makeDatum(`2024-0${i + 1}-01`, v));
-        const returns = [10, -10, 9.09]; // approx — just check they're close
+        const returns = [10, -10, 9.09]; // approx - just check they're close
         const mean = returns.reduce((s, r) => s + r, 0) / returns.length;
         const variance = returns.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / returns.length;
         const expected = Math.sqrt(variance);

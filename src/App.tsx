@@ -27,6 +27,8 @@ import MigrationTool from './components/MigrationTool';
 import SkeletonDashboard from './components/SkeletonDashboard';
 import LoginPage from './components/LoginPage';
 import SetupPage from './components/SetupPage';
+import OnboardingWizard from './components/OnboardingWizard';
+import GetStartedHero from './components/GetStartedHero';
 import ScrollToTop from './components/ScrollToTop';
 import { generateAssetUrl, resolveAssetFromSlug } from './utils/navigation';
 
@@ -74,6 +76,10 @@ function AppContent() {
     const [snapshotAsset, setSnapshotAsset] = useState<Asset | null>(null);
     const [editingSnapshot, setEditingSnapshot] = useState<(ValueEntry & { id: number }) | null>(
         null
+    );
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    const [welcomeDismissed, setWelcomeDismissed] = useState(
+        () => localStorage.getItem('welcomeDismissed') === 'true'
     );
 
     // Time range state lifted from TotalWorthChart for sharing with Asset Cards
@@ -198,6 +204,42 @@ function AppContent() {
     const isInitialLoad =
         (assetsLoading && allAssets.length === 0) || personsLoading || settingsLoading;
 
+    // Auto-launch the guided onboarding for a fresh install (no people, no assets)
+    // or resume it if the user closed the browser mid-onboarding - unless they
+    // already dismissed or completed it.
+    useEffect(() => {
+        if (isInitialLoad) return;
+        if (localStorage.getItem('onboardingDismissed') === 'true') return;
+        const hasProgress = localStorage.getItem('onboardingProgress') !== null;
+        if (hasProgress || (persons.length === 0 && allAssets.length === 0)) {
+            // One-shot open once data has loaded - this synchronizes UI to loaded
+            // state, not a cascading update loop.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setShowOnboarding(true);
+        }
+    }, [isInitialLoad, persons.length, allAssets.length]);
+
+    const handleCloseOnboarding = () => {
+        localStorage.setItem('onboardingDismissed', 'true');
+        localStorage.removeItem('onboardingProgress');
+        setShowOnboarding(false);
+    };
+
+    const handleCompleteOnboarding = async () => {
+        localStorage.setItem('onboardingDismissed', 'true');
+        localStorage.removeItem('onboardingProgress');
+        await refreshAssets();
+    };
+
+    const handleDismissWelcome = () => {
+        localStorage.setItem('welcomeDismissed', 'true');
+        setWelcomeDismissed(true);
+    };
+
+    // Show the prominent welcome takeover while the portfolio is empty and the
+    // user hasn't dismissed it. It disappears on its own once an asset exists.
+    const showWelcome = allAssets.length === 0 && !welcomeDismissed;
+
     const headerProps = {
         onAddSnapshot: handleGlobalAddSnapshot,
     };
@@ -227,54 +269,66 @@ function AppContent() {
                                     <MigrationTool onComplete={() => window.location.reload()} />
                                 )}
 
-                                <FamilyFilter
-                                    persons={persons}
-                                    selected={selectedOwner}
-                                    onSelect={setSelectedOwner}
-                                />
-
-                                <PortfolioPerformanceProvider
-                                    assets={filteredAssets}
-                                    window={{
-                                        assetsFollowGeneral,
-                                        timeRange,
-                                        customStartDate,
-                                        customEndDate,
-                                    }}
-                                >
-                                    <div className="charts-row">
-                                        <TotalWorthChart
-                                            timeRange={timeRange}
-                                            setTimeRange={setTimeRange}
-                                            customStartDate={customStartDate}
-                                            setCustomStartDate={setCustomStartDate}
-                                            customEndDate={customEndDate}
-                                            setCustomEndDate={setCustomEndDate}
-                                        />
-                                        <AllocationChart
-                                            stats={stats}
-                                            assets={filteredAssets}
-                                            persons={persons}
-                                        />
-                                    </div>
-
-                                    <MyMovers
-                                        assets={filteredAssets}
-                                        persons={persons}
-                                        onCardClick={handleCardClick}
-                                        onAddSnapshot={handleAddSnapshot}
-                                        onAddAsset={() => setShowAddModal(true)}
+                                {showWelcome ? (
+                                    <GetStartedHero
+                                        onGetStarted={() => setShowOnboarding(true)}
+                                        onDismiss={handleDismissWelcome}
                                     />
-                                </PortfolioPerformanceProvider>
+                                ) : (
+                                    <>
+                                        <FamilyFilter
+                                            persons={persons}
+                                            selected={selectedOwner}
+                                            onSelect={setSelectedOwner}
+                                        />
+
+                                        <PortfolioPerformanceProvider
+                                            assets={filteredAssets}
+                                            window={{
+                                                assetsFollowGeneral,
+                                                timeRange,
+                                                customStartDate,
+                                                customEndDate,
+                                            }}
+                                        >
+                                            <div className="charts-row">
+                                                <TotalWorthChart
+                                                    timeRange={timeRange}
+                                                    setTimeRange={setTimeRange}
+                                                    customStartDate={customStartDate}
+                                                    setCustomStartDate={setCustomStartDate}
+                                                    customEndDate={customEndDate}
+                                                    setCustomEndDate={setCustomEndDate}
+                                                />
+                                                <AllocationChart
+                                                    stats={stats}
+                                                    assets={filteredAssets}
+                                                    persons={persons}
+                                                />
+                                            </div>
+
+                                            <MyMovers
+                                                assets={filteredAssets}
+                                                persons={persons}
+                                                onCardClick={handleCardClick}
+                                                onAddSnapshot={handleAddSnapshot}
+                                                onAddAsset={() => setShowAddModal(true)}
+                                                onStartOnboarding={() => setShowOnboarding(true)}
+                                            />
+                                        </PortfolioPerformanceProvider>
+                                    </>
+                                )}
                             </main>
 
-                            <button
-                                className="fab"
-                                onClick={handleGlobalAddSnapshot}
-                                aria-label="Add snapshot"
-                            >
-                                +
-                            </button>
+                            {!showWelcome && (
+                                <button
+                                    className="fab"
+                                    onClick={handleGlobalAddSnapshot}
+                                    aria-label="Add snapshot"
+                                >
+                                    +
+                                </button>
+                            )}
 
                             <AddAssetModal
                                 isOpen={showAddModal}
@@ -283,6 +337,17 @@ function AppContent() {
                                 editAsset={editAsset}
                                 onUpdate={updateAsset}
                                 persons={persons}
+                            />
+
+                            <OnboardingWizard
+                                isOpen={showOnboarding}
+                                onClose={handleCloseOnboarding}
+                                onComplete={handleCompleteOnboarding}
+                                persons={persons}
+                                addPerson={addPerson}
+                                addAsset={addAsset}
+                                updateAsset={updateAsset}
+                                deletePerson={deletePerson}
                             />
                         </div>
                     }

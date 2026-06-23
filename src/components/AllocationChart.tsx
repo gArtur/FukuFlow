@@ -191,7 +191,7 @@ export default function AllocationChart({
         [chartData, borderColor]
     );
 
-    // No floating tooltip — the hovered segment's details are shown in the doughnut center.
+    // No floating tooltip - the hovered segment's details are shown in the doughnut center.
     const options = useMemo(
         () => ({
             responsive: true,

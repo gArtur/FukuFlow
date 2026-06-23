@@ -1073,6 +1073,206 @@
     /* Mobile: compact */
 }
 
+/* Onboarding wizard: small step indicator in the modal header + intro copy */
+.onboarding-step-count {
+    margin-left: auto;
+    margin-right: var(--space-sm);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.onboarding-step-intro {
+    margin-bottom: var(--space-md);
+    text-align: left;
+}
+
+/* Onboarding household step: add-a-person row + the list of added people */
+.onboarding-add-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: stretch;
+}
+
+.onboarding-add-row .form-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.onboarding-add-btn {
+    flex: 0 0 auto;
+    width: auto;
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+}
+
+.onboarding-person-list {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.onboarding-person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.onboarding-person-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.onboarding-person-remove:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+/* Prominent first-run welcome takeover shown while the portfolio is empty */
+.get-started-hero {
+    position: relative;
+    max-width: 520px;
+    margin: var(--space-2xl) auto;
+    padding: var(--space-2xl) var(--space-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.get-started-logo {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--space-lg);
+}
+
+.get-started-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+}
+
+.get-started-text {
+    max-width: 380px;
+    margin: 0 auto var(--space-xl);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.get-started-btn {
+    min-width: 220px;
+    min-height: 48px;
+    padding: var(--space-md) var(--space-xl);
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: var(--radius-md);
+    color: #000;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.get-started-btn:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+}
+
+.get-started-later {
+    display: block;
+    margin: var(--space-md) auto 0;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.get-started-later:hover {
+    color: var(--text-secondary);
+}
+
+.get-started-dismiss {
+    position: absolute;
+    top: var(--space-md);
+    right: var(--space-md);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.get-started-dismiss:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+/* Subtle text link in the assets empty state (back to the guide) */
+.empty-link-btn {
+    margin-top: var(--space-md);
+    background: none;
+    border: none;
+    color: var(--accent-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.empty-link-btn:hover {
+    opacity: 0.85;
+}
+
+@media (max-width: 480px) {
+    .get-started-hero {
+        margin: var(--space-lg) auto;
+        padding: var(--space-xl) var(--space-md);
+    }
+
+    .get-started-title {
+        font-size: 20px;
+    }
+
+    .get-started-btn {
+        width: 100%;
+    }
+}
+
 /* ===== FORM ELEMENTS ===== */
 .form-group {
     margin-bottom: var(--space-sm);
@@ -2335,7 +2535,7 @@
     flex-wrap: wrap;
 }
 
-/* ===== ASSET DETAIL — MOBILE HEADER ===== */
+/* ===== ASSET DETAIL - MOBILE HEADER ===== */
 .detail-mobile-top-row {
     display: flex;
     align-items: center;
@@ -3039,7 +3239,7 @@
    right-hand divider dangling into empty space. Lay the four stats out as an even
    2x2 grid instead, and draw the vertical divider only between the two columns so
    it never trails past a wrapped row. (Placed after the base rule so it wins the
-   cascade — see the note in responsive.css.) */
+   cascade - see the note in responsive.css.) */
 @media (max-width: 640px) {
     .heatmap-stats-row {
         display: grid;
@@ -4174,7 +4374,7 @@
 
 /* ===== SKELETON LOADING ===== */
 /*
- * Skeleton shimmer — a single reusable class for all placeholder shapes.
+ * Skeleton shimmer - a single reusable class for all placeholder shapes.
  * Uses CSS custom properties so it adapts to dark & light themes automatically.
  */
 :root {

@@ -181,7 +181,7 @@ describe('Backup routes', () => {
         });
     });
 
-    describe('POST /api/backup/restore — validation', () => {
+    describe('POST /api/backup/restore - validation', () => {
         const validBase = () => ({
             persons: [],
             assets: [],

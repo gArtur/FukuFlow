@@ -4,9 +4,9 @@
  * Snapshot reconciliation invariant: an asset's derived columns are ALWAYS
  * re-derived from `asset_history`, never nudged incrementally.
  *   - `currentValue`   = the latest snapshot's value (by `date DESC, id DESC`)
- *                        — the asset's latest Total Worth.
+ *                        - the asset's latest Total Worth.
  *   - `purchaseAmount` = `SUM(investmentChange)` over all snapshots
- *                        — the asset's Invested Capital.
+ *                        - the asset's Invested Capital.
  * (The columns are named `currentValue`/`purchaseAmount` for historical
  * reasons; renaming them is out of scope. See CONTEXT.md for the vocabulary.)
  *

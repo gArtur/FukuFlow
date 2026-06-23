@@ -23,7 +23,7 @@ const MONTHS = ['2024-01', '2024-02', '2024-03'];
 // Same fixtures as PortfolioHeatmap.test.tsx, asserted at the builder interface:
 //              2024-01      2024-02      2024-03
 //   Alpha   10000 (+10k)  11000        12000
-//   Beta         —        5000 (+5k)   6000
+//   Beta         -        5000 (+5k)   6000
 const alpha = asset('Alpha', [
     { date: '2024-01-15', value: 10000, investmentChange: 10000 },
     { date: '2024-02-15', value: 11000, investmentChange: 0 },

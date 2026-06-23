@@ -56,26 +56,26 @@ Full verification is `typecheck` + `lint` + `npm test`. The frontend has a vites
 ### Frontend (`src/`)
 
 State flows through React Contexts rather than a global store:
-- `AuthContext` — JWT token management, login/logout
-- `SettingsContext` — app-wide preferences (theme, currency, date format)
-- `PrivacyContext` — hides monetary values while showing trends
+- `AuthContext` - JWT token management, login/logout
+- `SettingsContext` - app-wide preferences (theme, currency, date format)
+- `PrivacyContext` - hides monetary values while showing trends
 
 Custom hooks own data-fetching and domain logic:
-- `usePortfolio` — aggregated portfolio stats, asset list, time-range filtering
-- `usePersons` — multi-person ownership
-- `useSnapshotActions` — create/edit/delete value snapshots
-- `useFormatting` — currency/date formatting from SettingsContext
+- `usePortfolio` - aggregated portfolio stats, asset list, time-range filtering
+- `usePersons` - multi-person ownership
+- `useSnapshotActions` - create/edit/delete value snapshots
+- `useFormatting` - currency/date formatting from SettingsContext
 
-`src/lib/apiClient.ts` is the single HTTP boundary — all API calls go through it (attaches JWT, handles 401 redirect).
+`src/lib/apiClient.ts` is the single HTTP boundary - all API calls go through it (attaches JWT, handles 401 redirect).
 
-`src/types/index.ts` is the canonical type source — `Asset`, `Person`, `ValueEntry`, `PortfolioStats`, `TimeRange`, etc.
+`src/types/index.ts` is the canonical type source - `Asset`, `Person`, `ValueEntry`, `PortfolioStats`, `TimeRange`, etc.
 
 ### Backend (`server/`)
 
 | File | Purpose |
 |---|---|
-| `server/index.js` | Entry point — DB init, system tray, starts the HTTP server |
-| `server/app.js` | Express app factory `createApp(db)` — wires middleware, routes, static serving |
+| `server/index.js` | Entry point - DB init, system tray, starts the HTTP server |
+| `server/app.js` | Express app factory `createApp(db)` - wires middleware, routes, static serving |
 | `server/db.js` | SQLite init, `initSchema(db)` (used by tests too), schema migrations |
 | `server/config.js` | Environment-based config (`PORT`, `JWT_SECRET`, `CORS_ORIGIN`) |
 | `server/routes/` | One file per resource: auth, assets, persons, categories, snapshots, settings, backup |
@@ -85,15 +85,15 @@ Custom hooks own data-fetching and domain logic:
 ### Database schema (SQLite)
 
 ```
-persons        — id, name, displayOrder
-assets         — id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol
-asset_history  — id, assetId, date, value, investmentChange, notes
-categories     — id, key, label, color, isDefault
-settings       — key, value
-auth           — id (always 1), passwordHash, tokenVersion
+persons        - id, name, displayOrder
+assets         - id, name, category, ownerId, purchaseAmount, purchaseDate, currentValue, symbol
+asset_history  - id, assetId, date, value, investmentChange, notes
+categories     - id, key, label, color, isDefault
+settings       - key, value
+auth           - id (always 1), passwordHash, tokenVersion
 ```
 
-`asset_history` is the time-series backbone — all charts and the portfolio heatmap read from it.
+`asset_history` is the time-series backbone - all charts and the portfolio heatmap read from it.
 
 ### Key patterns
 

@@ -27,7 +27,7 @@ export function usePortfolio() {
 
     useEffect(() => {
         // fetchAssets sets isLoading(true) synchronously for immediate UI feedback before
-        // the async API call resolves. This is intentional — not a cascading state update.
+        // the async API call resolves. This is intentional - not a cascading state update.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchAssets();
     }, [fetchAssets]);
@@ -35,16 +35,21 @@ export function usePortfolio() {
     const filteredAssets =
         selectedOwner === 'all' ? assets : assets.filter(a => a.ownerId === selectedOwner);
 
-    const addAsset = useCallback(async (asset: Omit<Asset, 'id' | 'valueHistory'>) => {
-        try {
-            const newAsset = await ApiClient.addAsset(asset);
-            setAssets(prev => [...prev, newAsset]);
-            toast.success('Asset added successfully');
-        } catch (error) {
-            console.error('Failed to add asset:', error);
-            toast.error('Failed to add asset');
-        }
-    }, []);
+    const addAsset = useCallback(
+        async (asset: Omit<Asset, 'id' | 'valueHistory'>): Promise<Asset | undefined> => {
+            try {
+                const newAsset = await ApiClient.addAsset(asset);
+                setAssets(prev => [...prev, newAsset]);
+                toast.success('Asset added successfully');
+                return newAsset;
+            } catch (error) {
+                console.error('Failed to add asset:', error);
+                toast.error('Failed to add asset');
+                return undefined;
+            }
+        },
+        []
+    );
 
     const deleteAsset = useCallback(async (id: string) => {
         try {

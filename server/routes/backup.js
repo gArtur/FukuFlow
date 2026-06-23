@@ -37,7 +37,7 @@ router.get('/', (req, res) => {
     });
 });
 
-// POST restore — replaces all data atomically. Insert order (persons →
+// POST restore - replaces all data atomically. Insert order (persons →
 // categories → settings → assets → history) respects the foreign keys.
 router.post('/restore', validateBackupRestore, async (req, res) => {
     const adb = promisifyDb(req.app.locals.db);

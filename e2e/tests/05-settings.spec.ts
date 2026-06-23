@@ -23,8 +23,8 @@ test.afterAll(async ({ request }) => {
     await deletePerson(request, token, settingsPersonId);
 });
 
-test.describe('05 — Settings', () => {
-    test('5.1 — currency change: EUR symbol appears on dashboard', async ({ settings, dashboard }) => {
+test.describe('05 - Settings', () => {
+    test('5.1 - currency change: EUR symbol appears on dashboard', async ({ settings, dashboard }) => {
         await settings.goto();
         await settings.setCurrency('EUR');
 
@@ -36,7 +36,7 @@ test.describe('05 — Settings', () => {
         await settings.setCurrency('USD');
     });
 
-    test('5.2 — add custom category appears in add-asset dropdown', async ({
+    test('5.2 - add custom category appears in add-asset dropdown', async ({
         settings,
         dashboard,
         request,
@@ -62,7 +62,7 @@ test.describe('05 — Settings', () => {
         if (cat) await deleteCategory(request, token, cat.id);
     });
 
-    test('5.3 — delete category disappears from list', async ({ settings, request }) => {
+    test('5.3 - delete category disappears from list', async ({ settings, request }) => {
         const catId = await seedCategory(request, token, 'Throwaway Cat E2E');
 
         await settings.goto();
@@ -72,13 +72,13 @@ test.describe('05 — Settings', () => {
         await settings.expectCategoryNotInList('Throwaway Cat E2E');
     });
 
-    test('5.4 — backup download returns a JSON file', async ({ settings }) => {
+    test('5.4 - backup download returns a JSON file', async ({ settings }) => {
         await settings.goto();
         const download = await settings.downloadBackup();
         expect(download.suggestedFilename()).toMatch(/\.json$/);
     });
 
-    test('5.5 — restore backup leaves app functional', async ({ settings, dashboard, request }) => {
+    test('5.5 - restore backup leaves app functional', async ({ settings, dashboard, request }) => {
         // Get backup JSON via API
         const backupData = await getBackupJson(request, token);
         const tmpFile = path.join(os.tmpdir(), 'fukuflow-e2e-backup.json');

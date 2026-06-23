@@ -32,7 +32,7 @@ const customWindow: PerformanceWindow = {
     customEndDate: '2024-12-31',
 };
 
-describe('usePortfolioPerformance — per-asset gains', () => {
+describe('usePortfolioPerformance - per-asset gains', () => {
     it('getAssetGain matches computeAssetGain for the all-time window', () => {
         const asset = makeAsset();
         const { result } = renderHook(() => usePortfolioPerformance([asset], {}));
@@ -46,7 +46,7 @@ describe('usePortfolioPerformance — per-asset gains', () => {
     });
 });
 
-describe('usePortfolioPerformance — portfolio series', () => {
+describe('usePortfolioPerformance - portfolio series', () => {
     it('matches calculatePerformance over the active bounded window', () => {
         const assets = [makeAsset(), makeAsset({ id: 'a2', name: 'Second' })];
         const { startDate, endDate } = getDateRangeFromTimeRange(
@@ -68,7 +68,7 @@ describe('usePortfolioPerformance — portfolio series', () => {
     });
 });
 
-describe('usePortfolioPerformance — memoization', () => {
+describe('usePortfolioPerformance - memoization', () => {
     it('returns a stable result for unchanged (assets, window)', () => {
         const assets = [makeAsset()];
         const { result, rerender } = renderHook(

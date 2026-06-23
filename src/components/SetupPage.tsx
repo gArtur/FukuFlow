@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import {
+    getPasswordChecks,
+    isPasswordValid,
+    PASSWORD_MIN_LENGTH,
+    PASSWORD_MAX_LENGTH,
+} from '../utils/passwordPolicy';
 import '../styles/login_styles.css';
 
 export default function SetupPage() {
@@ -20,9 +26,11 @@ export default function SetupPage() {
             return;
         }
 
-        // Validate minimum length
-        if (password.length < 4) {
-            setError('Password must be at least 4 characters');
+        // Validate against the password policy (mirrors the backend rule)
+        if (!isPasswordValid(password)) {
+            setError(
+                `Password must be ${PASSWORD_MIN_LENGTH}-${PASSWORD_MAX_LENGTH} characters and include an uppercase letter, a lowercase letter, and a number`
+            );
             return;
         }
 
@@ -37,8 +45,25 @@ export default function SetupPage() {
         setIsLoading(false);
     };
 
+    const checks = getPasswordChecks(password);
     const passwordsMatch = password === confirmPassword;
-    const isValid = password.length >= 4 && passwordsMatch && confirmPassword.length > 0;
+    const isValid = isPasswordValid(password) && passwordsMatch && confirmPassword.length > 0;
+
+    const requirements: { key: string; label: string; met: boolean }[] = [
+        {
+            key: 'length',
+            label: `Between ${PASSWORD_MIN_LENGTH} and ${PASSWORD_MAX_LENGTH} characters`,
+            met: checks.length,
+        },
+        { key: 'uppercase', label: 'One uppercase letter', met: checks.uppercase },
+        { key: 'lowercase', label: 'One lowercase letter', met: checks.lowercase },
+        { key: 'number', label: 'One number', met: checks.number },
+        {
+            key: 'match',
+            label: 'Passwords match',
+            met: confirmPassword.length > 0 && passwordsMatch,
+        },
+    ];
 
     return (
         <div className="auth-container">
@@ -83,9 +108,16 @@ export default function SetupPage() {
                         />
                     </div>
 
-                    {password.length > 0 && password.length < 4 && (
-                        <div className="auth-hint">Password must be at least 4 characters</div>
-                    )}
+                    <ul className="auth-requirements" aria-live="polite">
+                        {requirements.map(req => (
+                            <li
+                                key={req.key}
+                                className={`auth-requirement ${req.met ? 'met' : ''}`}
+                            >
+                                {req.label}
+                            </li>
+                        ))}
+                    </ul>
 
                     {confirmPassword && !passwordsMatch && (
                         <div className="auth-hint auth-hint-error">Passwords do not match</div>

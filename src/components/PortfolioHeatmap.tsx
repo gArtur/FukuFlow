@@ -48,7 +48,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
     const [selectedCardRow, setSelectedCardRow] = useState<HeatmapRow | null>(null);
     const gridRef = useRef<HTMLDivElement>(null);
 
-    // Resolved default person from settings — updates reactively when settings load/change
+    // Resolved default person from settings - updates reactively when settings load/change
     const settingsPersonId = useMemo(
         () => (!settingsLoading && defaultFilter && defaultFilter !== 'all' ? defaultFilter : null),
         [defaultFilter, settingsLoading]
@@ -86,7 +86,7 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         return { minMonth: min, maxMonth: max };
     }, [assets]);
 
-    // Resolved default range from the app-wide default date range setting —
+    // Resolved default range from the app-wide default date range setting -
     // null means "no quick-filter default", i.e. full history. Updates
     // reactively when settings load/change, mirroring how settingsPersonId
     // resolves the default person filter above. MAX / Custom / undefined all
@@ -113,8 +113,8 @@ export default function PortfolioHeatmap({ assets, persons }: PortfolioHeatmapPr
         maxMonth;
 
     // Keep the grid scrolled to its far right so the latest months stay in view
-    // (the user can scroll back for older history). Runs on open — desktop mount,
-    // or when the mobile "Show full grid" toggle reveals it — and again whenever
+    // (the user can scroll back for older history). Runs on open - desktop mount,
+    // or when the mobile "Show full grid" toggle reveals it - and again whenever
     // the visible time range changes (quick filter or slider), so the latest
     // month of the new range is shown. Sort/view/person changes don't touch the
     // range, so they leave the user's scroll position alone.

@@ -5,7 +5,7 @@ import type { Asset, PortfolioStats } from '../types';
  * (sum of currentValue), Invested Capital (sum of purchaseAmount), Gain/Loss,
  * and the per-category / per-owner Total Worth breakdowns.
  *
- * Pure and side-effect-free — the same rollup the dashboard reads. gainPercentage
+ * Pure and side-effect-free - the same rollup the dashboard reads. gainPercentage
  * is guarded to 0% when Invested Capital is non-positive, consistent with the
  * basis guard in subPeriodReturn.
  */
