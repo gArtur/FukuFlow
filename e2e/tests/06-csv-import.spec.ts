@@ -16,7 +16,7 @@ test.afterAll(async ({ request }) => {
     await deletePerson(request, token, personId);
 });
 
-test.describe('06 — CSV bulk import', () => {
+test.describe('06 - CSV bulk import', () => {
     test('imports snapshots via a single bulk request and shows them in history', async ({
         dashboard,
         assetDetail,
@@ -60,7 +60,7 @@ test.describe('06 — CSV bulk import', () => {
         await expect(page.getByText(/3 snapshots imported successfully/i)).toBeVisible();
 
         // Close the modal; the imported snapshots are now in the asset's history.
-        // (Rows render twice — desktop table + mobile list — so assert on content.)
+        // (Rows render twice - desktop table + mobile list - so assert on content.)
         await page.getByRole('button', { name: /done/i }).click();
         await expect(page.getByText('Added funds').first()).toBeVisible();
         await expect(page.getByText('Initial deposit').first()).toBeVisible();

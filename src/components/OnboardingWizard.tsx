@@ -14,6 +14,8 @@ interface OnboardingWizardProps {
     onComplete: () => void;
     addPerson: (name: string) => Promise<Person | undefined>;
     addAsset: (asset: Omit<Asset, 'id' | 'valueHistory'>) => Promise<Asset | undefined>;
+    /** Optional: enables removing a person added by mistake during onboarding. */
+    deletePerson?: (id: string) => Promise<boolean>;
 }
 
 type Step = 'welcome' | 'preferences' | 'person' | 'asset' | 'value' | 'done';
@@ -24,7 +26,7 @@ const STEP_ORDER: Step[] = ['preferences', 'person', 'asset', 'value'];
 const STEP_TITLES: Record<Step, string> = {
     welcome: 'Welcome',
     preferences: 'Your preferences',
-    person: 'Who owns it?',
+    person: 'Your household',
     asset: 'Your first asset',
     value: "Today's value",
     done: 'All set',
@@ -32,8 +34,8 @@ const STEP_TITLES: Record<Step, string> = {
 
 /**
  * First-run guided setup. Walks a brand-new user from an empty install to a
- * populated, configured dashboard — preferences → first person → first asset →
- * first value — reusing the existing settings/portfolio hooks. No menu hunting.
+ * populated, configured dashboard - preferences -> household -> first asset ->
+ * first value - reusing the existing settings/portfolio hooks. No menu hunting.
  */
 export default function OnboardingWizard({
     isOpen,
@@ -41,6 +43,7 @@ export default function OnboardingWizard({
     onComplete,
     addPerson,
     addAsset,
+    deletePerson,
 }: OnboardingWizardProps) {
     const { categories, currency, setCurrency, theme, setTheme } = useSettings();
 
@@ -48,7 +51,8 @@ export default function OnboardingWizard({
     const [submitting, setSubmitting] = useState(false);
 
     const [personName, setPersonName] = useState('Me');
-    const [createdPerson, setCreatedPerson] = useState<Person | null>(null);
+    const [createdPersons, setCreatedPersons] = useState<Person[]>([]);
+    const [ownerId, setOwnerId] = useState('');
     const [assetName, setAssetName] = useState('');
     const [category, setCategory] = useState<AssetCategory>(categories[0]?.key || 'stocks');
     const [createdAsset, setCreatedAsset] = useState<Asset | null>(null);
@@ -59,27 +63,42 @@ export default function OnboardingWizard({
 
     const stepNumber = STEP_ORDER.indexOf(step) + 1;
 
-    const handleCreatePerson = async (e: React.FormEvent) => {
+    const handleAddPerson = async (e: React.FormEvent) => {
         e.preventDefault();
         const name = personName.trim();
         if (!name || submitting) return;
         setSubmitting(true);
         const person = await addPerson(name);
         setSubmitting(false);
-        // On failure the hook already shows a toast; stay on this step.
+        // On failure the hook already shows a toast; keep the typed name.
         if (!person) return;
-        setCreatedPerson(person);
+        setCreatedPersons(prev => [...prev, person]);
+        setPersonName('');
+    };
+
+    const handleRemovePerson = async (id: string) => {
+        if (!deletePerson) return;
+        const removed = await deletePerson(id);
+        if (removed) setCreatedPersons(prev => prev.filter(p => p.id !== id));
+    };
+
+    const handleContinueFromPerson = () => {
+        if (createdPersons.length === 0) return;
+        // Default the first asset's owner to a valid person.
+        setOwnerId(prev =>
+            prev && createdPersons.some(p => p.id === prev) ? prev : createdPersons[0].id
+        );
         setStep('asset');
     };
 
     const handleCreateAsset = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!createdPerson || !assetName.trim() || submitting) return;
+        if (!ownerId || !assetName.trim() || submitting) return;
         setSubmitting(true);
         const asset = await addAsset({
             name: assetName.trim(),
             category,
-            ownerId: createdPerson.id,
+            ownerId,
             purchaseDate: new Date().toISOString().split('T')[0],
             purchaseAmount: 0,
             currentValue: 0,
@@ -97,7 +116,7 @@ export default function OnboardingWizard({
         setSubmitting(true);
         try {
             // investmentChange equals the value so invested capital matches the
-            // current value on day one — the first snapshot shows 0 gain, not a
+            // current value on day one - the first snapshot shows 0 gain, not a
             // spurious gain equal to the whole balance.
             await ApiClient.addSnapshot(createdAsset.id, {
                 value: amount,
@@ -142,7 +161,7 @@ export default function OnboardingWizard({
                             <h3 className="empty-title">Welcome to FukuFlow</h3>
                             <p className="empty-text">
                                 Your password is set. Let&apos;s get your portfolio up and running in
-                                a few quick steps — no menus to hunt through.
+                                a few quick steps - no menus to hunt through.
                             </p>
                         </div>
                         <div className="modal-actions">
@@ -227,24 +246,51 @@ export default function OnboardingWizard({
                 )}
 
                 {step === 'person' && (
-                    <form className="modal-body" onSubmit={handleCreatePerson}>
+                    <div className="modal-body">
                         <p className="empty-text onboarding-step-intro">
-                            Who owns these assets? Add yourself or a family member — you can add more
-                            people later.
+                            Add everyone whose assets you want to track - yourself and any family
+                            members. You can add or change these later in Settings.
                         </p>
-                        <div className="form-group">
-                            <label className="form-label">Name</label>
+                        <form className="onboarding-add-row" onSubmit={handleAddPerson}>
                             <input
                                 type="text"
                                 className="form-input"
                                 value={personName}
                                 onChange={e => setPersonName(e.target.value)}
-                                placeholder="e.g., Me"
+                                placeholder="e.g., Me, Spouse, Child"
                                 autoFocus
-                                required
                                 data-testid="onboarding-person-input"
                             />
-                        </div>
+                            <button
+                                type="submit"
+                                className="btn-secondary onboarding-add-btn"
+                                disabled={submitting || !personName.trim()}
+                                data-testid="onboarding-person-add"
+                            >
+                                {submitting ? 'Adding…' : 'Add'}
+                            </button>
+                        </form>
+
+                        {createdPersons.length > 0 && (
+                            <ul className="onboarding-person-list" data-testid="onboarding-person-list">
+                                {createdPersons.map(p => (
+                                    <li key={p.id} className="onboarding-person-chip">
+                                        <span>{p.name}</span>
+                                        {deletePerson && (
+                                            <button
+                                                type="button"
+                                                className="onboarding-person-remove"
+                                                onClick={() => handleRemovePerson(p.id)}
+                                                aria-label={`Remove ${p.name}`}
+                                            >
+                                                ×
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
                         <div className="modal-actions">
                             <button
                                 type="button"
@@ -255,22 +301,23 @@ export default function OnboardingWizard({
                                 Skip setup
                             </button>
                             <button
-                                type="submit"
+                                type="button"
                                 className="btn-primary"
-                                disabled={submitting || !personName.trim()}
+                                onClick={handleContinueFromPerson}
+                                disabled={createdPersons.length === 0}
                                 data-testid="onboarding-person-submit"
                             >
-                                {submitting ? 'Adding…' : 'Continue'}
+                                Continue
                             </button>
                         </div>
-                    </form>
+                    </div>
                 )}
 
                 {step === 'asset' && (
                     <form className="modal-body" onSubmit={handleCreateAsset}>
                         <p className="empty-text onboarding-step-intro">
-                            Add your first asset for {createdPerson?.name} — a stock, some crypto, a
-                            property, anything you want to track.
+                            Add your first asset - a stock, some crypto, a property, anything you
+                            want to track.
                         </p>
                         <div className="form-group">
                             <label className="form-label">Asset Name</label>
@@ -300,6 +347,23 @@ export default function OnboardingWizard({
                                 ))}
                             </select>
                         </div>
+                        {createdPersons.length > 1 && (
+                            <div className="form-group">
+                                <label className="form-label">Owner</label>
+                                <select
+                                    className="form-select"
+                                    value={ownerId}
+                                    onChange={e => setOwnerId(e.target.value)}
+                                    data-testid="onboarding-asset-owner-select"
+                                >
+                                    {createdPersons.map(p => (
+                                        <option key={p.id} value={p.id}>
+                                            {p.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
                         <div className="modal-actions">
                             <button
                                 type="button"
@@ -325,7 +389,7 @@ export default function OnboardingWizard({
                     <form className="modal-body" onSubmit={handleCreateValue}>
                         <p className="empty-text onboarding-step-intro">
                             What&apos;s <strong>{createdAsset?.name}</strong> worth today? This is its
-                            first data point — add more over time to watch it grow.
+                            first data point - add more over time to watch it grow.
                         </p>
                         <div className="form-group">
                             <label className="form-label">Date</label>

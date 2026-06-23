@@ -210,7 +210,7 @@ function AppContent() {
         if (isInitialLoad) return;
         const dismissed = localStorage.getItem('onboardingDismissed') === 'true';
         if (!dismissed && persons.length === 0 && allAssets.length === 0) {
-            // One-shot open once data has loaded and the install is confirmed empty —
+            // One-shot open once data has loaded and the install is confirmed empty -
             // this synchronizes UI to loaded state, not a cascading update loop.
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setShowOnboarding(true);
@@ -341,6 +341,7 @@ function AppContent() {
                                 onComplete={handleCompleteOnboarding}
                                 addPerson={addPerson}
                                 addAsset={addAsset}
+                                deletePerson={deletePerson}
                             />
                         </div>
                     }

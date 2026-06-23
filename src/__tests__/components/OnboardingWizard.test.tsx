@@ -46,6 +46,7 @@ function setup(overrides: Partial<React.ComponentProps<typeof OnboardingWizard>>
         onComplete: vi.fn(),
         addPerson: vi.fn().mockResolvedValue(PERSON),
         addAsset: vi.fn().mockResolvedValue(makeAsset()),
+        deletePerson: vi.fn().mockResolvedValue(true),
         ...overrides,
     };
     render(<OnboardingWizard {...props} />);
@@ -92,9 +93,11 @@ describe('OnboardingWizard', () => {
         const props = setup();
         gotoPersonStep();
 
-        // Person step (name pre-filled with "Me")
-        fireEvent.click(screen.getByTestId('onboarding-person-submit'));
+        // Person step: add the pre-filled person "Me", then continue.
+        fireEvent.click(screen.getByTestId('onboarding-person-add'));
         await waitFor(() => expect(props.addPerson).toHaveBeenCalledWith('Me'));
+        await screen.findByText('Me'); // chip appears once state updates
+        fireEvent.click(screen.getByTestId('onboarding-person-submit'));
 
         // Asset step
         await screen.findByTestId('onboarding-asset-name-input');
@@ -141,12 +144,46 @@ describe('OnboardingWizard', () => {
         const props = setup({ addPerson: vi.fn().mockResolvedValue(undefined) });
         gotoPersonStep();
 
-        fireEvent.click(screen.getByTestId('onboarding-person-submit'));
+        fireEvent.click(screen.getByTestId('onboarding-person-add'));
 
         await waitFor(() => expect(props.addPerson).toHaveBeenCalled());
         expect(props.addAsset).not.toHaveBeenCalled();
         expect(addSnapshotMock).not.toHaveBeenCalled();
-        // Still on the person step
+        // No person was added, so Continue is disabled and we stay on the person step.
         expect(screen.getByTestId('onboarding-person-input')).toBeInTheDocument();
+        expect(screen.getByTestId('onboarding-person-submit')).toBeDisabled();
+    });
+
+    it('supports adding multiple people and choosing the asset owner', async () => {
+        const me: Person = { id: 'p1', name: 'Me' };
+        const spouse: Person = { id: 'p2', name: 'Spouse' };
+        const addPerson = vi.fn().mockResolvedValueOnce(me).mockResolvedValueOnce(spouse);
+        const props = setup({ addPerson });
+        gotoPersonStep();
+
+        // Add "Me" (pre-filled), then "Spouse".
+        fireEvent.click(screen.getByTestId('onboarding-person-add'));
+        await screen.findByText('Me');
+        fireEvent.change(screen.getByTestId('onboarding-person-input'), {
+            target: { value: 'Spouse' },
+        });
+        fireEvent.click(screen.getByTestId('onboarding-person-add'));
+        await screen.findByText('Spouse');
+        expect(addPerson).toHaveBeenCalledTimes(2);
+
+        // Continue -> asset step shows an owner selector listing both people.
+        fireEvent.click(screen.getByTestId('onboarding-person-submit'));
+        const ownerSelect = await screen.findByTestId('onboarding-asset-owner-select');
+        fireEvent.change(ownerSelect, { target: { value: 'p2' } });
+
+        fireEvent.change(screen.getByTestId('onboarding-asset-name-input'), {
+            target: { value: 'Condo' },
+        });
+        fireEvent.click(screen.getByTestId('onboarding-asset-submit'));
+        await waitFor(() =>
+            expect(props.addAsset).toHaveBeenCalledWith(
+                expect.objectContaining({ name: 'Condo', ownerId: 'p2' })
+            )
+        );
     });
 });

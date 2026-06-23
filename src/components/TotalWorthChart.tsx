@@ -211,7 +211,7 @@ export default function TotalWorthChart({
                 padding: 12,
                 cornerRadius: 8,
                 displayColors: false,
-                // In Performance view the Invested line is a flat 0% baseline — hide its
+                // In Performance view the Invested line is a flat 0% baseline - hide its
                 // tooltip row so it doesn't show a redundant "Invested: 0%" every time.
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 filter: (item: any) => !(isPerformance && item.datasetIndex === 1),
@@ -441,7 +441,7 @@ export default function TotalWorthChart({
                 <div className="chart-metric">
                     <span
                         className="chart-metric-label"
-                        title="Compound Annual Growth Rate — annualised return"
+                        title="Compound Annual Growth Rate - annualised return"
                     >
                         CAGR
                     </span>
@@ -449,7 +449,7 @@ export default function TotalWorthChart({
                         className={`chart-metric-value ${calculateCAGR(history, displayGainPercent) >= 0 ? 'positive' : 'negative'}`}
                     >
                         {history.length < 2
-                            ? '—'
+                            ? '-'
                             : formatPercent(calculateCAGR(history, displayGainPercent))}
                     </span>
                 </div>
@@ -464,20 +464,20 @@ export default function TotalWorthChart({
                     <span className="chart-metric-value negative">
                         {(() => {
                             const dd = calculateMaxDrawdown(history);
-                            return dd === null ? '—' : `${dd.toFixed(1)}%`;
+                            return dd === null ? '-' : `${dd.toFixed(1)}%`;
                         })()}
                     </span>
                 </div>
                 <div className="chart-metric">
                     <span
                         className="chart-metric-label"
-                        title="Standard deviation of returns — a measure of risk"
+                        title="Standard deviation of returns - a measure of risk"
                     >
                         Volatility
                     </span>
                     <span className="chart-metric-value risk">
                         {history.length < 2
-                            ? '—'
+                            ? '-'
                             : `${calculateVolatilityFromHistory(history).toFixed(1)}%`}
                     </span>
                 </div>

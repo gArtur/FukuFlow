@@ -214,7 +214,7 @@
         justify-content: flex-start;
     }
 
-    /* Grid cells — smaller for the full-grid toggle */
+    /* Grid cells - smaller for the full-grid toggle */
     .heatmap-cell {
         width: 44px;
         min-width: 44px;
@@ -274,7 +274,7 @@
         height: 12px;
     }
 
-    /* Larger slider thumbs for touch — easier to grab */
+    /* Larger slider thumbs for touch - easier to grab */
     .range-slider::-webkit-slider-thumb {
         width: 26px;
         height: 26px;

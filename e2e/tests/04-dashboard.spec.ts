@@ -53,8 +53,8 @@ test.afterAll(async ({ request }) => {
     }
 });
 
-test.describe('04 — Dashboard display', () => {
-    test('4.1 — TotalWorthChart renders with non-zero value', async ({ dashboard }) => {
+test.describe('04 - Dashboard display', () => {
+    test('4.1 - TotalWorthChart renders with non-zero value', async ({ dashboard }) => {
         await dashboard.goto();
         await dashboard.expectTotalWorthVisible();
         // Value should contain a number (not be empty or $0)
@@ -63,7 +63,7 @@ test.describe('04 — Dashboard display', () => {
         expect(valueText).not.toBe('$0');
     });
 
-    test('4.2 — time range buttons toggle', async ({ dashboard }) => {
+    test('4.2 - time range buttons toggle', async ({ dashboard }) => {
         await dashboard.goto();
 
         await dashboard.selectTimeRange('YTD');
@@ -83,12 +83,12 @@ test.describe('04 — Dashboard display', () => {
         );
     });
 
-    test('4.3 — AllocationChart is visible', async ({ dashboard }) => {
+    test('4.3 - AllocationChart is visible', async ({ dashboard }) => {
         await dashboard.goto();
         await expect(dashboard.allocationChart).toBeVisible();
     });
 
-    test('4.4 — asset cards show names and values', async ({ dashboard }) => {
+    test('4.4 - asset cards show names and values', async ({ dashboard }) => {
         await dashboard.goto();
         const count = await dashboard.assetCards.count();
         expect(count).toBeGreaterThanOrEqual(3);
@@ -98,12 +98,12 @@ test.describe('04 — Dashboard display', () => {
         await dashboard.expectAssetCard('Dashboard Bond');
     });
 
-    test('4.5 — navigate to heatmap page', async ({ dashboard, heatmap }) => {
+    test('4.5 - navigate to heatmap page', async ({ dashboard, heatmap }) => {
         await dashboard.goToHeatmap();
         await heatmap.expectGridVisible();
     });
 
-    test('4.6 — performance metrics row is visible with expected labels', async ({ dashboard }) => {
+    test('4.6 - performance metrics row is visible with expected labels', async ({ dashboard }) => {
         await dashboard.goto();
         const metricsRow = dashboard.page.getByTestId('chart-metrics-row');
         await expect(metricsRow).toBeVisible();
@@ -113,7 +113,7 @@ test.describe('04 — Dashboard display', () => {
         expect(text).toContain('Volatility');
     });
 
-    test('4.7 — metrics row remains visible after time range change', async ({ dashboard }) => {
+    test('4.7 - metrics row remains visible after time range change', async ({ dashboard }) => {
         await dashboard.goto();
         await dashboard.selectTimeRange('YTD');
         await expect(dashboard.page.getByTestId('chart-metrics-row')).toBeVisible();

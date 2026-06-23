@@ -33,7 +33,7 @@ describe('getAssetTimeline', () => {
         expect(timeline.get('2024-06')?.realDataExists).toBe(true);
     });
 
-    it('two consecutive months — both present with correct values', () => {
+    it('two consecutive months - both present with correct values', () => {
         const asset = makeAsset([
             { date: '2024-01-01', value: 1000 },
             { date: '2024-02-01', value: 1100 },

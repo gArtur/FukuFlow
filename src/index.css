@@ -1090,6 +1090,66 @@
     text-align: left;
 }
 
+/* Onboarding household step: add-a-person row + the list of added people */
+.onboarding-add-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: stretch;
+}
+
+.onboarding-add-row .form-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.onboarding-add-btn {
+    flex: 0 0 auto;
+    width: auto;
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+}
+
+.onboarding-person-list {
+    list-style: none;
+    margin: var(--space-md) 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.onboarding-person-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-xs) var(--space-sm) var(--space-xs) var(--space-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.onboarding-person-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.onboarding-person-remove:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
 /* Prominent first-run welcome takeover shown while the portfolio is empty */
 .get-started-hero {
     position: relative;
@@ -2475,7 +2535,7 @@
     flex-wrap: wrap;
 }
 
-/* ===== ASSET DETAIL — MOBILE HEADER ===== */
+/* ===== ASSET DETAIL - MOBILE HEADER ===== */
 .detail-mobile-top-row {
     display: flex;
     align-items: center;
@@ -3179,7 +3239,7 @@
    right-hand divider dangling into empty space. Lay the four stats out as an even
    2x2 grid instead, and draw the vertical divider only between the two columns so
    it never trails past a wrapped row. (Placed after the base rule so it wins the
-   cascade — see the note in responsive.css.) */
+   cascade - see the note in responsive.css.) */
 @media (max-width: 640px) {
     .heatmap-stats-row {
         display: grid;
@@ -4314,7 +4374,7 @@
 
 /* ===== SKELETON LOADING ===== */
 /*
- * Skeleton shimmer — a single reusable class for all placeholder shapes.
+ * Skeleton shimmer - a single reusable class for all placeholder shapes.
  * Uses CSS custom properties so it adapts to dark & light themes automatically.
  */
 :root {

@@ -33,7 +33,7 @@ export default function HeatmapStats({ portfolioRow }: HeatmapStatsProps) {
             <div className="chart-metric">
                 <span
                     className="chart-metric-label"
-                    title="Standard deviation of monthly returns — a measure of risk"
+                    title="Standard deviation of monthly returns - a measure of risk"
                 >
                     Volatility
                 </span>

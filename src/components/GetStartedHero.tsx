@@ -25,7 +25,7 @@ export default function GetStartedHero({ onGetStarted, onDismiss }: GetStartedHe
             <h2 className="get-started-title">Welcome to FukuFlow</h2>
             <p className="get-started-text">
                 Track your investments and watch your wealth grow over time. Let&apos;s add your
-                first one — it only takes a minute.
+                first one - it only takes a minute.
             </p>
             <button className="get-started-btn" onClick={onGetStarted} data-testid="get-started-btn">
                 Get Started

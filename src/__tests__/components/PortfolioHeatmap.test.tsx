@@ -75,11 +75,11 @@ describe('PortfolioHeatmap TOTAL PORTFOLIO row', () => {
     //
     //              2024-01      2024-02      2024-03
     //   Alpha   10000 (+10k)  11000        12000
-    //   Beta         —        5000 (+5k)   6000
+    //   Beta         -        5000 (+5k)   6000
     //
     // Per-asset cell currency changes:
     //   Alpha:   inception     +1000        +1000   (total +2000 on 10000 basis = +20%)
-    //   Beta:       —          inception    +1000   (total +1000 on  5000 basis = +20%)
+    //   Beta:       -          inception    +1000   (total +1000 on  5000 basis = +20%)
     //
     // The TOTAL PORTFOLIO row must be the column-wise aggregation of those cells:
     //   value:   10000        16000        18000

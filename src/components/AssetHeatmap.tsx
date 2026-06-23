@@ -13,7 +13,7 @@ interface AssetHeatmapProps {
     asset: Asset;
 }
 
-/** Month header abbreviations — single letter on touch, three-letter on desktop */
+/** Month header abbreviations - single letter on touch, three-letter on desktop */
 const MONTH_LABELS_FULL = [
     'Jan',
     'Feb',

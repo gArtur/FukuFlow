@@ -18,7 +18,7 @@ function makeAsset(overrides: Partial<Asset> = {}): Asset {
     };
 }
 
-describe('computeAssetGain — all-time (no time range)', () => {
+describe('computeAssetGain - all-time (no time range)', () => {
     it('gain is currentValue minus purchaseAmount', () => {
         const result = computeAssetGain(makeAsset({ currentValue: 1200, purchaseAmount: 1000 }));
         expect(result.gain).toBe(200);
@@ -54,7 +54,7 @@ describe('computeAssetGain — all-time (no time range)', () => {
     });
 });
 
-describe('computeAssetGain — time-range behaviour', () => {
+describe('computeAssetGain - time-range behaviour', () => {
     const periodAsset = () =>
         makeAsset({
             purchaseAmount: 1000,
@@ -123,7 +123,7 @@ describe('computeAssetGain — time-range behaviour', () => {
     });
 });
 
-describe('computeAssetGain — edge cases', () => {
+describe('computeAssetGain - edge cases', () => {
     it('treats an exactly break-even asset as positive (gain 0)', () => {
         const result = computeAssetGain(makeAsset({ currentValue: 1000, purchaseAmount: 1000 }));
         expect(result.gain).toBe(0);

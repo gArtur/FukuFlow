@@ -26,7 +26,7 @@ export function usePersons() {
 
     useEffect(() => {
         // fetchPersons sets isLoading(true) synchronously for immediate UI feedback before
-        // the async API call resolves. This is intentional — not a cascading state update.
+        // the async API call resolves. This is intentional - not a cascading state update.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchPersons();
     }, [fetchPersons]);

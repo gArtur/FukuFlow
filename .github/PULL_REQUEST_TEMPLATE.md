@@ -16,7 +16,7 @@
 
 ## Screenshots
 
-<!-- For UI changes — before / after -->
+<!-- For UI changes - before / after -->
 
 ## Notes
 

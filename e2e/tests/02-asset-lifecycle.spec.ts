@@ -24,8 +24,8 @@ test.afterAll(async ({ request }) => {
     await deletePerson(request, token, personId);
 });
 
-test.describe('02 — Asset lifecycle', () => {
-    test('2.1 — create asset via modal', async ({ dashboard }) => {
+test.describe('02 - Asset lifecycle', () => {
+    test('2.1 - create asset via modal', async ({ dashboard }) => {
         await dashboard.goto();
         const modal = await dashboard.openAddAsset();
         await modal.fill({ name: ASSET_NAME, owner: OWNER_NAME });
@@ -34,7 +34,7 @@ test.describe('02 — Asset lifecycle', () => {
         await dashboard.expectAssetCard(ASSET_NAME);
     });
 
-    test('2.2 — navigate to asset detail page', async ({ dashboard, assetDetail }) => {
+    test('2.2 - navigate to asset detail page', async ({ dashboard, assetDetail }) => {
         await dashboard.goto();
         await dashboard.clickAssetCard(ASSET_NAME);
 
@@ -44,7 +44,7 @@ test.describe('02 — Asset lifecycle', () => {
         await assetDetail.expectSnapshotTableEmpty();
     });
 
-    test('2.3 — add snapshot', async ({ dashboard, assetDetail }) => {
+    test('2.3 - add snapshot', async ({ dashboard, assetDetail }) => {
         await dashboard.goto();
         await dashboard.clickAssetCard(ASSET_NAME);
 
@@ -56,7 +56,7 @@ test.describe('02 — Asset lifecycle', () => {
         await expect(assetDetail.page.getByTestId('snapshot-row-edit').first()).toBeVisible();
     });
 
-    test('2.4 — edit snapshot value', async ({ dashboard, assetDetail }) => {
+    test('2.4 - edit snapshot value', async ({ dashboard, assetDetail }) => {
         await dashboard.goto();
         await dashboard.clickAssetCard(ASSET_NAME);
 
@@ -67,7 +67,7 @@ test.describe('02 — Asset lifecycle', () => {
         await expect(assetDetail.page.getByTestId('snapshot-row-edit').first()).toBeVisible();
     });
 
-    test('2.5 — delete snapshot', async ({ dashboard, assetDetail }) => {
+    test('2.5 - delete snapshot', async ({ dashboard, assetDetail }) => {
         await dashboard.goto();
         await dashboard.clickAssetCard(ASSET_NAME);
 
@@ -77,7 +77,7 @@ test.describe('02 — Asset lifecycle', () => {
         await assetDetail.expectSnapshotTableEmpty();
     });
 
-    test('2.6 — delete asset redirects to dashboard', async ({ dashboard, assetDetail }) => {
+    test('2.6 - delete asset redirects to dashboard', async ({ dashboard, assetDetail }) => {
         await dashboard.goto();
         await dashboard.clickAssetCard(ASSET_NAME);
         await assetDetail.deleteAsset();

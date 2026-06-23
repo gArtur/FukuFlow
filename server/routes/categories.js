@@ -42,7 +42,7 @@ router.put('/:id', validateUuidParam, validateCategory, (req, res) => {
     );
 });
 
-// DELETE category — blocked if any asset uses it
+// DELETE category - blocked if any asset uses it
 router.delete('/:id', validateUuidParam, (req, res) => {
     const db = req.app.locals.db;
     const { id } = req.params;

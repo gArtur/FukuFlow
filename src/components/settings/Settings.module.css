@@ -58,7 +58,7 @@
     /* Reduced from space-xl */
 }
 
-/* Section header — re-localized from the dashboard's .movers-* classes so
+/* Section header - re-localized from the dashboard's .movers-* classes so
    Settings no longer depends on dashboard internals. */
 .section-header {
     display: flex;

@@ -11,7 +11,7 @@ The current aggregate market value of the whole portfolio (sum of each asset's l
 _Avoid_: net worth, balance, total value.
 
 **Invested Capital**:
-The cumulative net capital deployed into the portfolio over time — the running sum of every investment change. Drawn as a line on the chart.
+The cumulative net capital deployed into the portfolio over time - the running sum of every investment change. Drawn as a line on the chart.
 _Avoid_: cost basis, principal, deposits, contributions.
 
 **Gain/Loss**:
@@ -21,11 +21,11 @@ _Avoid_: profit, return amount, P&L.
 ### Chart views
 
 **Performance** (view):
-The chart view that plots **Period Return** — the return accumulated *within the selected time range*, rebased so the first point of the range is 0%. The Invested Capital line is drawn flat at 0% as that starting baseline, so the line shows how the portfolio moved during the period, independent of where it stood before.
+The chart view that plots **Period Return** - the return accumulated *within the selected time range*, rebased so the first point of the range is 0%. The Invested Capital line is drawn flat at 0% as that starting baseline, so the line shows how the portfolio moved during the period, independent of where it stood before.
 _Avoid_: returns view, ROI chart, percentage mode.
 
 **Period Return**:
-The money-weighted (Modified-Dietz) return measured from the start of the selected time range to a given date — period gain divided by the capital at work during the period. Starts at 0% at the range start and ends at the headline percentage.
+The money-weighted (Modified-Dietz) return measured from the start of the selected time range to a given date - period gain divided by the capital at work during the period. Starts at 0% at the range start and ends at the headline percentage.
 _Avoid_: ROI (which implies an all-time figure), TWR.
 
 **Total Worth** (view):
@@ -43,11 +43,11 @@ The dashboard section listing every asset, shown as either the Cards View or the
 _Avoid_: holdings, positions, movers.
 
 **Cards View**:
-The default My Assets layout — one card per asset showing its value, Gain/Loss and a sparkline.
+The default My Assets layout - one card per asset showing its value, Gain/Loss and a sparkline.
 _Avoid_: tiles, grid view.
 
 **Table View**:
-The alternative My Assets layout — a sortable table with one row per asset, showing the same data in orderable columns. On narrow screens only the highest-priority columns (name, value, percentage) are shown.
+The alternative My Assets layout - a sortable table with one row per asset, showing the same data in orderable columns. On narrow screens only the highest-priority columns (name, value, percentage) are shown.
 _Avoid_: list view, grid.
 
 ### Time series
@@ -71,17 +71,17 @@ _Avoid_: sub-period gain, raw monthly change.
 - The **Total Worth** chart card offers two **views**: **Performance** (percentage) and **Total Worth** (currency).
 - **Performance** plots **Period Return**, rebased to 0% at the start of the selected time range.
 - **Invested Capital** at a date = running sum of every **Investment Change** up to that date.
-- **Privacy** is orthogonal to the active view — it hides figures in either view.
+- **Privacy** is orthogonal to the active view - it hides figures in either view.
 - The **My Assets** section offers two **views**: **Cards** (default) and **Table**. Sorting applies to the **Table View** only; **Cards View** stays ordered by name.
 
 ## Example dialogue
 
 > **Dev:** "In the Performance view, why does the line always start at zero, even for a 1-year window?"
-> **Domain expert:** "Because Performance shows **Period Return** — how the portfolio moved *during the selected range*, not since inception. The start of the range is the 0% baseline (that's the flat Invested Capital line), so you read off how much you're up or down for this period. Switch to the Total Worth view and that same baseline becomes the wavy capital-deployed line in currency."
+> **Domain expert:** "Because Performance shows **Period Return** - how the portfolio moved *during the selected range*, not since inception. The start of the range is the 0% baseline (that's the flat Invested Capital line), so you read off how much you're up or down for this period. Switch to the Total Worth view and that same baseline becomes the wavy capital-deployed line in currency."
 
 ## Flagged ambiguities
 
-- "Total Worth" names both the chart card and its currency view. Resolved as intentional: the currency view *is* the total worth, so the toggle label and card concept coincide. The percentage view is the only one needing a distinct name — **Performance**.
-- "Invested capital" vs "cost basis" — use **Invested Capital** everywhere; it is the running sum of Investment Changes, not a per-lot accounting cost basis.
+- "Total Worth" names both the chart card and its currency view. Resolved as intentional: the currency view *is* the total worth, so the toggle label and card concept coincide. The percentage view is the only one needing a distinct name - **Performance**.
+- "Invested capital" vs "cost basis" - use **Invested Capital** everywhere; it is the running sum of Investment Changes, not a per-lot accounting cost basis.
 - "view" labels two distinct toggles: **chart views** (Performance / Total Worth) and **asset views** (Cards / Table). They live in different sections and are unrelated.
-- "list or table" — resolved to a single **Table View** (sortable rows). "List" is an avoided alias, not a separate view.
+- "list or table" - resolved to a single **Table View** (sortable rows). "List" is an avoided alias, not a separate view.

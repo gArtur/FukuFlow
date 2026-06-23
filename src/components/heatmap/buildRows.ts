@@ -6,7 +6,7 @@ import type { HeatmapCell, HeatmapRow } from './types';
 
 /**
  * Build one asset's heatmap row: a Sub-period Return cell per visible month plus
- * the asset's range total. Pure — the per-asset derivation the portfolio heatmap
+ * the asset's range total. Pure - the per-asset derivation the portfolio heatmap
  * renders. Months the asset did not exist in are emitted as empty cells
  * (exists: false). The range total's basis is the first visible cell's
  * previousValue, unless that first cell is the asset's inception month.

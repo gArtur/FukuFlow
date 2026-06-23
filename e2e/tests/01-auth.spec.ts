@@ -31,15 +31,15 @@ test.afterAll(async () => {
     fs.writeFileSync(AUTH_STATE, JSON.stringify(storageState, null, 2));
 });
 
-test.describe('01 — Authentication flow', () => {
-    test('1.2 — login with correct password shows dashboard', async ({ page }) => {
+test.describe('01 - Authentication flow', () => {
+    test('1.2 - login with correct password shows dashboard', async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.login(TEST_PASSWORD);
         await page.waitForURL('/');
         await expect(page.locator('body')).not.toContainText('Enter your password');
     });
 
-    test('1.3 — login with wrong password shows error', async ({ page }) => {
+    test('1.3 - login with wrong password shows error', async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.goto();
         await page.waitForSelector('[data-testid="login-password"]');
@@ -50,16 +50,16 @@ test.describe('01 — Authentication flow', () => {
         await expect(page.getByTestId('login-form')).toBeVisible();
     });
 
-    test('1.4 — token persists across page reload', async ({ page }) => {
+    test('1.4 - token persists across page reload', async ({ page }) => {
         const loginPage = new LoginPage(page);
         await loginPage.login(TEST_PASSWORD);
         await page.waitForURL('/');
         await page.reload();
-        // Should still be authenticated — dashboard renders
+        // Should still be authenticated - dashboard renders
         await expect(page.getByTestId('total-worth-chart')).toBeVisible({ timeout: 10_000 });
     });
 
-    test('1.5 — logout redirects to login', async ({ browser }) => {
+    test('1.5 - logout redirects to login', async ({ browser }) => {
         // Use storageState for this test (already authenticated)
         const context = await browser.newContext({
             storageState: path.join(__dirname, '..', '.auth', 'state.json'),
@@ -79,7 +79,7 @@ test.describe('01 — Authentication flow', () => {
         await context.close();
     });
 
-    test('1.6 — password change: login with new password succeeds', async ({ browser }) => {
+    test('1.6 - password change: login with new password succeeds', async ({ browser }) => {
         const newPassword = FALLBACK_PASSWORD;
         const authStatePath = path.join(__dirname, '..', '.auth', 'state.json');
         const context = await browser.newContext({
@@ -107,14 +107,14 @@ test.describe('01 — Authentication flow', () => {
         const settingsAfter = new SettingsPage(page);
         await settingsAfter.changePassword(newPassword, TEST_PASSWORD);
 
-        // Refresh storageState — password change increments tokenVersion,
+        // Refresh storageState - password change increments tokenVersion,
         // so the saved token is invalid; save the new valid one here.
         await context.storageState({ path: authStatePath });
 
         await context.close();
     });
 
-    test('1.7 — old token invalidated after password change via API', async ({ browser, request }) => {
+    test('1.7 - old token invalidated after password change via API', async ({ browser, request }) => {
         const context = await browser.newContext({
             storageState: path.join(__dirname, '..', '.auth', 'state.json'),
         });
@@ -137,7 +137,7 @@ test.describe('01 — Authentication flow', () => {
         });
         expect(changeRes.ok()).toBeTruthy();
 
-        // Old token should now be rejected — navigating to a protected route redirects to login
+        // Old token should now be rejected - navigating to a protected route redirects to login
         await page.evaluate(token => localStorage.setItem('auth_token', token!), oldToken);
         await page.goto('/');
         await page.waitForLoadState('networkidle');

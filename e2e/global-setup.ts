@@ -4,7 +4,7 @@ import * as path from 'path';
 
 const BASE_URL = 'http://localhost:3001';
 const TEST_PASSWORD = 'TestPassword1!';
-// Password used in test 1.6 — if a previous run crashed mid-test, the DB
+// Password used in test 1.6 - if a previous run crashed mid-test, the DB
 // may still have this password set. We recover by changing it back.
 const FALLBACK_PASSWORD = 'NewPassword2@2025';
 const AUTH_DIR = path.join(__dirname, '.auth');
@@ -51,7 +51,7 @@ async function changePassword(currentPw: string, newPw: string): Promise<void> {
 export default async function globalSetup(_config: FullConfig) {
     await waitForServer(`${BASE_URL}/api/health`);
 
-    // Setup password (idempotent — returns 409 if already set)
+    // Setup password (idempotent - returns 409 if already set)
     const setupRes = await fetch(`${BASE_URL}/api/auth/setup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
