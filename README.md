@@ -37,6 +37,11 @@ Dark | Light | High Contrast Themes
 - 💾 **Backup & Restore** - Full database backup export and restore functionality.
 - 🔒 **Privacy Mode** - Hide financial values while maintaining trend visibility.
 
+### Onboarding & First Run
+- 🚀 **Guided Setup Wizard** - On a fresh install, a wizard walks you from an empty app to a populated, configured dashboard: preferences (currency/theme) → household → first asset → first value. Add multiple family members, capture the amount invested with a live profit/loss preview, step **Back** at any point, and resume where you left off after a reload.
+- 🏁 **Get Started Hero** - While the portfolio is empty, a prominent, dismissible card guides you to your first investment, then steps aside once you add one.
+- ✅ **Live Password Checklist** - First-run password setup shows a real-time requirements checklist that mirrors the backend policy, so the rules are never a guess.
+
 ### User Experience
 - ⚙️ **Settings** - Centralized management for General, People, Categories, and Backups.
 - 🎨 **Themes** - Light, Dark, and High Contrast themes with responsive design for mobile and desktop.
