@@ -49,7 +49,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         defaultFilter: 'all',
         defaultDateRange: '1Y',
         theme: 'dark',
-        showAssetHeatmap: false,
+        showAssetHeatmap: true,
         assetsFollowGeneral: true,
     });
     const [categories, setCategories] = useState<Category[]>([]);
@@ -72,8 +72,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
                         defaultDateRange: settingsData.defaultDateRange || '1Y',
                         theme: theme,
                         showAssetHeatmap:
-                            settingsData.showAssetHeatmap === 'true' ||
-                            settingsData.showAssetHeatmap === true,
+                            settingsData.showAssetHeatmap === undefined
+                                ? true
+                                : settingsData.showAssetHeatmap === 'true' ||
+                                  settingsData.showAssetHeatmap === true,
                         assetsFollowGeneral:
                             settingsData.assetsFollowGeneral === undefined
                                 ? true
