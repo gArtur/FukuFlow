@@ -1,7 +1,19 @@
 name: Cleanup Container Images
 
 # Prune the GHCR package so per-commit (:sha-) builds and orphaned manifests
-# don't accumulate forever. Floating and release tags are never touched.
+# don't accumulate forever.
+#
+# IMPORTANT - why this no longer uses actions/delete-package-versions:
+# Our release images are OCI indexes built with buildx attestations
+# (provenance + SBOM). GHCR stores an index's platform child + attestation
+# (referrer) manifests as SEPARATE, UNTAGGED package versions - the tags
+# (latest, edge, semver) live only on the parent index. The old
+# `delete-only-untagged-versions: true` step therefore deleted those children
+# and left every tag dangling -> `manifest unknown` on pull (broke v0.9.2).
+#
+# dataaxiom/ghcr-cleanup-action understands the manifest tree: it preserves the
+# children + referrer manifests of any image it keeps, so tagged indexes stay
+# pullable.
 on:
   schedule:
     # Weekly, Sundays at 04:00 UTC
@@ -13,31 +25,36 @@ jobs:
     name: Prune old image versions
     runs-on: ubuntu-latest
     permissions:
+      contents: read
       packages: write
     steps:
-      # Remove orphaned manifests left behind when a tag is moved/overwritten.
-      # NOTE: the first run (before any image has been published) will error
-      # because the package does not exist yet - that is expected. Verify this
-      # workflow manually (Run workflow) once the package exists; if the default
-      # GITHUB_TOKEN is rejected for this user-owned package, supply a PAT with
-      # the `delete:packages` scope instead.
-      - name: Delete untagged versions
-        uses: actions/delete-package-versions@v5
+      - name: Prune GHCR images
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: fukuflow
-          package-type: container
-          delete-only-untagged-versions: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          packages: fukuflow
 
-      # Age out old per-commit (:sha-<short>) builds, keeping the most recent.
-      # This step operates on ALL versions, so `ignore-versions` below is the
-      # SOLE protection for tagged versions - any new floating/release tag
-      # pattern (e.g. a future date or channel tag) MUST be added to the regex
-      # or it will be eligible for deletion. Current regex protects:
-      #   :latest, :edge, and semver tags (1, 1.2, 1.2.3, optional leading v).
-      - name: Prune old commit builds
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: fukuflow
-          package-type: container
-          min-versions-to-keep: 20
-          ignore-versions: '^(latest|edge|v?\d+(\.\d+){0,2})$'
+          # Only per-commit (:sha-<short>) builds are eligible for tag deletion,
+          # and only once they're older than 4 weeks. Release/floating tags are
+          # never `sha-*`, so they are inherently out of scope - we deliberately
+          # avoid `keep-n-tagged`, which scans ALL tags and could age out an old
+          # semver release.
+          delete-tags: 'sha-*'
+          older-than: '4 weeks'
+
+          # Belt-and-suspenders: never touch the floating channels.
+          exclude-tags: 'latest,edge'
+
+          # Remove genuinely-orphaned manifests left behind when a tag moves.
+          # The action keeps the children/attestations of images it retains.
+          delete-untagged: true
+          delete-orphaned-images: true
+
+          # Warn (informational) if any multi-arch image is left incomplete.
+          validate: true
+
+          # SAFETY - starts in dry-run so nothing is deleted yet. Trigger this
+          # workflow once via "Run workflow", confirm the log only stages old
+          # :sha-* tags and true orphans (NOT release tags or their platform /
+          # attestation children), then set this to false to enable pruning.
+          dry-run: true
