@@ -81,6 +81,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const response = await ApiClient.setup(password);
             if (response.token) {
                 localStorage.setItem('auth_token', response.token);
+                // A successful setup means a brand-new (or reset) database with no
+                // prior account. Clear onboarding flags left over in this browser
+                // from a previous install so the guided setup launches for the new
+                // account instead of being suppressed by a stale "dismissed" flag.
+                localStorage.removeItem('onboardingDismissed');
+                localStorage.removeItem('onboardingProgress');
                 setIsAuthenticated(true);
                 setNeedsSetup(false);
                 return { success: true };

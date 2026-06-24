@@ -80,8 +80,11 @@
     }
 
     .chart-header-right {
-        flex-direction: row !important;
-        justify-content: space-between;
+        /* Stack the custom date range below the quick-filter tabs for
+           readability rather than squeezing them side by side. */
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--space-sm);
         margin-left: 0;
         width: 100%;
     }

@@ -1102,7 +1102,7 @@
     min-width: 0;
 }
 
-.onboarding-add-btn {
+.onboarding-add-row .onboarding-add-btn {
     flex: 0 0 auto;
     width: auto;
     padding-left: var(--space-lg);
@@ -1343,6 +1343,22 @@
 
 .form-input::placeholder {
     color: var(--text-muted);
+}
+
+/* Native date picker icon renders near-black, so it's invisible on the dark
+   input and the calendar looks unclickable. Invert it to make it visible. */
+.form-input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.form-input[type='date']::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+}
+
+[data-theme='light'] .form-input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0);
 }
 
 .form-select {
@@ -2638,11 +2654,13 @@
     }
 
     .chart-header-right {
+        /* Stack the custom date range below the quick-filter tabs for
+           readability rather than squeezing them side by side. */
         margin-left: 0;
         align-items: flex-start !important;
         width: 100%;
-        flex-direction: row !important;
-        justify-content: space-between;
+        flex-direction: column !important;
+        gap: var(--space-sm);
     }
 }
 
